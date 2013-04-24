@@ -424,6 +424,8 @@ free((void*)(__ARRAY_LONG_MENUSIZE[0]));
 free_mem_lock( (mem_lock*)((ptrszint*)__ARRAY_LONG_MENUSIZE)[8] );
 qbs_free(__STRING_MENUBAR);
 qbs_free(__STRING_IDECUSTOMFONTFILE);
+qbs_free(__STRING_IDEANDROIDSTARTSCRIPT);
+qbs_free(__STRING_IDEANDROIDMAKESCRIPT);
 qbs_free(__STRING_V);
 qbs_free(__STRING_HASHFIND_NAME);
 if (__ARRAY_INTEGER_HASH1CHAR[2]&1){
@@ -860,6 +862,9 @@ qbs_free(__STRING_SENDC);
 qbs_free(__STRING_C);
 qbs_free(__STRING_A3);
 qbs_free(__STRING_F);
+qbs_free(__STRING_PF);
+qbs_free(__STRING_SS);
+qbs_free(__STRING_FILE_NAMESPACE);
 qbs_free(__STRING_MYLIB);
 qbs_free(__STRING_MYLIBOPT);
 qbs_free(__STRING_CWHOLELINE);

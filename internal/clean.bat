@@ -31,8 +31,4 @@ del /s c\parts\*.a 2>nul
 echo Culling temporary copies of qbx.cpp, such as qbx2.cpp
 del c\qbx2.cpp,c\qbx3.cpp,c\qbx4.cpp,c\qbx5.cpp,c\qbx6.cpp,c\qbx7.cpp,c\qbx8.cpp,c\qbx9.cpp 2>nul
 
-echo Culling Windows executable files from root folder
-del ..\*.exe 2>nul
-
-
 pause

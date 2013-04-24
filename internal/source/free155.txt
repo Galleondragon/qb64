@@ -1,8 +1,5 @@
-if(oldstr4492){
-if(oldstr4492->fixed)qbs_set(oldstr4492,_FUNC_BEGINDOWNLOAD_STRING_URL);
-qbs_free(_FUNC_BEGINDOWNLOAD_STRING_URL);
+if(oldstr4550){
+if(oldstr4550->fixed)qbs_set(oldstr4550,_FUNC_CHKSUM_STRING_F);
+qbs_free(_FUNC_CHKSUM_STRING_F);
 }
-qbs_free(_FUNC_BEGINDOWNLOAD_STRING_URL2);
-qbs_free(_FUNC_BEGINDOWNLOAD_STRING_E);
-qbs_free(_FUNC_BEGINDOWNLOAD_STRING_URL3);
-qbs_free(_FUNC_BEGINDOWNLOAD_STRING_X);
+qbs_free(_FUNC_CHKSUM_STRING_A);

@@ -6,9 +6,13 @@
  #include <GLUT/glut.h>
 #else
  #define CORE_FREEGLUT
- #ifdef QB64_BACKSLASH_FILESYSTEM
-  #include "src\\freeglut.h"
+ #ifdef QB64_ANDROID
+  #include "android_core/include/GL/freeglut.h"
  #else
-  #include "src/freeglut.h"
+  #ifdef QB64_BACKSLASH_FILESYSTEM
+   #include "src\\freeglut.h"
+  #else
+   #include "src/freeglut.h"
+  #endif
  #endif
 #endif

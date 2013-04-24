@@ -1,6 +1,26 @@
 #include "os.h"
 
+#ifdef QB64_ANDROID
+ #define QB64_GLES1
+ #define QB64_NOT_X86
+ #define QB64_GLUT
+#else
+ #define QB64_GL1
+ #define QB64_GLUT
+#endif
+
+#ifdef QB64_LINUX
+ #ifndef QB64_MACOSX
+  #ifndef QB64_ANDROID
+   #define QB64_X11
+  #endif
+ #endif
+#endif
+
+
+
 #define NO_S_D_L
+
 
 /*
 #ifdef QB64_BACKSLASH_FILESYSTEM
@@ -12,10 +32,12 @@
 
 
 //core
+#ifdef QB64_GLUT
 #ifdef QB64_BACKSLASH_FILESYSTEM
  #include "parts\\core\\src.c"
 #else
  #include "parts/core/src.c"
+#endif
 #endif
 
 #ifdef QB64_WINDOWS
@@ -32,28 +54,16 @@
 #include <time.h>
 #include <string.h>
 
-
-
-
-
-/////#include <SDL.h>
-/////#include <SDL_audio.h>
-/////#include <SDL_thread.h>
-/////#include <SDL_mixer.h>
-/////#include <SDL_image.h>
-/////#include <SDL_ttf.h>
-/////#include <SDL_net.h>
-
-
 //OS/compiler specific includes
-#ifndef QB64_MACOSX
- /////#include <SDL_syswm.h>
-#endif
 #ifdef QB64_WINDOWS
  #include <direct.h>
  #include <winspool.h>
  #include <csignal>
  #include <process.h> //required for multi-threading
+
+ //2013 midi
+ #include <mmsystem.h>
+
 #else
  #include <sys/types.h>
  #include <sys/stat.h>
@@ -67,14 +77,15 @@
 #endif
 
 
-#ifdef QB64_BACKSLASH_FILESYSTEM
- #include "parts\\core\\gl_headers\\opengl_org_registery\\glext.h"
-#else
- #include "parts/core/gl_headers/opengl_org_registery/glext.h"
+#ifdef QB64_GLUT
+ #ifndef QB64_ANDROID
+  #ifdef QB64_BACKSLASH_FILESYSTEM
+   #include "parts\\core\\gl_headers\\opengl_org_registery\\glext.h"
+  #else
+   #include "parts/core/gl_headers/opengl_org_registery/glext.h"
+  #endif
+ #endif
 #endif
-
-
-
 
 using namespace std;
 
@@ -173,6 +184,12 @@ uint8 apm_p2;
 #define IMG_SCREEN 2 //img is linked to other screen pages
 #define IMG_FREEMEM 4 //if set, it means memory must be freed
 
+#ifdef QB64_NOT_X86
+ inline int64 qbr(long double f){if (f<0) return(f-0.5f); else return(f+0.5f);}
+ inline uint64 qbr_longdouble_to_uint64(long double f){if (f<0) return(f-0.5f); else return(f+0.5f);}
+ inline int32 qbr_float_to_long(float f){if (f<0) return(f-0.5f); else return(f+0.5f);}
+ inline int32 qbr_double_to_long(double f){if (f<0) return(f-0.5f); else return(f+0.5f);}
+#else
 //QBASIC compatible rounding via FPU:
 #ifdef QB64_MICROSOFT
 	inline int64 qbr(long double f){
@@ -252,12 +269,7 @@ uint8 apm_p2;
 		return i;
 	}
 #endif
-/* Alternate rounding routines (may have to be used on non-x86 based processors)
-    inline int64 qbr(long double f){if (f<0) return(f-0.5f); else return(f+0.5f);}
-    inline uint64 qbr_longdouble_to_uint64(long double f){if (f<0) return(f-0.5f); else return(f+0.5f);}
-    inline int32 qbr_float_to_long(float f){if (f<0) return(f-0.5f); else return(f+0.5f);}
-    inline int32 qbr_double_to_long(double f){if (f<0) return(f-0.5f); else return(f+0.5f);}
-*/
+#endif //x86 support
 
 //bit-array access functions (note: used to be included through 'bit.cpp')
 static int64 bmask;

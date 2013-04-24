@@ -1,5 +1,5 @@
-if(oldstr3973){
-if(oldstr3973->fixed)qbs_set(oldstr3973,_SUB_IDENEWSF_STRING_SF);
+if(oldstr4008){
+if(oldstr4008->fixed)qbs_set(oldstr4008,_SUB_IDENEWSF_STRING_SF);
 qbs_free(_SUB_IDENEWSF_STRING_SF);
 }
 if (_SUB_IDENEWSF_ARRAY_UDT_O[2]&1){

@@ -1,14 +1,4 @@
-if(oldstr4466){
-if(oldstr4466->fixed)qbs_set(oldstr4466,_FUNC_DOWNLOAD_STRING_URL);
-qbs_free(_FUNC_DOWNLOAD_STRING_URL);
+if(oldstr4526){
+if(oldstr4526->fixed)qbs_set(oldstr4526,_FUNC_DECOMPRESS_STRING_A);
+qbs_free(_FUNC_DECOMPRESS_STRING_A);
 }
-if(oldstr4467){
-if(oldstr4467->fixed)qbs_set(oldstr4467,_FUNC_DOWNLOAD_STRING_FILE);
-qbs_free(_FUNC_DOWNLOAD_STRING_FILE);
-}
-qbs_free(_FUNC_DOWNLOAD_STRING_URL2);
-qbs_free(_FUNC_DOWNLOAD_STRING_E);
-qbs_free(_FUNC_DOWNLOAD_STRING_URL3);
-qbs_free(_FUNC_DOWNLOAD_STRING_X);
-qbs_free(_FUNC_DOWNLOAD_STRING_A);
-qbs_free(_FUNC_DOWNLOAD_STRING_A2);

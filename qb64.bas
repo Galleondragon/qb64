@@ -1,9 +1,17 @@
 $CONSOLE
 $SCREENHIDE
+
+
+
+
 '$DYNAMIC
 DEFLNG A-Z
 
+DIM SHARED MakeAndroid 'build an Android project (refer to SUB UseAndroid)
+
 DIM SHARED AllowUpdates
+
+DIM SHARED IDEBuildModeChanged
 
 
 IF _DIREXISTS("internal") = 0 THEN
@@ -28,6 +36,8 @@ CONST DEPENDENCY_AUDIO_CONVERSION = 2: DEPENDENCY_LAST = DEPENDENCY_LAST + 1
 CONST DEPENDENCY_AUDIO_DECODE = 3: DEPENDENCY_LAST = DEPENDENCY_LAST + 1
 CONST DEPENDENCY_AUDIO_OUT = 4: DEPENDENCY_LAST = DEPENDENCY_LAST + 1
 CONST DEPENDENCY_GL = 5: DEPENDENCY_LAST = DEPENDENCY_LAST + 1
+CONST DEPENDENCY_IMAGE_CODEC = 6: DEPENDENCY_LAST = DEPENDENCY_LAST + 1
+
 
 DIM SHARED DEPENDENCY(1 TO DEPENDENCY_LAST)
 
@@ -36,7 +46,7 @@ DIM SHARED UseGL 'declared SUB _GL (no params)
 DIM SHARED Version AS STRING
 DIM SHARED C_Core AS LONG '0=SDL, 1=GLUT+OpenGL
 DIM SHARED Debug AS LONG 'debug logging is off by default
-Version$ = "0.978": Debug = 0: C_Core = 1
+Version$ = "0.980": Debug = 0: C_Core = 1
 
 _TITLE "QB64"
 
@@ -287,18 +297,17 @@ IF INSTR(_OS$, "[MACOSX]") THEN MacOSX = 1
 DIM SHARED inline_DATA
 IF MacOSX THEN inline_DATA = 1
 
-
 DIM SHARED BATCHFILE_EXTENSION AS STRING
 BATCHFILE_EXTENSION = ".bat"
 IF os$ = "LNX" THEN BATCHFILE_EXTENSION = ".sh"
 IF MacOSX THEN BATCHFILE_EXTENSION = ".command"
 
-IF inline_DATA THEN
-    DIM inlinedatastr(255) AS STRING
-    FOR i = 0 TO 255
-        inlinedatastr(i) = str2$(i) + ","
-    NEXT
-END IF
+
+DIM inlinedatastr(255) AS STRING
+FOR i = 0 TO 255
+    inlinedatastr(i) = str2$(i) + ","
+NEXT
+
 
 DIM SHARED extension AS STRING
 extension$ = ".exe"
@@ -318,7 +327,7 @@ IF os$ = "LNX" THEN tmpdir$ = "./internal/temp/": tmpdir2$ = "../temp/"
 DIM SHARED tempfolderindex
 E = 0
 i = 1
-OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK READ WRITE AS #26
+OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK WRITE AS #26
 DO WHILE E
     i = i + 1
     IF i = 1000 THEN PRINT "Unable to locate the 'internal' folder": END
@@ -326,7 +335,7 @@ DO WHILE E
     IF os$ = "WIN" THEN tmpdir$ = ".\internal\temp" + str2$(i) + "\": tmpdir2$ = "..\\temp" + str2$(i) + "\\"
     IF os$ = "LNX" THEN tmpdir$ = "./internal/temp" + str2$(i) + "/": tmpdir2$ = "../temp" + str2$(i) + "/"
     E = 0
-    OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK READ WRITE AS #26
+    OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK WRITE AS #26
 LOOP
 'temp folder established
 tempfolderindex = i
@@ -623,6 +632,10 @@ DIM SHARED iderunmode
 DIM SHARED ideupdatecheck, ideupdatedaily, ideupdateauto, ideupdatelast, idedebuginfo
 DIM SHARED ideupdatetimerval AS SINGLE
 
+DIM SHARED IdeAndroidMenu
+DIM SHARED IdeAndroidStartScript AS STRING
+DIM SHARED IdeAndroidMakeScript AS STRING
+
 'ref: options.bin
 'SEEK 1
 '[2]   ideautolayout(=1)
@@ -680,6 +693,17 @@ IF LOF(150) < 1056 THEN
     v% = 0: PUT #150, , v% 'idedebuginfo
 END IF
 
+'@1056
+IF LOF(150) < 1056 + 2 + 256 + 256 THEN
+    SEEK #150, 1057
+    v% = 0: PUT #150, , v% 'IdeAndroidMenu
+    a$ = "programs\android\start_android.bat"
+    a$ = a$ + SPACE$(256 - LEN(a$))
+    PUT #150, , a$ 'IdeAndroidStartScript
+    a$ = "programs\android\make_android.bat"
+    a$ = a$ + SPACE$(256 - LEN(a$))
+    PUT #150, , a$ 'IdeAndroidMakeScript
+END IF
 
 'load options
 SEEK #150, 1
@@ -715,6 +739,16 @@ idebackupsize = v&
 GET #150, , v%: IF v% < 0 OR v% > 1 THEN v% = 0
 idedebuginfo = v%
 Include_GDB_Debugging_Info = idedebuginfo
+GET #150, , v%: IF v% < 0 OR v% > 1 THEN v% = 0
+IdeAndroidMenu = v%
+a$ = SPACE$(256)
+GET #150, , a$
+a$ = RTRIM$(a$)
+IdeAndroidStartScript = a$
+a$ = SPACE$(256)
+GET #150, , a$
+a$ = RTRIM$(a$)
+IdeAndroidMakeScript = a$
 CLOSE #150
 
 IF os$ = "WIN" AND AllowUpdates <> 0 THEN
@@ -1348,6 +1382,134 @@ IF c = 9 THEN 'run
         idecompiled = 1
     END IF
 
+
+    IF MakeAndroid THEN
+
+
+        'generate program name
+
+
+        pf$ = "programs\android\" + file$
+
+        IF _DIREXISTS(pf$) = 0 THEN
+            'once only setup
+
+            COLOR 7, 1: LOCATE idewy - 3, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 2, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 1, 2: PRINT SPACE$(idewx - 2); 'clear status window
+            LOCATE idewy - 3, 2: PRINT "Initializing project [programs\android\" + file$ + "]...";
+            PCOPY 3, 0
+
+
+            MKDIR pf$
+            SHELL _HIDE "cmd /c xcopy /e programs\android\project_template\*.* " + pf$
+            SHELL _HIDE "cmd /c xcopy /e programs\android\eclipse_template\*.* " + pf$
+
+            'modify templates
+            fr_fh = FREEFILE
+            OPEN pf$ + "\AndroidManifest.xml" FOR BINARY AS #fr_fh
+            a$ = SPACE$(LOF(fr_fh))
+            GET #fr_fh, , a$
+            CLOSE fr_fh
+            OPEN pf$ + "\AndroidManifest.xml" FOR OUTPUT AS #fr_fh
+            ss$ = CHR$(34) + "com.example.native_activity" + CHR$(34)
+            file_namespace$ = LCASE$(file$)
+            a = ASC(file_namespace$)
+            IF a >= 48 AND a <= 57 THEN file_namespace$ = "ns_" + file_namespace$
+            i = INSTR(a$, ss$)
+            a$ = LEFT$(a$, i - 1) + CHR$(34) + "com.example." + file_namespace$ + CHR$(34) + RIGHT$(a$, LEN(a$) - i - LEN(ss$) + 1)
+            PRINT #fr_fh, a$;
+            CLOSE fr_fh
+
+            fr_fh = FREEFILE
+            OPEN pf$ + "\res\values\strings.xml" FOR BINARY AS #fr_fh
+            a$ = SPACE$(LOF(fr_fh))
+            GET #fr_fh, , a$
+            CLOSE fr_fh
+            OPEN pf$ + "\res\values\strings.xml" FOR OUTPUT AS #fr_fh
+            ss$ = ">NativeActivity<"
+            i = INSTR(a$, ss$)
+            a$ = LEFT$(a$, i - 1) + ">" + file$ + "<" + RIGHT$(a$, LEN(a$) - i - LEN(ss$) + 1)
+            PRINT #fr_fh, a$;
+            CLOSE fr_fh
+
+            fr_fh = FREEFILE
+            OPEN pf$ + "\.project" FOR BINARY AS #fr_fh
+            a$ = SPACE$(LOF(fr_fh))
+            GET #fr_fh, , a$
+            CLOSE fr_fh
+            OPEN pf$ + "\.project" FOR OUTPUT AS #fr_fh
+            ss$ = "<name>NativeActivity</name>"
+            i = INSTR(a$, ss$)
+            a$ = LEFT$(a$, i - 1) + "<name>" + file$ + "</name>" + RIGHT$(a$, LEN(a$) - i - LEN(ss$) + 1)
+            PRINT #fr_fh, a$;
+            CLOSE fr_fh
+
+            IF _DIREXISTS(pf$ + "\jni\temp") = 0 THEN MKDIR pf$ + "\jni\temp"
+
+            IF _DIREXISTS(pf$ + "\jni\c") = 0 THEN MKDIR pf$ + "\jni\c"
+
+            'c
+            ex_fh = FREEFILE
+            OPEN "internal\temp\xcopy_exclude.txt" FOR OUTPUT AS #ex_fh
+            PRINT #ex_fh, "c_compiler\"
+            CLOSE ex_fh
+            SHELL _HIDE "cmd /c xcopy /e /EXCLUDE:internal\temp\xcopy_exclude.txt internal\c\*.* " + pf$ + "\jni\c"
+
+        ELSE
+
+            COLOR 7, 1: LOCATE idewy - 3, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 2, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 1, 2: PRINT SPACE$(idewx - 2); 'clear status window
+            LOCATE idewy - 3, 2: PRINT "Updating project [programs\android\" + file$ + "]...";
+            PCOPY 3, 0
+
+        END IF
+
+        'temp
+        SHELL _HIDE "cmd /c del " + pf$ + "\jni\temp\*.txt"
+        SHELL _HIDE "cmd /c copy " + tmpdir$ + "*.txt " + pf$ + "\jni\temp"
+
+        'touch main.cpp (for ndk)
+        fr_fh = FREEFILE
+        OPEN pf$ + "\jni\main.cpp" FOR BINARY AS #fr_fh
+        a$ = SPACE$(LOF(fr_fh))
+        GET #fr_fh, , a$
+        CLOSE fr_fh
+        OPEN pf$ + "\jni\main.cpp" FOR OUTPUT AS #fr_fh
+        IF ASC(a$, LEN(a$)) <> 32 THEN a$ = a$ + " " ELSE a$ = LEFT$(a$, LEN(a$) - 1)
+        PRINT #fr_fh, a$;
+        CLOSE fr_fh
+
+        'note: .bat files affect the directory they are called from
+        CHDIR pf$
+        IF INSTR(IdeAndroidStartScript, ":") THEN
+            SHELL _HIDE IdeAndroidMakeScript
+        ELSE
+            SHELL _HIDE "..\..\..\" + IdeAndroidMakeScript
+        END IF
+        CHDIR "..\..\.."
+
+        ''touch manifest (for Eclipse)
+        'fr_fh = FREEFILE
+        'OPEN pf$ + "\AndroidManifest.xml" FOR BINARY AS #fr_fh
+        'a$ = SPACE$(LOF(fr_fh))
+        'GET #fr_fh, , a$
+        'CLOSE fr_fh
+        'OPEN pf$ + "\AndroidManifest.xml" FOR OUTPUT AS #fr_fh
+        'IF ASC(a$, LEN(a$)) <> 32 THEN a$ = a$ + " " ELSE a$ = LEFT$(a$, LEN(a$) - 1)
+        'PRINT #fr_fh, a$;
+        'CLOSE fr_fh
+        '^^^^above inconsistent^^^^
+
+        'clear the gen folder (for Eclipse)
+        IF _DIREXISTS(pf$ + "\gen") THEN
+            SHELL _HIDE "cmd /c rmdir /s /q " + pf$ + "\gen"
+            SHELL _HIDE "cmd /c md " + pf$ + "\gen"
+        END IF
+
+        sendc$ = CHR$(11) '".EXE file created" aka "Android project created"
+        GOTO sendcommand
+
+    END IF
+
+
     IF iderunmode = 2 THEN
         sendc$ = CHR$(11) '.EXE file created
         GOTO sendcommand
@@ -1355,7 +1517,6 @@ IF c = 9 THEN 'run
 
     'hack! (a new message should be sent to the IDE stating C++ compilation was successful)
     COLOR 7, 1: LOCATE idewy - 3, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 2, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 1, 2: PRINT SPACE$(idewx - 2); 'clear status window
-
     LOCATE idewy - 3, 2: PRINT "Starting program...";
     PCOPY 3, 0
 
@@ -1419,7 +1580,7 @@ Error_Happened = 0
 
 FOR closeall = 1 TO 255: CLOSE closeall: NEXT
 
-OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK READ WRITE AS #26 'relock
+OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK WRITE AS #26 'relock
 
 fh = FREEFILE: OPEN tmpdir$ + "dyninfo.txt" FOR OUTPUT AS #fh: CLOSE #fh
 
@@ -1744,7 +1905,7 @@ udtenext(i2) = 0
 
 'begin compilation
 FOR closeall = 1 TO 255: CLOSE closeall: NEXT
-OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK READ WRITE AS #26 'relock
+OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK WRITE AS #26 'relock
 
 
 IF Debug THEN CLOSE #9: OPEN tmpdir$ + "debug.txt" FOR APPEND AS #9
@@ -2057,12 +2218,12 @@ DO
 
                             'get expression
                             e$ = ""
-                            b = 0
+                            B = 0
                             FOR i2 = i TO n
                                 e2$ = getelement$(ca$, i2)
-                                IF e2$ = "(" THEN b = b + 1
-                                IF e2$ = ")" THEN b = b - 1
-                                IF e2$ = "," AND b = 0 THEN
+                                IF e2$ = "(" THEN B = B + 1
+                                IF e2$ = ")" THEN B = B - 1
+                                IF e2$ = "," AND B = 0 THEN
                                     pending = 1
                                     i = i2 + 1
                                     IF i > n - 2 THEN a$ = "Expected CONST ... , name = value/expression": GOTO errmes
@@ -2321,13 +2482,13 @@ DO
                                 IF e$ <> ")" THEN a$ = "Expected )": GOTO errmes
                                 IF n < 4 THEN a$ = "Expected ( ... )": GOTO errmes
                                 IF n = 4 THEN GOTO nosfparams
-                                b = 0
+                                B = 0
                                 a2$ = ""
                                 FOR i = 4 TO n - 1
                                     e$ = getelement$(a$, i)
-                                    IF e$ = "(" THEN b = b + 1
-                                    IF e$ = ")" THEN b = b - 1
-                                    IF e$ = "," AND b = 0 THEN
+                                    IF e$ = "(" THEN B = B + 1
+                                    IF e$ = ")" THEN B = B - 1
+                                    IF e$ = "," AND B = 0 THEN
                                         IF i = n - 1 THEN a$ = "Expected , ... )": GOTO errmes
                                         getlastparam:
                                         IF a2$ = "" THEN a$ = "Expected ... ,": GOTO errmes
@@ -2536,10 +2697,12 @@ DO
                 f$ = p$ + a$
             END IF
             IF try = 2 THEN f$ = a$
-            qberrorhappened = -3
-            OPEN f$ FOR INPUT AS #fh
-            qberrorhappened3:
-            IF qberrorhappened = -3 THEN EXIT FOR
+            IF _FILEEXISTS(f$) THEN
+                qberrorhappened = -3
+                OPEN f$ FOR INPUT AS #fh
+                qberrorhappened3:
+                IF qberrorhappened = -3 THEN EXIT FOR
+            END IF
             qberrorhappened = 0
         NEXT
         IF qberrorhappened <> -3 THEN qberrorhappened = 0: a$ = "File " + a$ + " not found": GOTO errmes
@@ -4221,13 +4384,13 @@ DO
                 l$ = l$ + sp + "("
                 IF n = 4 THEN GOTO nosfparams2
                 IF n < 4 THEN a$ = "Expected ( ... )": GOTO errmes
-                b = 0
+                B = 0
                 a2$ = ""
                 FOR i = 4 TO n - 1
                     e$ = getelement$(ca$, i)
-                    IF e$ = "(" THEN b = b + 1
-                    IF e$ = ")" THEN b = b - 1
-                    IF e$ = "," AND b = 0 THEN
+                    IF e$ = "(" THEN B = B + 1
+                    IF e$ = ")" THEN B = B - 1
+                    IF e$ = "," AND B = 0 THEN
                         IF i = n - 1 THEN a$ = "Expected , ... )": GOTO errmes
                         getlastparam2:
                         IF a2$ = "" THEN a$ = "Expected ... ,": GOTO errmes
@@ -4449,8 +4612,6 @@ DO
             PRINT #12, "uint8 *tmp_mem_static_pointer=mem_static_pointer;"
             PRINT #12, "uint32 tmp_cmem_sp=cmem_sp;"
             PRINT #12, "#include " + CHR$(34) + "data" + str2$(subfuncn) + ".txt" + CHR$(34)
-            PRINT #12, "if (new_error) goto exit_subfunc;"
-
 
             'create new _MEM lock for this scope
             PRINT #12, "mem_lock *sf_mem_lock;" 'MUST not be static for recursion reasons
@@ -4458,6 +4619,7 @@ DO
             PRINT #12, "sf_mem_lock=mem_lock_tmp;"
             PRINT #12, "sf_mem_lock->type=3;"
 
+            PRINT #12, "if (new_error) goto exit_subfunc;"
 
             'statementn = statementn + 1
             'if nochecks=0 then PRINT #12, "S_" + str2$(statementn) + ":;"
@@ -4646,12 +4808,12 @@ DO
 
         'get expression
         e$ = ""
-        b = 0
+        B = 0
         FOR i2 = i TO n
             e2$ = getelement$(ca$, i2)
-            IF e2$ = "(" THEN b = b + 1
-            IF e2$ = ")" THEN b = b - 1
-            IF e2$ = "," AND b = 0 THEN
+            IF e2$ = "(" THEN B = B + 1
+            IF e2$ = ")" THEN B = B - 1
+            IF e2$ = "," AND B = 0 THEN
                 pending = 1
                 i = i2 + 1
                 IF i > n - 2 THEN a$ = "Expected CONST ... , name = value/expression": GOTO errmes
@@ -5137,6 +5299,9 @@ DO
                     IF Error_Happened THEN GOTO errmes
                     IF (typ AND ISREFERENCE) THEN e$ = refer$(e$, typ, 0)
                     IF Error_Happened THEN GOTO errmes
+                    IF typ AND ISSTRING THEN
+                        a$ = "Expected ELSEIF LEN(stringexpression) THEN": GOTO errmes
+                    END IF
                     IF stringprocessinghappened THEN
                         PRINT #12, "if (" + cleanupstringprocessingcall$ + e$ + ")){"
                     ELSE
@@ -5173,6 +5338,10 @@ DO
             IF Error_Happened THEN GOTO errmes
             IF (typ AND ISREFERENCE) THEN e$ = refer$(e$, typ, 0)
             IF Error_Happened THEN GOTO errmes
+
+            IF typ AND ISSTRING THEN
+                a$ = "Expected IF LEN(stringexpression) THEN": GOTO errmes
+            END IF
 
             IF stringprocessinghappened THEN
                 PRINT #12, "if ((" + cleanupstringprocessingcall$ + e$ + "))||new_error){"
@@ -5418,14 +5587,14 @@ DO
             f12$ = ""
 
             nexp = 0
-            b = 0
+            B = 0
             e$ = ""
             FOR i = 2 TO n
                 e2$ = getelement$(ca$, i)
-                IF e2$ = "(" THEN b = b + 1
-                IF e2$ = ")" THEN b = b - 1
+                IF e2$ = "(" THEN B = B + 1
+                IF e2$ = ")" THEN B = B - 1
                 IF i = n THEN e$ = e$ + sp + e2$
-                IF i = n OR (e2$ = "," AND b = 0) THEN
+                IF i = n OR (e2$ = "," AND B = 0) THEN
                     IF nexp <> 0 THEN l$ = l$ + sp2 + ",": f12$ = f12$ + "||"
                     IF e$ = "" THEN a$ = "Expected expression": GOTO errmes
                     e$ = RIGHT$(e$, LEN(e$) - 1)
@@ -5667,12 +5836,12 @@ DO
             GOTO finishedline
         END IF
         'search for comma to indicate assignment
-        b = 0: e$ = ""
+        B = 0: e$ = ""
         FOR i = 2 TO n
             e2$ = getelement(ca$, i)
-            IF e2$ = "(" THEN b = b + 1
-            IF e2$ = ")" THEN b = b - 1
-            IF e2$ = "," AND b = 0 THEN
+            IF e2$ = "(" THEN B = B + 1
+            IF e2$ = ")" THEN B = B - 1
+            IF e2$ = "," AND B = 0 THEN
                 i = i + 1: GOTO key_assignment
             END IF
             IF LEN(e$) THEN e$ = e$ + sp + e2$ ELSE e$ = e2$
@@ -5707,12 +5876,12 @@ DO
     IF firstelement$ = "FIELD" THEN
 
         'get filenumber
-        b = 0: e$ = ""
+        B = 0: e$ = ""
         FOR i = 2 TO n
             e2$ = getelement(ca$, i)
-            IF e2$ = "(" THEN b = b + 1
-            IF e2$ = ")" THEN b = b - 1
-            IF e2$ = "," AND b = 0 THEN
+            IF e2$ = "(" THEN B = B + 1
+            IF e2$ = ")" THEN B = B - 1
+            IF e2$ = "," AND B = 0 THEN
                 i = i + 1: GOTO fieldgotfn
             END IF
             IF LEN(e$) THEN e$ = e$ + sp + e2$ ELSE e$ = e2$
@@ -5732,12 +5901,12 @@ DO
 
         'get fieldwidth
         IF i > n THEN GOTO fielderror
-        b = 0: e$ = ""
+        B = 0: e$ = ""
         FOR i = i TO n
             e2$ = getelement(ca$, i)
-            IF e2$ = "(" THEN b = b + 1
-            IF e2$ = ")" THEN b = b - 1
-            IF UCASE$(e2$) = "AS" AND b = 0 THEN
+            IF e2$ = "(" THEN B = B + 1
+            IF e2$ = ")" THEN B = B - 1
+            IF UCASE$(e2$) = "AS" AND B = 0 THEN
                 i = i + 1: GOTO fieldgotfw
             END IF
             IF LEN(e$) THEN e$ = e$ + sp + e2$ ELSE e$ = e2$
@@ -5753,12 +5922,12 @@ DO
 
         'get variable name
         IF i > n THEN GOTO fielderror
-        b = 0: e$ = ""
+        B = 0: e$ = ""
         FOR i = i TO n
             e2$ = getelement(ca$, i)
-            IF e2$ = "(" THEN b = b + 1
-            IF e2$ = ")" THEN b = b - 1
-            IF (i = n OR e2$ = ",") AND b = 0 THEN
+            IF e2$ = "(" THEN B = B + 1
+            IF e2$ = ")" THEN B = B - 1
+            IF (i = n OR e2$ = ",") AND B = 0 THEN
                 IF e2$ = "," THEN i = i - 1
                 IF i = n THEN
                     IF LEN(e$) THEN e$ = e$ + sp + e2$ ELSE e$ = e2$
@@ -5870,17 +6039,17 @@ DO
             IF a2$ <> "(" THEN a$ = "Expected (": GOTO errmes
             l$ = "ON" + sp + "STRIG" + sp2 + "("
             IF i > n THEN a$ = "Expected ...": GOTO errmes
-            b = 0
+            B = 0
             x = 0
             e2$ = ""
             e3$ = ""
             FOR i = i TO n
                 e$ = getelement$(ca$, i)
                 a = ASC(e$)
-                IF a = 40 THEN b = b + 1
-                IF a = 41 THEN b = b - 1
-                IF b = -1 THEN GOTO onstriggotarg
-                IF a = 44 AND b = 0 THEN
+                IF a = 40 THEN B = B + 1
+                IF a = 41 THEN B = B - 1
+                IF B = -1 THEN GOTO onstriggotarg
+                IF a = 44 AND B = 0 THEN
                     x = x + 1
                     IF x > 1 THEN a$ = "Expected )": GOTO errmes
                     IF e2$ = "" THEN a$ = "Expected ... ,": GOTO errmes
@@ -6013,12 +6182,12 @@ DO
                     IF id.args = 0 THEN a$ = "SUB has no arguments": GOTO errmes
 
                     t = CVL(id.arg)
-                    b = t AND 511
-                    IF b = 0 OR (t AND ISARRAY) <> 0 OR (t AND ISFLOAT) <> 0 OR (t AND ISSTRING) <> 0 OR (t AND ISOFFSETINBITS) <> 0 THEN a$ = "Only SUB arguments of integer-type allowed": GOTO errmes
-                    IF b = 8 THEN ct$ = "int8"
-                    IF b = 16 THEN ct$ = "int16"
-                    IF b = 32 THEN ct$ = "int32"
-                    IF b = 64 THEN ct$ = "int64"
+                    B = t AND 511
+                    IF B = 0 OR (t AND ISARRAY) <> 0 OR (t AND ISFLOAT) <> 0 OR (t AND ISSTRING) <> 0 OR (t AND ISOFFSETINBITS) <> 0 THEN a$ = "Only SUB arguments of integer-type allowed": GOTO errmes
+                    IF B = 8 THEN ct$ = "int8"
+                    IF B = 16 THEN ct$ = "int16"
+                    IF B = 32 THEN ct$ = "int32"
+                    IF B = 64 THEN ct$ = "int64"
                     IF t AND ISOFFSET THEN ct$ = "ptrszint"
                     IF t AND ISUNSIGNED THEN ct$ = "u" + ct$
                     PRINT #29, "(" + ct$ + "*)&i64);"
@@ -6061,17 +6230,17 @@ DO
             IF a2$ <> "(" THEN a$ = "Expected (": GOTO errmes
             l$ = "ON" + sp + "TIMER" + sp2 + "("
             IF i > n THEN a$ = "Expected ...": GOTO errmes
-            b = 0
+            B = 0
             x = 0
             e2$ = ""
             e3$ = ""
             FOR i = i TO n
                 e$ = getelement$(ca$, i)
                 a = ASC(e$)
-                IF a = 40 THEN b = b + 1
-                IF a = 41 THEN b = b - 1
-                IF b = -1 THEN GOTO ontimgotarg
-                IF a = 44 AND b = 0 THEN
+                IF a = 40 THEN B = B + 1
+                IF a = 41 THEN B = B - 1
+                IF B = -1 THEN GOTO ontimgotarg
+                IF a = 44 AND B = 0 THEN
                     x = x + 1
                     IF x > 1 THEN a$ = "Expected )": GOTO errmes
                     IF e2$ = "" THEN a$ = "Expected ... ,": GOTO errmes
@@ -6200,12 +6369,12 @@ DO
                     IF id.args = 0 THEN a$ = "SUB has no arguments": GOTO errmes
 
                     t = CVL(id.arg)
-                    b = t AND 511
-                    IF b = 0 OR (t AND ISARRAY) <> 0 OR (t AND ISFLOAT) <> 0 OR (t AND ISSTRING) <> 0 OR (t AND ISOFFSETINBITS) <> 0 THEN a$ = "Only SUB arguments of integer-type allowed": GOTO errmes
-                    IF b = 8 THEN ct$ = "int8"
-                    IF b = 16 THEN ct$ = "int16"
-                    IF b = 32 THEN ct$ = "int32"
-                    IF b = 64 THEN ct$ = "int64"
+                    B = t AND 511
+                    IF B = 0 OR (t AND ISARRAY) <> 0 OR (t AND ISFLOAT) <> 0 OR (t AND ISSTRING) <> 0 OR (t AND ISOFFSETINBITS) <> 0 THEN a$ = "Only SUB arguments of integer-type allowed": GOTO errmes
+                    IF B = 8 THEN ct$ = "int8"
+                    IF B = 16 THEN ct$ = "int16"
+                    IF B = 32 THEN ct$ = "int32"
+                    IF B = 64 THEN ct$ = "int64"
                     IF t AND ISOFFSET THEN ct$ = "ptrszint"
                     IF t AND ISUNSIGNED THEN ct$ = "u" + ct$
                     PRINT #24, "(" + ct$ + "*)&i64);"
@@ -6240,7 +6409,7 @@ DO
             IF a2$ <> "(" THEN a$ = "Expected (": GOTO errmes
             l$ = "ON" + sp + "KEY" + sp2 + "("
             IF i > n THEN a$ = "Expected ...": GOTO errmes
-            b = 0
+            B = 0
             x = 0
             e2$ = ""
             FOR i = i TO n
@@ -6248,9 +6417,9 @@ DO
                 a = ASC(e$)
 
 
-                IF a = 40 THEN b = b + 1
-                IF a = 41 THEN b = b - 1
-                IF b = -1 THEN EXIT FOR
+                IF a = 40 THEN B = B + 1
+                IF a = 41 THEN B = B - 1
+                IF B = -1 THEN EXIT FOR
                 IF LEN(e2$) THEN e2$ = e2$ + sp + e$ ELSE e2$ = e$
             NEXT
             IF i = n + 1 THEN a$ = "Expected )": GOTO errmes
@@ -6351,12 +6520,12 @@ DO
                     IF id.args = 0 THEN a$ = "SUB has no arguments": GOTO errmes
 
                     t = CVL(id.arg)
-                    b = t AND 511
-                    IF b = 0 OR (t AND ISARRAY) <> 0 OR (t AND ISFLOAT) <> 0 OR (t AND ISSTRING) <> 0 OR (t AND ISOFFSETINBITS) <> 0 THEN a$ = "Only SUB arguments of integer-type allowed": GOTO errmes
-                    IF b = 8 THEN ct$ = "int8"
-                    IF b = 16 THEN ct$ = "int16"
-                    IF b = 32 THEN ct$ = "int32"
-                    IF b = 64 THEN ct$ = "int64"
+                    B = t AND 511
+                    IF B = 0 OR (t AND ISARRAY) <> 0 OR (t AND ISFLOAT) <> 0 OR (t AND ISSTRING) <> 0 OR (t AND ISOFFSETINBITS) <> 0 THEN a$ = "Only SUB arguments of integer-type allowed": GOTO errmes
+                    IF B = 8 THEN ct$ = "int8"
+                    IF B = 16 THEN ct$ = "int16"
+                    IF B = 32 THEN ct$ = "int32"
+                    IF B = 64 THEN ct$ = "int64"
                     IF t AND ISOFFSET THEN ct$ = "ptrszint"
                     IF t AND ISUNSIGNED THEN ct$ = "u" + ct$
                     PRINT #27, "(" + ct$ + "*)&i64);"
@@ -6590,7 +6759,7 @@ DO
             a3$ = ""
             stringvariable$ = ""
             position$ = ""
-            b = 0
+            B = 0
             DO
 
                 IF i > n THEN 'got part 3
@@ -6600,10 +6769,10 @@ DO
                 END IF
 
                 a2$ = getelement$(ca$, i)
-                IF a2$ = "(" THEN b = b + 1
-                IF a2$ = ")" THEN b = b - 1
+                IF a2$ = "(" THEN B = B + 1
+                IF a2$ = ")" THEN B = B - 1
 
-                IF b = -1 THEN
+                IF B = -1 THEN
 
                     IF part = 1 THEN 'eg. ASC(a$)=65
                         IF getelement$(a$, i + 1) <> "=" THEN a$ = "Expected =": GOTO errmes
@@ -6623,7 +6792,7 @@ DO
 
                 END IF
 
-                IF a2$ = "," AND b = 0 THEN
+                IF a2$ = "," AND B = 0 THEN
                     IF part = 1 THEN stringvariable$ = a3$: part = 2: a3$ = "": GOTO ascgotpart
                 END IF
 
@@ -6697,7 +6866,7 @@ DO
             a3$ = ""
             stringvariable$ = ""
             start$ = ""
-            b = 0
+            B = 0
             DO
                 IF i > n THEN
                     IF part <> 4 OR a3$ = "" THEN a$ = "Expected MID$(...)=...": GOTO errmes
@@ -6705,9 +6874,9 @@ DO
                     EXIT DO
                 END IF
                 a2$ = getelement$(ca$, i)
-                IF a2$ = "(" THEN b = b + 1
-                IF a2$ = ")" THEN b = b - 1
-                IF b = -1 THEN
+                IF a2$ = "(" THEN B = B + 1
+                IF a2$ = ")" THEN B = B - 1
+                IF B = -1 THEN
                     IF part = 2 THEN
                         IF getelement$(a$, i + 1) <> "=" THEN a$ = "Expected = after )": GOTO errmes
                         start$ = a3$: part = 4: a3$ = "": i = i + 1: GOTO midgotpart
@@ -6718,7 +6887,7 @@ DO
                         length$ = a3$: part = 4: a3$ = "": i = i + 1: GOTO midgotpart
                     END IF
                 END IF
-                IF a2$ = "," AND b = 0 THEN
+                IF a2$ = "," AND B = 0 THEN
                     IF part = 1 THEN stringvariable$ = a3$: part = 2: a3$ = "": GOTO midgotpart
                     IF part = 2 THEN start$ = a3$: part = 3: a3$ = "": GOTO midgotpart
                 END IF
@@ -6836,10 +7005,10 @@ DO
                 PRINT #12, n$ + "[2]^=1;" 'remove defined flag, keeping other flags (such as cmem)
                 'set dimensions as undefined
                 FOR i2 = 1 TO ABS(id.arrayelements)
-                    b = i2 * 4
-                    PRINT #12, n$ + "[" + str2(b) + "]=2147483647;" 'base
-                    PRINT #12, n$ + "[" + str2(b + 1) + "]=0;" 'num. index
-                    PRINT #12, n$ + "[" + str2(b + 2) + "]=0;" 'multiplier
+                    B = i2 * 4
+                    PRINT #12, n$ + "[" + str2(B) + "]=2147483647;" 'base
+                    PRINT #12, n$ + "[" + str2(B + 1) + "]=0;" 'num. index
+                    PRINT #12, n$ + "[" + str2(B + 2) + "]=0;" 'multiplier
                 NEXT
                 IF (id.arraytype AND ISSTRING) <> 0 AND (id.arraytype AND ISFIXEDLENGTH) = 0 THEN
                     PRINT #12, n$ + "[0]=(ptrszint)&nothingstring;"
@@ -6921,15 +7090,15 @@ DO
             elements$ = ""
 
             IF e$ = "(" THEN
-                b = 1
+                B = 1
                 FOR i = i TO n
                     e$ = getelement(ca$, i)
-                    IF e$ = "(" THEN b = b + 1
-                    IF e$ = ")" THEN b = b - 1
-                    IF b = 0 THEN EXIT FOR
+                    IF e$ = "(" THEN B = B + 1
+                    IF e$ = ")" THEN B = B - 1
+                    IF B = 0 THEN EXIT FOR
                     IF LEN(elements$) THEN elements$ = elements$ + sp + e$ ELSE elements$ = e$
                 NEXT
-                IF b <> 0 THEN a$ = "Expected )": GOTO errmes
+                IF B <> 0 THEN a$ = "Expected )": GOTO errmes
                 i = i + 1 'set i to point to the next element
 
                 IF commonoption THEN elements$ = "?"
@@ -7871,13 +8040,13 @@ DO
         IF firstelement$ = "_MEMGET" THEN
             'get expressions
             e$ = ""
-            b = 0
+            B = 0
             ne = 0
             FOR i2 = 2 TO n
                 e2$ = getelement$(ca$, i2)
-                IF e2$ = "(" THEN b = b + 1
-                IF e2$ = ")" THEN b = b - 1
-                IF e2$ = "," AND b = 0 THEN
+                IF e2$ = "(" THEN B = B + 1
+                IF e2$ = ")" THEN B = B - 1
+                IF e2$ = "," AND B = 0 THEN
                     ne = ne + 1
                     IF ne = 1 THEN blk$ = e$: e$ = ""
                     IF ne = 2 THEN offs$ = e$: e$ = ""
@@ -7971,13 +8140,13 @@ DO
             'get expressions
             typ$ = ""
             e$ = ""
-            b = 0
+            B = 0
             ne = 0
             FOR i2 = 2 TO n
                 e2$ = getelement$(ca$, i2)
-                IF e2$ = "(" THEN b = b + 1
-                IF e2$ = ")" THEN b = b - 1
-                IF (e2$ = "," OR UCASE$(e2$) = "AS") AND b = 0 THEN
+                IF e2$ = "(" THEN B = B + 1
+                IF e2$ = ")" THEN B = B - 1
+                IF (e2$ = "," OR UCASE$(e2$) = "AS") AND B = 0 THEN
                     ne = ne + 1
                     IF ne = 1 THEN blk$ = e$: e$ = ""
                     IF ne = 2 THEN offs$ = e$: e$ = ""
@@ -8107,13 +8276,13 @@ DO
             'get expressions
             typ$ = ""
             e$ = ""
-            b = 0
+            B = 0
             ne = 0
             FOR i2 = 2 TO n
                 e2$ = getelement$(ca$, i2)
-                IF e2$ = "(" THEN b = b + 1
-                IF e2$ = ")" THEN b = b - 1
-                IF (e2$ = "," OR UCASE$(e2$) = "AS") AND b = 0 THEN
+                IF e2$ = "(" THEN B = B + 1
+                IF e2$ = ")" THEN B = B - 1
+                IF (e2$ = "," OR UCASE$(e2$) = "AS") AND B = 0 THEN
                     ne = ne + 1
                     IF ne = 1 THEN blk$ = e$: e$ = ""
                     IF ne = 2 THEN offs$ = e$: e$ = ""
@@ -8245,13 +8414,13 @@ DO
                 IF n$ = "INTERRUPT" THEN PRINT #12, "call_interrupt("; ELSE PRINT #12, "call_interruptx(";
                 argn = 0
                 n = numelements(a$)
-                b = 0
+                B = 0
                 e$ = ""
                 FOR i = 2 TO n
                     e2$ = getelement$(ca$, i)
-                    IF e2$ = "(" THEN b = b + 1
-                    IF e2$ = ")" THEN b = b - 1
-                    IF (e2$ = "," AND b = 0) OR i = n THEN
+                    IF e2$ = "(" THEN B = B + 1
+                    IF e2$ = ")" THEN B = B - 1
+                    IF (e2$ = "," AND B = 0) OR i = n THEN
                         IF i = n THEN
                             IF e$ = "" THEN e$ = e2$ ELSE e$ = e$ + sp + e2$
                         END IF
@@ -8301,13 +8470,13 @@ DO
                 l$ = "CALL" + sp + "ABSOLUTE" + sp2 + "(" + sp2
                 argn = 0
                 n = numelements(a$)
-                b = 0
+                B = 0
                 e$ = ""
                 FOR i = 2 TO n
                     e2$ = getelement$(ca$, i)
-                    IF e2$ = "(" THEN b = b + 1
-                    IF e2$ = ")" THEN b = b - 1
-                    IF (e2$ = "," AND b = 0) OR i = n THEN
+                    IF e2$ = "(" THEN B = B + 1
+                    IF e2$ = ")" THEN B = B - 1
+                    IF (e2$ = "," AND B = 0) OR i = n THEN
                         IF i < n THEN
                             IF e$ = "" THEN a$ = "Expected expression before , or )": GOTO errmes
                             '1. variable or value?
@@ -8446,13 +8615,13 @@ DO
                 'check for array assignment
                 IF n > 2 THEN
                     IF getelement$(a$, 2) = "(" THEN
-                        b = 1
+                        B = 1
                         FOR i = 3 TO n
                             e$ = getelement$(a$, i)
-                            IF e$ = "(" THEN b = b + 1
+                            IF e$ = "(" THEN B = B + 1
                             IF e$ = ")" THEN
-                                b = b - 1
-                                IF b = 0 THEN
+                                B = B - 1
+                                IF B = 0 THEN
                                     IF i = n THEN EXIT FOR
                                     IF getelement$(a$, i + 1) = "=" THEN GOTO notsubcall
                                 END IF
@@ -8465,13 +8634,13 @@ DO
 
                 IF firstelement$ = "OPEN" THEN
                     'gwbasic or qbasic version?
-                    b = 0
+                    B = 0
                     FOR x = 2 TO n
                         a2$ = getelement$(a$, x)
-                        IF a2$ = "(" THEN b = b + 1
-                        IF a2$ = ")" THEN b = b - 1
+                        IF a2$ = "(" THEN B = B + 1
+                        IF a2$ = ")" THEN B = B - 1
                         IF a2$ = "FOR" OR a2$ = "AS" THEN EXIT FOR 'qb style open verified
-                        IF b = 0 AND a2$ = "," THEN 'the gwbasic version includes a comma after the first string expression
+                        IF B = 0 AND a2$ = "," THEN 'the gwbasic version includes a comma after the first string expression
                             findanotherid = 1
                             try = findid(firstelement$) 'id of sub_open_gwbasic
                             IF Error_Happened THEN GOTO errmes
@@ -8494,20 +8663,20 @@ DO
                         PRINT #12, "sub_close(NULL,0);" 'closes all files
                     ELSE
                         l$ = l$ + sp
-                        b = 0
+                        B = 0
                         s = 0
                         a3$ = ""
                         FOR x = 2 TO n
                             a2$ = getelement$(ca$, x)
-                            IF a2$ = "(" THEN b = b + 1
-                            IF a2$ = ")" THEN b = b - 1
-                            IF a2$ = "#" AND b = 0 THEN
+                            IF a2$ = "(" THEN B = B + 1
+                            IF a2$ = ")" THEN B = B - 1
+                            IF a2$ = "#" AND B = 0 THEN
                                 IF s = 0 THEN s = 1 ELSE a$ = "Unexpected #": GOTO errmes
                                 l$ = l$ + "#" + sp2
                                 GOTO closenexta
                             END IF
 
-                            IF a2$ = "," AND b = 0 THEN
+                            IF a2$ = "," AND B = 0 THEN
                                 IF s = 2 THEN
                                     e$ = fixoperationorder$(a3$)
                                     IF Error_Happened THEN GOTO errmes
@@ -8622,12 +8791,12 @@ DO
                             'which file?
                             IF n = 2 THEN a$ = "Expected # ... , ...": GOTO errmes
                             a3$ = ""
-                            b = 0
+                            B = 0
                             FOR i = 3 TO n
                                 a2$ = getelement$(ca$, i)
-                                IF a2$ = "(" THEN b = b + 1
-                                IF a2$ = ")" THEN b = b - 1
-                                IF a2$ = "," AND b = 0 THEN
+                                IF a2$ = "(" THEN B = B + 1
+                                IF a2$ = ")" THEN B = B - 1
+                                IF a2$ = "," AND B = 0 THEN
                                     IF a3$ = "" THEN a$ = "Expected # ... , ...": GOTO errmes
                                     GOTO inputgotfn
                                 END IF
@@ -8644,16 +8813,16 @@ DO
                             i = i + 1
                             IF i > n THEN a$ = "Expected , ...": GOTO errmes
                             a3$ = ""
-                            b = 0
+                            B = 0
                             FOR i = i TO n
                                 a2$ = getelement$(ca$, i)
-                                IF a2$ = "(" THEN b = b + 1
-                                IF a2$ = ")" THEN b = b - 1
+                                IF a2$ = "(" THEN B = B + 1
+                                IF a2$ = ")" THEN B = B - 1
                                 IF i = n THEN
                                     IF a3$ = "" THEN a3$ = a2$ ELSE a3$ = a3$ + sp + a2$
-                                    a2$ = ",": b = 0
+                                    a2$ = ",": B = 0
                                 END IF
-                                IF a2$ = "," AND b = 0 THEN
+                                IF a2$ = "," AND B = 0 THEN
                                     IF a3$ = "" THEN a$ = "Expected , ...": GOTO errmes
                                     e$ = fixoperationorder$(a3$)
                                     IF Error_Happened THEN GOTO errmes
@@ -8750,13 +8919,13 @@ DO
                             IF a2$ <> "," THEN a$ = "INPUT STATEMENT: SYNTAX ERROR! (COMMA EXPECTED)": GOTO errmes
                         ELSE
 
-                            b = 0
+                            B = 0
                             e$ = ""
                             FOR i2 = i TO n
                                 e2$ = getelement$(ca$, i2)
-                                IF e2$ = "(" THEN b = b + 1
-                                IF e2$ = ")" THEN b = b - 1
-                                IF e2$ = "," AND b = 0 THEN i2 = i2 - 1: EXIT FOR
+                                IF e2$ = "(" THEN B = B + 1
+                                IF e2$ = ")" THEN B = B - 1
+                                IF e2$ = "," AND B = 0 THEN i2 = i2 - 1: EXIT FOR
                                 e$ = e$ + sp + e2$
                             NEXT
                             i = i2: IF i > n THEN i = n
@@ -8874,7 +9043,7 @@ DO
                     part = 1
                     i = 2
                     a3$ = ""
-                    b = 0
+                    B = 0
                     DO
                         IF i > n THEN
                             IF part <> 2 OR a3$ = "" THEN a$ = "Expected LSET/RSET stringvariable=string": GOTO errmes
@@ -8882,9 +9051,9 @@ DO
                             EXIT DO
                         END IF
                         a2$ = getelement$(ca$, i)
-                        IF a2$ = "(" THEN b = b + 1
-                        IF a2$ = ")" THEN b = b - 1
-                        IF a2$ = "=" AND b = 0 THEN
+                        IF a2$ = "(" THEN B = B + 1
+                        IF a2$ = ")" THEN B = B - 1
+                        IF a2$ = "=" AND B = 0 THEN
                             IF part = 1 THEN dest$ = a3$: part = 2: a3$ = "": GOTO lrsetgotpart
                         END IF
                         IF LEN(a3$) THEN a3$ = a3$ + sp + a2$ ELSE a3$ = a2$
@@ -8918,15 +9087,15 @@ DO
                 'SWAP
                 IF firstelement$ = "SWAP" THEN
                     IF n < 4 THEN a$ = "Expected SWAP ... , ...": GOTO errmes
-                    b = 0
+                    B = 0
                     ele = 1
                     e1$ = ""
                     e2$ = ""
                     FOR i = 2 TO n
                         e$ = getelement$(ca$, i)
-                        IF e$ = "(" THEN b = b + 1
-                        IF e$ = ")" THEN b = b - 1
-                        IF e$ = "," AND b = 0 THEN
+                        IF e$ = "(" THEN B = B + 1
+                        IF e$ = ")" THEN B = B - 1
+                        IF e$ = "," AND B = 0 THEN
                             IF ele = 2 THEN a$ = "Expected SWAP ... , ...": GOTO errmes
                             ele = 2
                         ELSE
@@ -8992,13 +9161,13 @@ DO
                                 IF u <> u2 OR e2 <> 0 THEN a$ = "Expected SWAP with similar user defined type": GOTO errmes
                                 dst$ = "(((char*)" + lhsscope$ + n$ + ")+(" + o$ + "))"
                                 src$ = "(((char*)" + scope$ + n2$ + ")+(" + o2$ + "))"
-                                b = udtxsize(u) \ 8
-                                siz$ = str2$(b)
-                                IF b = 1 THEN PRINT #12, "swap_8(" + src$ + "," + dst$ + ");"
-                                IF b = 2 THEN PRINT #12, "swap_16(" + src$ + "," + dst$ + ");"
-                                IF b = 4 THEN PRINT #12, "swap_32(" + src$ + "," + dst$ + ");"
-                                IF b = 8 THEN PRINT #12, "swap_64(" + src$ + "," + dst$ + ");"
-                                IF b <> 1 AND b <> 2 AND b <> 4 AND b <> 8 THEN PRINT #12, "swap_block(" + src$ + "," + dst$ + "," + siz$ + ");"
+                                B = udtxsize(u) \ 8
+                                siz$ = str2$(B)
+                                IF B = 1 THEN PRINT #12, "swap_8(" + src$ + "," + dst$ + ");"
+                                IF B = 2 THEN PRINT #12, "swap_16(" + src$ + "," + dst$ + ");"
+                                IF B = 4 THEN PRINT #12, "swap_32(" + src$ + "," + dst$ + ");"
+                                IF B = 8 THEN PRINT #12, "swap_64(" + src$ + "," + dst$ + ");"
+                                IF B <> 1 AND B <> 2 AND B <> 4 AND B <> 8 THEN PRINT #12, "swap_block(" + src$ + "," + dst$ + "," + siz$ + ");"
                                 GOTO finishedline
                             END IF 'e=0
                         END IF 'i
@@ -9020,8 +9189,8 @@ DO
                     IF e1typc <> e2typc THEN a$ = "Type mismatch": GOTO errmes
                     t = e1typ
                     IF t AND ISOFFSETINBITS THEN a$ = "Cannot SWAP bit-length variables": GOTO errmes
-                    b = t AND 511
-                    t$ = str2$(b): IF b > 64 THEN t$ = "longdouble"
+                    B = t AND 511
+                    t$ = str2$(B): IF B > 64 THEN t$ = "longdouble"
                     PRINT #12, "swap_" + t$ + "(&" + refer(e1$, e1typ, 0) + ",&" + refer(e2$, e2typ, 0) + ");"
                     IF Error_Happened THEN GOTO errmes
                     GOTO finishedline
@@ -9815,10 +9984,12 @@ DO
                     f$ = p$ + a$
                 END IF
                 IF try = 2 THEN f$ = a$
-                qberrorhappened = -2 '***
-                OPEN f$ FOR INPUT AS #fh
-                qberrorhappened2: '***
-                IF qberrorhappened = -2 THEN EXIT FOR '***
+                IF _FILEEXISTS(f$) THEN
+                    qberrorhappened = -2 '***
+                    OPEN f$ FOR INPUT AS #fh
+                    qberrorhappened2: '***
+                    IF qberrorhappened = -2 THEN EXIT FOR '***
+                END IF
                 qberrorhappened = 0
             NEXT
             IF qberrorhappened <> -2 THEN qberrorhappened = 0: a$ = "File " + a$ + " not found": GOTO errmes
@@ -10164,7 +10335,7 @@ IF recompile THEN
     recompile = 0
     IF idemode THEN iderecompile = 1
     FOR closeall = 1 TO 255: CLOSE closeall: NEXT
-    OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK READ WRITE AS #26 'relock
+    OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK WRITE AS #26 'relock
     GOTO recompile
 END IF
 
@@ -10702,7 +10873,7 @@ IF Debug THEN PRINT #9, "Finished generation of code for saving/sharing common a
 
 
 FOR closeall = 1 TO 255: CLOSE closeall: NEXT
-OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK READ WRITE AS #26 'relock
+OPEN tmpdir$ + "temp.bin" FOR OUTPUT LOCK WRITE AS #26 'relock
 
 
 
@@ -10748,6 +10919,10 @@ libs$ = ""
 
 IF DEPENDENCY(DEPENDENCY_GL) THEN
     defines$ = defines$ + defines_header$ + "DEPENDENCY_GL"
+END IF
+
+IF DEPENDENCY(DEPENDENCY_IMAGE_CODEC) THEN
+    defines$ = defines$ + defines_header$ + "DEPENDENCY_IMAGE_CODEC"
 END IF
 
 IF DEPENDENCY(DEPENDENCY_LOADFONT) THEN
@@ -10832,7 +11007,7 @@ FOR i = 1 TO DEPENDENCY_LAST
 NEXT
 libqb$ = " libqb\os\" + o$ + "\libqb_" + depstr$ + ".o "
 PATH_SLASH_CORRECT libqb$
-IF _FILEEXISTS("internal\c\" + libqb$) = 0 THEN
+IF _FILEEXISTS("internal\c\" + LTRIM$(RTRIM$(libqb$))) = 0 THEN
     CHDIR "internal\c"
     IF os$ = "WIN" THEN
         SHELL _HIDE GDB_Fix("cmd /c c_compiler\bin\g++ -c -s -w -Wall libqb.cpp -D FREEGLUT_STATIC " + defines$ + " -o libqb\os\" + o$ + "\libqb_" + depstr$ + ".o")
@@ -10853,6 +11028,37 @@ END IF
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+IF MakeAndroid THEN
+
+
+
+
+
+
+
+    GOTO Skip_Build
+END IF
 
 IF os$ = "WIN" THEN
 
@@ -11392,6 +11598,12 @@ IF compfailed THEN
     END IF
     IF compfailed THEN PRINT "C++ COMPILATION FAILED!"
 END IF
+
+
+
+Skip_Build:
+
+
 
 IF idemode THEN GOTO ideret6
 
@@ -21038,6 +21250,7 @@ id.args = 4
 id.arg = MKL$(LONGTYPE - ISPOINTER) + MKL$(LONGTYPE - ISPOINTER) + MKL$(LONGTYPE - ISPOINTER) + MKL$(LONGTYPE - ISPOINTER)
 id.specialformat = "[?,?,?,?]"
 id.ret = LONGTYPE - ISPOINTER
+id.Dependency = DEPENDENCY_IMAGE_CODEC 'used by OSX to read in screen capture files
 regid
 
 
@@ -21265,6 +21478,7 @@ id.args = 2
 id.arg = MKL$(STRINGTYPE - ISPOINTER) + MKL$(LONGTYPE - ISPOINTER)
 id.specialformat = "?[,?]"
 id.ret = LONGTYPE - ISPOINTER
+id.Dependency = DEPENDENCY_IMAGE_CODEC
 regid
 
 clearid
@@ -26303,7 +26517,14 @@ IF idelaunched = 0 THEN
     ELSE
         menu$(m, i) = "Make E#XE Only  F11": i = i + 1
     END IF
-    menusize(m) = i - 1
+
+    IF IdeAndroidMenu = 0 THEN menusize(m) = i - 1
+    menu$(m, i) = "-": i = i + 1
+    '    menu$(m, i) = "Start #Android Project": i = i + 1
+    '    menu$(m, i) = "Make Android #Project Only": i = i + 1
+    menu$(m, i) = "Make #Android Project": i = i + 1
+    IF IdeAndroidMenu THEN menusize(m) = i - 1
+
 
     m = m + 1: i = 0
     menu$(m, i) = "Options": i = i + 1
@@ -26316,6 +26537,8 @@ IF idelaunched = 0 THEN
     menu$(m, i) = "#Backup/Undo...": i = i + 1
     menu$(m, i) = "-": i = i + 1
     menu$(m, i) = "#Advanced...": i = i + 1
+    menu$(m, i) = "-": i = i + 1
+    menu$(m, i) = "#Google Android...": i = i + 1
 
     menusize(m) = i - 1
 
@@ -26647,10 +26870,14 @@ IF skipdisplay = 0 THEN
             showexecreated = 0
             LOCATE idewy - 3, 2
 
-            IF os$ = "LNX" THEN
-                PRINT "Executable file created";
+            IF MakeAndroid THEN
+                PRINT "Project [programs\android\" + file$ + "] created";
             ELSE
-                PRINT ".EXE file created";
+                IF os$ = "LNX" THEN
+                    PRINT "Executable file created";
+                ELSE
+                    PRINT ".EXE file created";
+                END IF
             END IF
 
         END IF
@@ -26978,6 +27205,8 @@ DO
             ideundopos = p2
             IF ideundobase = 0 THEN ideundobase = ideundopos
 
+
+
             'set undo flag once
             IF ideundoflag = 0 THEN
                 ideundoflag = 1
@@ -26989,7 +27218,16 @@ DO
         END IF
 
         'begin new compilation
-        ideautorun = 0
+        IF IDEBuildModeChanged = 0 THEN
+            ideautorun = 0
+        END IF
+        IDEBuildModeChanged = 0
+
+        IF MakeAndroid THEN
+            'Cleanup excess files in temp folder
+            SHELL _HIDE "cmd /c del /q " + tmpdir$ + "ret*.txt " + tmpdir$ + "data*.txt " + tmpdir$ + "free*.txt"
+        END IF
+
         idecompiling = 1
         ide2 = 2
         idecompiledline$ = idegetline(1)
@@ -27133,24 +27371,27 @@ DO
     END IF
 
     IF KB = KEY_F5 AND KCTRL THEN 'run detached
+        UseAndroid 0
         idemdetached:
         iderunmode = 1
         GOTO idemrunspecial
     END IF
 
     IF KB = KEY_F11 THEN 'make exe only
+        UseAndroid 0
         idemexe:
         iderunmode = 2
         GOTO idemrunspecial
     END IF
 
     IF KB = KEY_F5 THEN 'Note: F5 or SHIFT+F5 accepted
+        UseAndroid 0
         idemrun:
         iderunmode = 0 'standard run
         idemrunspecial:
 
         'run program
-        IF ready THEN
+        IF ready <> 0 AND idechangemade = 0 THEN
 
             LOCATE , , 0
             COLOR 7, 1: LOCATE idewy - 3, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 2, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 1, 2: PRINT SPACE$(idewx - 2); 'clear status window
@@ -29142,6 +29383,14 @@ DO
             GOTO ideloop
         END IF
 
+        IF menu$(m, s) = "#Google Android..." THEN
+            PCOPY 2, 0
+            retval = ideandroidbox
+            'retval is ignored
+            PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+            GOTO ideloop
+        END IF
+
         IF menu$(m, s) = "#Display..." THEN
             PCOPY 2, 0
             IF idehelp = 0 THEN
@@ -29678,16 +29927,25 @@ DO
 
         IF menu$(m, s) = "#Start  F5" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+            UseAndroid 0
+            GOTO idemrun
+        END IF
+
+        IF menu$(m, s) = "Make #Android Project" THEN
+            PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+            UseAndroid 1
             GOTO idemrun
         END IF
 
         IF menu$(m, s) = "Start (#Detached)  Ctrl+F5" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+            UseAndroid 0
             GOTO idemdetached
         END IF
 
         IF menu$(m, s) = "Make E#XE Only  F11" OR menu$(m, s) = "Make E#xecutable Only  F11" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+            UseAndroid 0
             GOTO idemexe
         END IF
 
@@ -34484,6 +34742,186 @@ LOOP
 END FUNCTION 'yes/no box
 
 
+
+FUNCTION ideandroidbox
+
+'-------- generic dialog box header --------
+PCOPY 0, 2
+PCOPY 0, 1
+SCREEN , , 1, 0
+focus = 1
+DIM p AS idedbptype
+DIM o(1 TO 100) AS idedbotype
+DIM oo AS idedbotype
+DIM sep AS STRING * 1
+sep = CHR$(0)
+'-------- end of generic dialog box header --------
+
+'-------- init --------
+i = 0
+
+idepar p, 75, 15 - 4, "Google Android Options"
+
+i = i + 1
+o(i).typ = 4 'check box
+o(i).y = 2
+o(i).nam = idenewtxt("Enable #Run Menu Commands")
+o(i).sel = IdeAndroidMenu
+
+'a2$ = IdeAndroidStartScript
+'IF a2$ = "" THEN a2$ = "programs\android\start_android.bat"
+'i = i + 1
+'o(i).typ = 1
+'o(i).y = 7
+'o(i).nam = idenewtxt(CHR$(34) + "Start Android Project" + CHR$(34) + " Script")
+'o(i).txt = idenewtxt(a2$)
+'o(i).v1 = LEN(a2$)
+
+
+a2$ = IdeAndroidMakeScript
+IF a2$ = "" THEN a2$ = "programs\android\make_android.bat"
+i = i + 1
+o(i).typ = 1
+o(i).y = 11 - 4
+o(i).nam = idenewtxt(CHR$(34) + "Make Android Project Only" + CHR$(34) + " Script")
+o(i).txt = idenewtxt(a2$)
+o(i).v1 = LEN(a2$)
+
+i = i + 1
+o(i).typ = 3
+o(i).y = 15 - 4
+o(i).txt = idenewtxt("OK" + sep + "#Cancel")
+o(i).dft = 1
+'-------- end of init --------
+
+'-------- generic init --------
+FOR i = 1 TO 100: o(i).par = p: NEXT 'set parent info of objects
+'-------- end of generic init --------
+
+DO 'main loop
+
+
+    '-------- generic display dialog box & objects --------
+    idedrawpar p
+    f = 1: cx = 0: cy = 0
+    FOR i = 1 TO 100
+        IF o(i).typ THEN
+
+            'prepare object
+            o(i).foc = focus - f 'focus offset
+            o(i).cx = 0: o(i).cy = 0
+            idedrawobj o(i), f 'display object
+            IF o(i).cx THEN cx = o(i).cx: cy = o(i).cy
+        END IF
+    NEXT i
+    lastfocus = f - 1
+    '-------- end of generic display dialog box & objects --------
+
+    '-------- custom display changes --------
+    COLOR 8, 7: LOCATE p.y + 3, p.x + 4: PRINT "Projects are created at:";
+    COLOR 8, 7: LOCATE p.y + 4, p.x + 6: PRINT "qb64\programs\android\";
+    COLOR 3, 7
+    PRINT "bas_file_name_without_extension";
+    COLOR 8, 7: PRINT "\";
+    '    COLOR 8, 7: LOCATE p.y + 9, p.x + 4: PRINT "Script file is launched from within project's folder";
+    COLOR 8, 7: LOCATE p.y + 13 - 4, p.x + 4: PRINT "Script file is launched from within project's folder";
+
+    '-------- end of custom display changes --------
+
+    'update visual page and cursor position
+    PCOPY 1, 0
+    IF cx THEN SCREEN , , 0, 0: LOCATE cy, cx, 1: SCREEN , , 1, 0
+
+    '-------- read input --------
+    change = 0
+    DO
+        GetInput
+        IF mWHEEL THEN change = 1
+        IF KB THEN change = 1
+        IF mCLICK THEN mousedown = 1: change = 1
+        IF mRELEASE THEN mouseup = 1: change = 1
+        IF mB THEN change = 1
+        alt = KALT: IF alt <> oldalt THEN change = 1
+        oldalt = alt
+        _LIMIT 100
+    LOOP UNTIL change
+    IF alt THEN idehl = 1 ELSE idehl = 0
+    'convert "alt+letter" scancode to letter's ASCII character
+    altletter$ = ""
+    IF alt THEN
+        IF LEN(K$) = 1 THEN
+            k = ASC(UCASE$(K$))
+            IF k >= 65 AND k <= 90 THEN altletter$ = CHR$(k)
+        END IF
+    END IF
+    SCREEN , , 0, 0: LOCATE , , 0: SCREEN , , 1, 0
+    '-------- end of read input --------
+
+    '-------- generic input response --------
+    info = 0
+    IF K$ = "" THEN K$ = CHR$(255)
+    IF KSHIFT = 0 AND K$ = CHR$(9) THEN focus = focus + 1
+    IF KSHIFT AND K$ = CHR$(9) THEN focus = focus - 1
+    IF focus < 1 THEN focus = lastfocus
+    IF focus > lastfocus THEN focus = 1
+    f = 1
+    FOR i = 1 TO 100
+        t = o(i).typ
+        IF t THEN
+            focusoffset = focus - f
+            ideupdateobj o(i), focus, f, focusoffset, K$, altletter$, mB, mousedown, mouseup, mX, mY, info, mWHEEL
+        END IF
+    NEXT
+    '-------- end of generic input response --------
+
+    'specific post controls
+
+    a$ = idetxt(o(2).txt)
+    IF LEN(a$) > 256 THEN a$ = LEFT$(a$, 256)
+    idetxt(o(2).txt) = a$
+    a$ = idetxt(o(3).txt)
+    IF LEN(a$) > 256 THEN a$ = LEFT$(a$, 256)
+    idetxt(o(3).txt) = a$
+
+    IF K$ = CHR$(27) OR (focus = 5 - 1 AND info <> 0) THEN EXIT FUNCTION
+    IF K$ = CHR$(13) OR (focus = 4 - 1 AND info <> 0) THEN
+        v% = o(1).sel
+        IF v% < IdeAndroidMenu THEN
+            menusize(5) = menusize(5) - 2
+        END IF
+        IF v% > IdeAndroidMenu THEN
+            menusize(5) = menusize(5) + 2
+        END IF
+        'v$ = idetxt(o(2).txt)
+        v$ = ""
+        IF LEN(v$) > 256 THEN v$ = LEFT$(v$, 256)
+        IF LEN(v$) < 256 THEN v$ = v$ + SPACE$(256 - LEN(v$))
+        v3$ = idetxt(o(3 - 1).txt)
+        IF LEN(v3$) > 256 THEN v3$ = LEFT$(v3$, 256)
+        IF LEN(v3$) < 256 THEN v3$ = v3$ + SPACE$(256 - LEN(v3$))
+        OPEN ".\internal\temp\options.bin" FOR BINARY AS #150
+        SEEK #150, 1057
+        PUT #150, , v%
+        PUT #150, , v$
+        PUT #150, , v3$
+        CLOSE #150
+        IdeAndroidMenu = o(1).sel
+        IdeAndroidStartScript = "" 'idetxt(o(2).txt)
+        IdeAndroidMakeScript = idetxt(o(3 - 1).txt)
+        EXIT FUNCTION
+    END IF
+
+    'end of custom controls
+
+    mousedown = 0
+    mouseup = 0
+LOOP
+END FUNCTION
+
+
+
+
+
 FUNCTION idedisplaybox
 
 '-------- generic dialog box header --------
@@ -36951,8 +37389,31 @@ reginternalsubfunc = 0
 END SUB
 
 
+SUB UseAndroid (Yes)
 
+STATIC inline_DATA_backup
+STATIC inline_DATA_backup_set
+IF inline_DATA_backup_set = 0 THEN
+    inline_DATA_backup_set = 1
+    inline_DATA_backup = inline_DATA
+END IF
 
+IF Yes THEN
+    IF MakeAndroid = 0 THEN
+        MakeAndroid = 1
+        inline_DATA = 1
+        idechangemade = 1
+        IDEBuildModeChanged = 1
+    END IF
+ELSE
+    IF MakeAndroid THEN
+        MakeAndroid = 0
+        inline_DATA = inline_DATA_backup
+        idechangemade = 1
+        IDEBuildModeChanged = 1
+    END IF
+END IF
 
+END SUB
 
 

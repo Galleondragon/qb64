@@ -1,5 +1,5 @@
-if(oldstr2129){
-if(oldstr2129->fixed)qbs_set(oldstr2129,_FUNC_ARRAYREFERENCE_STRING_INDEXES);
+if(oldstr2156){
+if(oldstr2156->fixed)qbs_set(oldstr2156,_FUNC_ARRAYREFERENCE_STRING_INDEXES);
 qbs_free(_FUNC_ARRAYREFERENCE_STRING_INDEXES);
 }
 qbs_free(_FUNC_ARRAYREFERENCE_STRING_IDNUMBER);

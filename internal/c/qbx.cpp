@@ -4,6 +4,40 @@
  #include <ApplicationServices/ApplicationServices.h>
 #endif
 
+#ifdef QB64_ANDROID
+ #include <cstdlib>
+ #include <cmath>
+#endif
+
+/* testing only
+#ifdef QB64_WINDOWS
+
+HWND FindMyTopMostWindow()
+{
+    DWORD dwProcID = GetCurrentProcessId();
+    HWND hWnd = GetTopWindow(GetDesktopWindow());
+    while(hWnd)
+    {
+        DWORD dwWndProcID = 0;
+        GetWindowThreadProcessId(hWnd, &dwWndProcID);
+        if(dwWndProcID == dwProcID)
+            return hWnd;            
+        hWnd = GetNextWindow(hWnd, GW_HWNDNEXT);
+    }
+    return NULL;
+ }
+
+void SetMidiVolume(int32 vol){
+//DWORD vol = MAKELONG(((volume*65535L)/100), ((volume*65535L)/100));
+MIDIOUTCAPS midiCaps;
+midiOutGetDevCaps(0, &midiCaps, sizeof(midiCaps));
+if (midiCaps.dwSupport & MIDICAPS_VOLUME)
+    midiOutSetVolume(0, vol); 
+}
+
+#endif
+*/
+
 extern void error(int32 error_number);
 extern int32 sub_gl_called;
 
@@ -23,7 +57,12 @@ extern int32 sub_gl_called;
     ymin = -ymax;
     xmin = ymin * aspect;
     xmax = ymax * aspect;
+#ifdef QB64_GLES1
+    glFrustumf(xmin, xmax, ymin, ymax, zNear, zFar);
+#else
     glFrustum(xmin, xmax, ymin, ymax, zNear, zFar);
+#endif
+
  }
 
 #endif
@@ -81,6 +120,9 @@ void QBMAIN(void *);
 void TIMERTHREAD();
 
 //extern functions
+
+extern void sub__limit(double fps);
+extern void sub__delay(double seconds);
 
 extern void sub__resize(int32 on_off,int32 stretch_smooth);
 extern int32 func__resize();
@@ -574,6 +616,7 @@ extern long double string2f(qbs*str);
 
 
 //shared global variables
+extern int32 sleep_break;
 extern uint64 mem_lock_id;
 extern mem_lock *mem_lock_tmp;
 extern int64 exit_code;
@@ -974,7 +1017,7 @@ int32 run_from_line=0;
 //when 0, the program runs from the beginning
 
 void sub__icon(int32 i);
-void sub__limit(double fps);
+
 void sub__display();
 void sub__autodisplay();
 
@@ -2058,6 +2101,7 @@ default:
 break;
 }//switch
 ontimer[i].state=0;//event finished
+sleep_break=1;
 }//state==1
 }//active==1
 }//id
@@ -2106,25 +2150,7 @@ uint8 *redim_preserve_cmem_buffer=(uint8*)malloc(65536);//used for temporary sto
 
 
 
-void sub__delay(double seconds){
-if (new_error) return;
-static uint32 ms;
-//range check
-if (seconds<0){error(5); return;}
-if (seconds>2147483.647){error(5); return;}
-ms=seconds*1000.0;
-//Sleep(ms);
-    while(ms){
-     if (ms>10){
-      evnt(0);
-      Sleep(10);
-      ms-=10;
-     }else{
-      Sleep(ms);
-      ms=0;
-     }
-    }
-}
+
 
 #include "myip.cpp"
 

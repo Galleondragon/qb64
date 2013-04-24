@@ -1,21 +1,47 @@
 #include "common.cpp"
+
+#ifdef QB64_ANDROID
+ #include <cstdlib> //required for system()
+#endif
+
 #ifdef QB64_WINDOWS
-#include <fcntl.h>
-#include <shellapi.h>
+ #include <fcntl.h>
+ #include <shellapi.h>
 #endif
+
 #ifdef QB64_MACOSX
-#include <ApplicationServices/ApplicationServices.h>
-#endif
-#ifdef QB64_LINUX
-#ifndef QB64_MACOSX
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#endif
+ #include <ApplicationServices/ApplicationServices.h>
 #endif
 
+#ifdef QB64_X11
+ #include <X11/Xlib.h>
+ #include <X11/Xutil.h>
+#endif
 
+//forward ref
+void reinit_glut_callbacks();
 
 void sub__delay(double seconds);
+
+void *generic_window_handle=NULL;
+#ifdef QB64_WINDOWS
+ HWND window_handle=NULL;
+#endif
+//...
+
+extern "C" void QB64_Window_Handle(void *handle){
+generic_window_handle=handle;
+#ifdef QB64_WINDOWS
+ window_handle=(HWND)handle; 
+#endif
+//...
+}
+
+
+int32 window_exists=0;
+int32 create_window=0;
+qbs *window_title=NULL;
+
 
 int32 os_resize_event=0;
 
@@ -75,11 +101,10 @@ void GLUT_DISPLAY_REQUEST();
 
 void timerCB(int millisec)
 {
+#ifdef QB64_GLUT
 glutPostRedisplay();
-//GLUT_DISPLAY_REQUEST();
-//glutPostRedisplay();
-
 glutTimerFunc(millisec, timerCB, millisec);
+#endif
 }
 
 
@@ -284,22 +309,11 @@ static uint16 codepage437_to_unicode16[] = {
 };
 
 
-//libqbx.cpp specific parts
 #ifdef QB64_BACKSLASH_FILESYSTEM
- #include "parts\\video\\image\\decode\\jpg\\src.c"
- #include "parts\\video\\image\\decode\\png\\src.c"
  #include "parts\\video\\font\\ttf\\src.c"
 #else
- #include "parts/video/image/decode/jpg/src.c"
- #include "parts/video/image/decode/png/src.c"
  #include "parts/video/font/ttf/src.c"
 #endif
-
-
-
-
-
-
 
 
 
@@ -763,7 +777,7 @@ extern int32 screen_hide_startup;
 int64 exit_code=0;
 
 int32 console_active=1;
-int32 console_child=0;
+int32 console_child=0;//set if console is only being used by this program
 int32 console_image=-1;
 int32 screen_hide=0;
 
@@ -3218,7 +3232,9 @@ int MessageBox(int ignore,char* message, char* header, int type )
  return;
  }
 
+ 
  int32 errno;
+ 
 #endif
 
 //vc->project->properties->configuration properties->general->configuration type->application(.exe)
@@ -13511,17 +13527,45 @@ if (!passed){f=d; d=f;}
 return d;
 }
 
+void sub__delay(double seconds){
+double ms,base,elapsed,prev_now,now;//cannot be static
+base=GetTicks();
+if (new_error) return;
+if (seconds<0){error(5); return;}
+if (seconds>2147483.647){error(5); return;}
+ms=seconds*1000.0;
+now=base;//force first prev=... assignment to equal base
+recalculate:
+prev_now=now;
+now=GetTicks();
+elapsed=now-base;
+if (elapsed<0){//GetTicks looped
+ base=now-(prev_now-base);//calculate new base
+}
+if (elapsed<ms){
+ int64 wait;//cannot be static
+ wait=ms-elapsed;
+ if (!wait) wait=1;
+ if (wait>=10){
+  Sleep(9);
+  evnt(0);//check for new events
+  //recalculate time
+  goto recalculate;
+ }else{
+  Sleep(wait);
+ }
+}
+}
+
 void sub__limit(double fps){
 if (new_error) return;
-
-static double prev=0,ms,now,x;
-
+static double prev=0;
+double ms,now,elapsed;//cannot be static
 if (fps<=0.0){error(5); return;}
 ms=1000.0/fps;
 if (ms>60000.0){error(5); return;}//max. 1 min delay between frames allowed to avoid accidental lock-up of program
-
+recalculate:
 now=GetTicks();
-
 if (prev==0.0){//first call?
 prev=now;
 return;
@@ -13530,31 +13574,24 @@ if (now<prev){//value looped?
 prev=now;
 return;
 }
-
-//calculate wait time required in ms
-x=now-prev;//elapsed ms since last call
-
-if (x<ms){//delay required
-
-    static int64 sleep_value;
-    sleep_value=ms-x+1; //old code: Sleep(ms-x+1);//+1 added to avoid rounding down which erodes accuracy leading to overspeed
-    while(sleep_value){
-     if (sleep_value>10){
-      evnt(0);
-      Sleep(10);
-      sleep_value-=10;
-     }else{
-      Sleep(sleep_value);
-      sleep_value=0;
-     }
-    }
-
-    prev=prev+ms;
-}else{//took too long, adjust prev to current time
-//note: a minor overshoot of up to 16ms is recoverable
-if (x<=(ms+16.0)) prev=prev+ms; else prev=now;
+elapsed=now-prev;//elapsed time since prev
+if (elapsed<ms){
+ int64 wait;//cannot be static
+ wait=ms-elapsed;
+ if (!wait) wait=1;
+ if (wait>=10){
+  Sleep(9);
+  evnt(0);//check for new events
+  //recalculate time
+  goto recalculate;
+ }else{
+  Sleep(wait);
+  prev=prev+ms;
+ }
+}else{//too long since last call, adjust prev to current time
+ //minor overshoot up to 16ms is recovered, otherwise time is re-seeded
+ if (elapsed<=(ms+16.0)) prev=prev+ms; else prev=now;
 }
-
 }
 
 
@@ -16244,37 +16281,44 @@ return exp(value);
 error(6); return 0;
 }
 
+
+
 int32 sleep_break=0;
+
 void sub_sleep(int32 seconds,int32 passed){
 if (new_error) return;
-static uint64 start;
-static uint64 milliseconds;
-static uint64 stop;
-static uint64 now;
 sleep_break=0;
-
-if (!passed) seconds=0;
-if (seconds<=0){
-while ((!sleep_break)&&(!stop_program)){
-SDL_Delay(32);
-
+double prev,ms,now,elapsed;//cannot be static
+if (passed) prev=GetTicks();
+ms=1000.0*(double)seconds;
+recalculate:
+wait:
+evnt(0);//handle general events
+//exit condition checks/events
+if (sleep_break) return;
+if (stop_program) return;
+if (ms<=0){//untimed SLEEP
+ Sleep(9);
+ goto wait;
+}
+now=GetTicks();
+if (now<prev){//value looped?
+ return;
+}
+elapsed=now-prev;//elapsed time since prev
+if (elapsed<ms){
+ int64 wait;//cannot be static
+ wait=ms-elapsed;
+ if (!wait) wait=1;
+ if (wait>=10){
+  Sleep(9);  
+  //recalculate time
+  goto recalculate;
+ }else{
+  Sleep(wait);
+ }
 }
 return;
-}
-
-start=GetTicks();
-milliseconds=seconds;
-milliseconds*=1000;
-stop=start+milliseconds;
-if (stop>4294966295){error(6); return;}//cannot process wait time correctly!
-wait:
-if (sleep_break||stop_program) return;
-now=GetTicks();
-if (now<(stop-64)){//more than 64 milliseconds remain!
-SDL_Delay(32);
-goto wait;
-}
-if (now<stop) goto wait;
 }
 
 
@@ -17102,7 +17146,44 @@ return tqbs;
 }
 
 int32 shell_call_in_progress=0;
-static int32 cmd_available=-1;
+
+#ifdef QB64_WINDOWS
+int32 cmd_available=-1;
+int32 cmd_ok(){
+if (cmd_available==-1){
+ static STARTUPINFO si;
+ static PROCESS_INFORMATION pi;
+ ZeroMemory( &si, sizeof(si) ); si.cb = sizeof(si); ZeroMemory( &pi, sizeof(pi) );
+ if(
+         CreateProcess(
+          NULL,           // No module name (use command line)
+          "cmd.exe /c ver",// Command line
+          NULL,           // Process handle not inheritable
+          NULL,           // Thread handle not inheritable
+          FALSE,          // Set handle inheritance to FALSE
+          CREATE_NO_WINDOW, // No creation flags
+          NULL,           // Use parent's environment block
+          NULL,           // Use parent's starting directory 
+          &si,            // Pointer to STARTUPINFO structure
+          &pi             // Pointer to PROCESS_INFORMATION structure
+         )
+ ){
+  WaitForSingleObject(pi.hProcess,INFINITE);
+  CloseHandle(pi.hProcess);
+  CloseHandle(pi.hThread);
+  cmd_available=1;
+ }else{
+  cmd_available=0;
+ }
+}//-1
+return cmd_available;
+}
+#endif
+
+
+
+
+
 
 int32 cmd_command(qbs *str2){
 static qbs *str=NULL;
@@ -17234,35 +17315,10 @@ shell_call_in_progress=0;
 goto shell_complete;
 }
 
-
-
 static STARTUPINFO si;
 static PROCESS_INFORMATION pi;
 
-//cmd.exe available?
-if (cmd_available==-1){
-ZeroMemory( &si, sizeof(si) ); si.cb = sizeof(si); ZeroMemory( &pi, sizeof(pi) );
-qbs_set(strz,qbs_new_txt("cmd.exe /c ver"));
-if(CreateProcess(
-        NULL,           // No module name (use command line)
-        (char*)&strz->chr[0], // Command line
-        NULL,           // Process handle not inheritable
-        NULL,           // Thread handle not inheritable
-        FALSE,          // Set handle inheritance to FALSE
-        CREATE_NO_WINDOW, // No creation flags
-        NULL,           // Use parent's environment block
-        NULL,           // Use parent's starting directory 
-        &si,            // Pointer to STARTUPINFO structure
-        &pi )           // Pointer to PROCESS_INFORMATION structure
-){
-WaitForSingleObject( pi.hProcess, INFINITE ); CloseHandle( pi.hProcess ); CloseHandle( pi.hThread );
-cmd_available=1;
-}else{
-cmd_available=0;
-}
-}//cmd_available==-1
-
-if (cmd_available==1){
+if (cmd_ok()){
 
 static SHELLEXECUTEINFO shi;
 static char cmd[10]="cmd\0";
@@ -17412,7 +17468,7 @@ goto shell_complete;
 }
 goto shell_complete;//failed
 
-}//cmd_available
+}//cmd_ok()
 
 #else
 
@@ -17482,30 +17538,7 @@ if (!str2z) str2z=qbs_new(0,0);
 static STARTUPINFO si;
 static PROCESS_INFORMATION pi;
 
-//cmd.exe available?
-if (cmd_available==-1){
-ZeroMemory( &si, sizeof(si) ); si.cb = sizeof(si); ZeroMemory( &pi, sizeof(pi) );
-qbs_set(strz,qbs_new_txt("cmd.exe /c ver"));
-if(CreateProcess(
-        NULL,           // No module name (use command line)
-        (char*)&strz->chr[0], // Command line
-        NULL,           // Process handle not inheritable
-        NULL,           // Thread handle not inheritable
-        FALSE,          // Set handle inheritance to FALSE
-        CREATE_NO_WINDOW, // No creation flags
-        NULL,           // Use parent's environment block
-        NULL,           // Use parent's starting directory 
-        &si,            // Pointer to STARTUPINFO structure
-        &pi )           // Pointer to PROCESS_INFORMATION structure
-){
-WaitForSingleObject( pi.hProcess, INFINITE ); CloseHandle( pi.hProcess ); CloseHandle( pi.hThread );
-cmd_available=1;
-}else{
-cmd_available=0;
-}
-}//cmd_available==-1
-
-if (cmd_available==1){
+if (cmd_ok()){
 
 static SHELLEXECUTEINFO shi;
 static char cmd[10]="cmd\0";
@@ -17655,7 +17688,7 @@ goto shell_complete;
 }
 goto shell_complete;//failed
 
-}//cmd_available
+}//cmd_ok()
 
 #else
 
@@ -17786,30 +17819,7 @@ goto shell_complete;
 static STARTUPINFO si;
 static PROCESS_INFORMATION pi;
 
-//cmd.exe available?
-if (cmd_available==-1){
-ZeroMemory( &si, sizeof(si) ); si.cb = sizeof(si); ZeroMemory( &pi, sizeof(pi) );
-qbs_set(strz,qbs_new_txt("cmd.exe /c ver"));
-if(CreateProcess(
-        NULL,           // No module name (use command line)
-        (char*)&strz->chr[0], // Command line
-        NULL,           // Process handle not inheritable
-        NULL,           // Thread handle not inheritable
-        FALSE,          // Set handle inheritance to FALSE
-        CREATE_NO_WINDOW, // No creation flags
-        NULL,           // Use parent's environment block
-        NULL,           // Use parent's starting directory 
-        &si,            // Pointer to STARTUPINFO structure
-        &pi )           // Pointer to PROCESS_INFORMATION structure
-){
-WaitForSingleObject( pi.hProcess, INFINITE ); CloseHandle( pi.hProcess ); CloseHandle( pi.hThread );
-cmd_available=1;
-}else{
-cmd_available=0;
-}
-}//cmd_available==-1
-
-if (cmd_available==1){
+if (cmd_ok()){
 
 static SHELLEXECUTEINFO shi;
 static char cmd[10]="cmd\0";
@@ -17955,7 +17965,7 @@ goto shell_complete;
 }
 goto shell_complete;//failed
 
-}//cmd_available
+}//cmd_ok()
 
 #else
 
@@ -18033,30 +18043,7 @@ if (!str2z) str2z=qbs_new(0,0);
 static STARTUPINFO si;
 static PROCESS_INFORMATION pi;
 
-//cmd.exe available?
-if (cmd_available==-1){
-ZeroMemory( &si, sizeof(si) ); si.cb = sizeof(si); ZeroMemory( &pi, sizeof(pi) );
-qbs_set(strz,qbs_new_txt("cmd.exe /c ver"));
-if(CreateProcess(
-        NULL,           // No module name (use command line)
-        (char*)&strz->chr[0], // Command line
-        NULL,           // Process handle not inheritable
-        NULL,           // Thread handle not inheritable
-        FALSE,          // Set handle inheritance to FALSE
-        CREATE_NO_WINDOW, // No creation flags
-        NULL,           // Use parent's environment block
-        NULL,           // Use parent's starting directory 
-        &si,            // Pointer to STARTUPINFO structure
-        &pi )           // Pointer to PROCESS_INFORMATION structure
-){
-WaitForSingleObject( pi.hProcess, INFINITE ); CloseHandle( pi.hProcess ); CloseHandle( pi.hThread );
-cmd_available=1;
-}else{
-cmd_available=0;
-}
-}//cmd_available==-1
-
-if (cmd_available==1){
+if (cmd_ok()){
 
 static SHELLEXECUTEINFO shi;
 static char cmd[10]="cmd\0";
@@ -18202,7 +18189,7 @@ goto shell_complete;
 }
 goto shell_complete;//failed
 
-}//cmd_available
+}//cmd_ok()
 
 #else
 
@@ -18257,30 +18244,7 @@ if (!strz) strz=qbs_new(0,0);
 static STARTUPINFO si;
 static PROCESS_INFORMATION pi;
 
-//cmd.exe available?
-if (cmd_available==-1){
-ZeroMemory( &si, sizeof(si) ); si.cb = sizeof(si); ZeroMemory( &pi, sizeof(pi) );
-qbs_set(strz,qbs_new_txt("cmd.exe /c ver"));
-if(CreateProcess(
-        NULL,           // No module name (use command line)
-        (char*)&strz->chr[0], // Command line
-        NULL,           // Process handle not inheritable
-        NULL,           // Thread handle not inheritable
-        FALSE,          // Set handle inheritance to FALSE
-        CREATE_NO_WINDOW, // No creation flags
-        NULL,           // Use parent's environment block
-        NULL,           // Use parent's starting directory 
-        &si,            // Pointer to STARTUPINFO structure
-        &pi )           // Pointer to PROCESS_INFORMATION structure
-){
-WaitForSingleObject( pi.hProcess, INFINITE ); CloseHandle( pi.hProcess ); CloseHandle( pi.hThread );
-cmd_available=1;
-}else{
-cmd_available=0;
-}
-}//cmd_available==-1
-
-if (cmd_available==1){
+if (cmd_ok()){
 
 static SHELLEXECUTEINFO shi;
 static char cmd[10]="cmd\0";
@@ -18408,7 +18372,7 @@ goto shell_complete;
 }
 goto shell_complete;//failed
 
-}//cmd_available
+}//cmd_ok()
 
 #else
 
@@ -18473,30 +18437,7 @@ if (!str->len){error(5); return;}//console unsupported
 static STARTUPINFO si;
 static PROCESS_INFORMATION pi;
 
-//cmd.exe available?
-if (cmd_available==-1){
-ZeroMemory( &si, sizeof(si) ); si.cb = sizeof(si); ZeroMemory( &pi, sizeof(pi) );
-qbs_set(strz,qbs_new_txt("cmd.exe /c ver"));
-if(CreateProcess(
-        NULL,           // No module name (use command line)
-        (char*)&strz->chr[0], // Command line
-        NULL,           // Process handle not inheritable
-        NULL,           // Thread handle not inheritable
-        FALSE,          // Set handle inheritance to FALSE
-        CREATE_NO_WINDOW, // No creation flags
-        NULL,           // Use parent's environment block
-        NULL,           // Use parent's starting directory 
-        &si,            // Pointer to STARTUPINFO structure
-        &pi )           // Pointer to PROCESS_INFORMATION structure
-){
-WaitForSingleObject( pi.hProcess, INFINITE ); CloseHandle( pi.hProcess ); CloseHandle( pi.hThread );
-cmd_available=1;
-}else{
-cmd_available=0;
-}
-}//cmd_available==-1
-
-if (cmd_available==1){
+if (cmd_ok()){
 
 static SHELLEXECUTEINFO shi;
 static char cmd[10]="cmd\0";
@@ -18618,7 +18559,7 @@ goto shell_complete;
 }
 goto shell_complete;//failed
 
-}//cmd_available
+}//cmd_ok()
 
 #else
 
@@ -19121,116 +19062,11 @@ img[i].print_mode=write_page->print_mode;
 return -i;
 }
 
-int32 func__loadimage(qbs *f,int32 bpp,int32 passed){
-if (new_error) return 0;
-//validate bpp
-if (passed){
-if ((bpp!=32)&&(bpp!=256)){error(5); return 0;}
-}else{
-if (write_page->text){error(5); return 0;}
-bpp=-1;
-}
-if (!f->len) return -1;//return invalid handle if null length string
-//load the file
-static int32 fh,result;
-static int64 lof;
-fh=gfs_open(f,1,0,0);
-if (fh<0) return -1;
-lof=gfs_lof(fh);
-static uint8* content;
-content=(uint8*)malloc(lof); if (!content){gfs_close(fh); return -1;}
-result=gfs_read(fh,-1,content,lof);
-gfs_close(fh);
-if (result<0){free(content); return -1;}
-
-//Identify format:
-// '.jpg?' The first two bytes of every JPEG stream are the Start Of Image (SOI) marker values FFh D8h
-// 
-static int32 format;
-format=0;
-if (lof>=2){
-if ((content[0]==0xFF)&&(content[1]==0xD8)){format=1; goto got_format;}//JP[E]G
-}//2
-if (lof>=8){
-if ((content[0]==0x89)&&(content[1]==0x50)&&(content[2]==0x4E)&&(content[3]==0x47)&&
-    (content[4]==0x0D)&&(content[5]==0x0A)&&(content[6]==0x1A)&&(content[7]==0x0A))
-    {format=2; goto got_format;}//PNG
-}//8
-
-free(content); return -1;//Unknown format
-got_format:
-
-static uint8 *pixels;
-static int32 x,y;
-
-if (format==1) pixels=image_decode_jpg(content,lof,&result,&x,&y);
-if (format==2) pixels=image_decode_png(content,lof,&result,&x,&y);
-
-free(content);
-if (!(result&1)) return -1;
-
-//...
-
-static int32 i;
-i=func__newimage(x,y,32,1);
-if (i==-1){free(pixels); return -1;}
-memcpy(img[-i].offset,pixels,x*y*4);
-free(pixels);
-
-
-return i;
-
-
-
-
-
-
-
-
-
-
-
-
-//int32 gfs_open(qbs *filename,int32 access,int32 restrictions, int32 how){
-
-//filename - an OS compatible filename (doesn't need to be NULL terminated)
-//access - 1=read, 2=write, 3=read and write
-//restrictions - 1=others cannot read, 2=others cannot write, 3=others cannot read or write(exclusive access)
-//how - 1=create(if it doesn't exist), 2=create(if it doesn't exist) & truncate
-//      3=create(if it doesn't exist)+undefined access[get whatever access is available]
-
-
-
-
-
-
-
-
-
-#ifndef NO_S_D_L
-
-static qbs *tqbs=NULL,*nullt=NULL;
-static int32 i;
-if (new_error) return 0;
-//validate bpp
-if (passed){
-if ((bpp!=32)&&(bpp!=256)){error(5); return 0;}
-}else{
-if (write_page->text){error(5); return 0;}
-bpp=-1;
-}
-if (!f->len) return -1;//return invalid handle if null length string
-if (!tqbs) tqbs=qbs_new(0,0);
-if (!nullt){nullt=qbs_new(1,0); nullt->chr[0]=0;}
-qbs_set(tqbs,qbs_add(f,nullt));
-i=imgload(fixdir(tqbs),bpp);
-if (!i) return -1;//failed
-return -i;
-
-#endif //NO_S_D_L
-return -1;
-
-}
+#ifdef QB64_BACKSLASH_FILESYSTEM
+ #include "parts\\video\\image\\src.c"
+#else
+ #include "parts/video/image/src.c"
+#endif
 
 int32 func__copyimage(int32 i,int32 passed){
 static int32 i2,bytes;
@@ -27288,7 +27124,7 @@ if (onoff==1){
  if (!console_active){
  #ifdef QB64_WINDOWS
  if (console_child){
-  AllocConsole();
+  ShowWindow( GetConsoleWindow(), SW_SHOWNOACTIVATE );
  }
  #endif
  console_active=1;
@@ -27298,7 +27134,7 @@ if (onoff==1){
  if (console_active){
  #ifdef QB64_WINDOWS
  if (console_child){
-  FreeConsole();
+  ShowWindow( GetConsoleWindow(), SW_HIDE );
  }
  #endif
  console_active=0;
@@ -27307,25 +27143,25 @@ if (onoff==1){
 
 }
 
-#ifdef QB64_WINDOWS
-HWND sdl_hwnd=NULL;
-#endif
 
 void sub__screenshow(){
-#ifdef QB64_WINDOWS
-if (sdl_hwnd){
-ShowWindow(sdl_hwnd,SW_SHOW);
+if (!window_exists){
+ create_window=1;
+}else{
+ #ifdef QB64_GLUT
+ glutShowWindow();
+ #endif
 }
-#endif
 screen_hide=0;
 }
+
 void sub__screenhide(){
-#ifdef QB64_WINDOWS
-if (sdl_hwnd){
-ShowWindow(sdl_hwnd,SW_HIDE);
+if (window_exists){
+ #ifdef QB64_GLUT
+ glutHideWindow();
+ #endif
 }
-screen_hide=1;//note: no other OS supports rehiding yet
-#endif
+screen_hide=1;
 }
 
 void sub__consoletitle(qbs* s){
@@ -27642,29 +27478,33 @@ return b;
 
 
 
-
 void GLUT_key_ascii(int32 key,int32 down){
+#ifdef QB64_GLUT
 static int32 v;
 
 static int32 mod;
 mod=glutGetModifiers();//shift=1, control=2, alt=4
 
 #ifndef CORE_FREEGLUT
+
 if (mod&GLUT_ACTIVE_SHIFT){
  keydown_vk(VK+QBVK_LSHIFT);
 }else{
  keyup_vk(VK+QBVK_LSHIFT);
 }
+
 if (mod&GLUT_ACTIVE_CTRL){
  keydown_vk(VK+QBVK_LCTRL);
 }else{
  keyup_vk(VK+QBVK_LCTRL);
 }
+
 if (mod&GLUT_ACTIVE_ALT){
  keydown_vk(VK+QBVK_LALT);
 }else{
  keyup_vk(VK+QBVK_LALT);
 }
+
 #endif 
 
 #ifdef CORE_FREEGLUT
@@ -27691,7 +27531,9 @@ ctrl_mod:
 #endif
 
 #ifdef QB64_MACOSX
+
 //swap DEL and backspace keys
+
 if (key==8){
  key=127;
 }else{
@@ -27699,6 +27541,7 @@ if (key==8){
   key=8;
  }
 }
+
 #endif
 
 if (key==127){//delete
@@ -27706,6 +27549,7 @@ if (key==127){//delete
  return;
 }
 if (down) keydown_ascii(key); else keyup_ascii(key);
+#endif
 }
 
 void GLUT_KEYBOARD_FUNC(unsigned char key,int x, int y){
@@ -27724,27 +27568,29 @@ GLUT_key_ascii(key,0);
 
 void GLUT_key_special(int32 key,int32 down){
 
+#ifdef QB64_GLUT
+#ifndef CORE_FREEGLUT
 static int32 mod;
 mod=glutGetModifiers();//shift=1, control=2, alt=4
-
-#ifndef CORE_FREEGLUT
 if (mod&GLUT_ACTIVE_SHIFT){
  keydown_vk(VK+QBVK_LSHIFT);
 }else{
  keyup_vk(VK+QBVK_LSHIFT);
 }
+
 if (mod&GLUT_ACTIVE_CTRL){
  keydown_vk(VK+QBVK_LCTRL);
 }else{
  keyup_vk(VK+QBVK_LCTRL);
 }
+
 if (mod&GLUT_ACTIVE_ALT){
  keydown_vk(VK+QBVK_LALT);
 }else{
  keyup_vk(VK+QBVK_LALT);
 }
-#endif 
 
+#endif
 static int32 vk;
 vk=-1;
 if (key==GLUT_KEY_F1){vk=0x3B00;}
@@ -27782,13 +27628,11 @@ if (vk!=-1){
 if (down) keydown_vk(vk); else keyup_vk(vk);
 }
 
-
+#endif
 }
 
 void GLUT_SPECIAL_FUNC(int key, int x, int y){
 
-
-//qbs_print(qbs_str(-key),0);
 //qbs_print(qbs_str((int32)glutGetModifiers()),1);
 
 GLUT_key_special(key,1);
@@ -27800,13 +27644,17 @@ GLUT_key_special(key,0);
 
 #ifdef QB64_WINDOWS
  void GLUT_TIMER_EVENT(int ignore){
+  #ifdef QB64_GLUT
   glutPostRedisplay();
   glutTimerFunc(8,GLUT_TIMER_EVENT,0);
+  #endif
  }
 #else
  void GLUT_IDLEFUNC(){
+  #ifdef QB64_GLUT
   glutPostRedisplay();
   Sleep(8);//<=125hz
+  #endif
  }
 #endif
 
@@ -27845,8 +27693,7 @@ void sub__glrender(int32 method){
 gl_render_method=method;
 }
 
-//forward def
-void reinit_glut_callbacks();
+
 
 void GLUT_DISPLAY_REQUEST(){
 
@@ -28120,7 +27967,10 @@ fullscreen_width=display_x;
 fullscreen_height=display_y;
 }
 
-gluOrtho2D(0, fullscreen_width, 0, fullscreen_height);
+#ifdef QB64_GL1
+ gluOrtho2D(0, fullscreen_width, 0, fullscreen_height);
+#endif //QB64_GL1
+
 glMatrixMode(GL_MODELVIEW);
 glLoadIdentity();
 glScalef(1, -1, 1);//flip vertically
@@ -28157,26 +28007,30 @@ if (level==3){
 
 //3. render as QUAD
 if ((screen_scale==2)&&(blackout!=0)){
+
+#ifdef QB64_GL1
  glBegin(GL_QUADS);
  glTexCoord2f (0.0f,0.0f); glVertex2f(x1, y1);
  glTexCoord2f (1.0f,0.0f); glVertex2f(x2,y1);
  glTexCoord2f (1.0f,1.0f); glVertex2f(x2,y2);
  glTexCoord2f (0.0f,1.0f); glVertex2f(x1,y2);
  glEnd();
+#endif //QB64_GL1
+
 }else{
 
  x_offset=0; y_offset=0;
  x_scale=(float)display_frame[i].w/(float)fullscreen_width; y_scale=(float)display_frame[i].h/(float)fullscreen_height;
  x_limit=fullscreen_width-1; y_limit=fullscreen_height-1;
 
+#ifdef QB64_GL1
   glBegin(GL_QUADS);
   glTexCoord2f (0.0f,0.0f); glVertex2f(0, 0);
   glTexCoord2f (1.0f,0.0f); glVertex2f(fullscreen_width, 0);
   glTexCoord2f (1.0f,1.0f); glVertex2f(fullscreen_width,fullscreen_height);
   glTexCoord2f (0.0f,1.0f); glVertex2f(0,fullscreen_height);
   glEnd();
-
-
+#endif //QB64_GL1
 
 }
 
@@ -28185,15 +28039,20 @@ if ((screen_scale==2)&&(blackout!=0)){
 }else{
 //no scaling
 
+#ifdef QB64_GL1
+
 glMatrixMode(GL_PROJECTION);
 glLoadIdentity();
 glMatrixMode(GL_MODELVIEW);
 glLoadIdentity();
 glViewport(0,0,display_x,display_y);
-glOrtho(0, display_x, display_y,0, -1.0, 1.0);
-glRasterPos2f(0, 0);
-glPixelZoom(1.0f, -1.0f);
 
+
+#ifdef QB64_GL1
+ glOrtho(0, display_x, display_y,0, -1.0, 1.0);
+ glRasterPos2f(0, 0);
+ glPixelZoom(1.0f, -1.0f);
+#endif //QB64_GL1
 
 x_offset=0; y_offset=0;
 x_scale=1; y_scale=1;
@@ -28204,8 +28063,62 @@ if (level==3){
  //glEnable(GL_ALPHA_TEST); glAlphaFunc(GL_GREATER,0.5); //(test below is better)
  glEnable (GL_BLEND); glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
-glDrawPixels(display_frame[i].w,display_frame[i].h,GL_BGRA,GL_UNSIGNED_BYTE,display_frame[i].bgra);
 
+#ifdef QB64_GL1
+glDrawPixels(display_frame[i].w,display_frame[i].h,GL_BGRA,GL_UNSIGNED_BYTE,display_frame[i].bgra);
+#endif //QB64_GL1
+
+
+#else
+
+//generate new texture handle
+static GLuint mTextureNameWorkspace[100];
+static int th=-100;
+if (th==-100){
+glGenTextures(1, mTextureNameWorkspace);
+th=mTextureNameWorkspace[0];
+}
+
+//bind texture handle
+glBindTexture (GL_TEXTURE_2D, th);
+
+//set filters
+glTexParameterf ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+glTexParameterf ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+//set states
+glShadeModel(GL_FLAT);
+glEnable(GL_TEXTURE_2D);
+glDisable(GL_DEPTH_TEST);
+glDisable(GL_DITHER);
+glDisable(GL_LIGHTING);
+glDisable(GL_BLEND);
+
+glViewport( 0, 0, display_x,display_y );
+glMatrixMode( GL_PROJECTION );
+glLoadIdentity();  
+glOrthof(0.0f, display_x, 0.0f, 0.0f, display_y, 1.0f);
+
+glColor4f(1, 1, 1, 1);
+
+glMatrixMode( GL_MODELVIEW );
+glLoadIdentity();
+
+//rebind
+glActiveTexture(th);
+glClientActiveTexture(th);
+glBindTexture (GL_TEXTURE_2D, th);
+
+GLint coords [] = {0, display_y, display_x, -display_y};
+glTexParameteriv( GL_TEXTURE_2D, GL_TEXTURE_CROP_RECT_OES, coords );
+
+glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, display_frame[i].w, display_frame[i].h, 0,  GL_RGBA, GL_UNSIGNED_BYTE, display_frame[i].bgra);
+
+glDrawTexiOES( 0, 0, 0, display_x, display_y );
+
+#endif //QB64_GL1
 
 }//scaling
 
@@ -28218,7 +28131,11 @@ if (blackout){
 //setup environment
 glMatrixMode(GL_PROJECTION);
 glLoadIdentity();
+
+#ifdef QB64_GL1
 gluOrtho2D(0, fullscreen_width, 0, fullscreen_height);
+#endif //QB64_GL1
+
 glScalef(1, -1, 1);//flip vertically
 glTranslatef(0, -fullscreen_height, 0);//move to new vertical position
 glMatrixMode(GL_MODELVIEW);
@@ -28230,6 +28147,8 @@ static int32 x3;
 x3=x2;
 x2=x1;
 x1=0;
+
+#ifdef QB64_GL1
 glBegin(GL_QUADS);
 glColor3f(0,0,0);
 glVertex2f(x1, y1);
@@ -28244,6 +28163,7 @@ glVertex2f(x2,y2);
 glVertex2f(x1,y2);
 glEnd();
 glColor3f(1, 1, 1);//reset color
+#endif //QB64_GL1
 
 }else{
 
@@ -28251,6 +28171,8 @@ static int32 y3;
 y3=y2;
 y2=y1;
 y1=0;
+
+#ifdef QB64_GL1
 glBegin(GL_QUADS);
 glColor3f(0,0,0);
 glVertex2f(x1, y1);
@@ -28265,6 +28187,7 @@ glVertex2f(x2,y2);
 glVertex2f(x1,y2);
 glEnd();
 glColor3f(1, 1, 1);//reset color
+#endif //QB64_GL1
 
 }
 
@@ -28294,6 +28217,16 @@ if (suspend_program){ //Otherwise skipped SUB__GL content becomes "invisible"
   glutSwapBuffers();
 }
 
+
+
+
+
+
+
+
+
+
+
 }//GLUT_DISPLAY_REQUEST
 
 
@@ -28301,6 +28234,8 @@ if (suspend_program){ //Otherwise skipped SUB__GL content becomes "invisible"
 
 
 void GLUT_MouseButton_Up(int glut_button,int x,int y){
+#ifdef QB64_GLUT
+
 int32 i;
 int32 button;
 button=1;//default
@@ -28345,9 +28280,13 @@ memmove(d->events+d->queued_events*d->event_size,d->events+(d->queued_events-1)*
 d->queued_events++;
 }//valid range
 }//core devices required
+
+#endif
 }
 
 void GLUT_MouseButton_Down(int glut_button,int x,int y){
+#ifdef QB64_GLUT
+
 int32 i;
 int32 button;
 button=1;//default
@@ -28441,14 +28380,18 @@ d->queued_events++;
 }//4-5
 }//not 1-3
 }//core devices required
+#endif
 }
 
 void GLUT_MOUSE_FUNC(int glut_button,int state,int x,int y){
+#ifdef QB64_GLUT
 if (state==GLUT_DOWN) GLUT_MouseButton_Down(glut_button,x,y);
 if (state==GLUT_UP) GLUT_MouseButton_Up(glut_button,x,y);
+#endif
 }
 
 void GLUT_MOTION_FUNC(int x, int y){
+
 static int32 i,last_i;
 static int32 xrel=0,yrel=0;
 //message #1
@@ -28579,7 +28522,9 @@ void GLUT_PASSIVEMOTION_FUNC(int x, int y){
 GLUT_MOTION_FUNC(x,y);
 }
 
+
 void GLUT_MOUSEWHEEL_FUNC(int wheel, int direction, int x, int y){
+#ifdef QB64_GLUT
 //Note: freeglut specific, limited documentation existed so the following research was done:
 //  qbs_print(qbs_str(wheel),NULL); <-- was always 0 [could 1 indicate horizontal wheel?]
 //  qbs_print(qbs_str(direction),NULL); <-- 1(up) or -1(down)
@@ -28587,6 +28532,7 @@ void GLUT_MOUSEWHEEL_FUNC(int wheel, int direction, int x, int y){
 //  qbs_print(qbs_str(y),1);    <
 if (direction>0){GLUT_MouseButton_Down(4,x,y); GLUT_MouseButton_Up(4,x,y);}
 if (direction<0){GLUT_MouseButton_Down(5,x,y); GLUT_MouseButton_Up(5,x,y);}
+#endif
 }
 
 
@@ -28597,32 +28543,17 @@ if (direction<0){GLUT_MouseButton_Down(5,x,y); GLUT_MouseButton_Up(5,x,y);}
 
 
 
-
-
-void *generic_window_handle=NULL;
-#ifdef QB64_WINDOWS
- HWND window_handle=NULL;
-#endif
-//...
-
-extern "C" void QB64_Window_Handle(void *handle){
-generic_window_handle=handle;
-#ifdef QB64_WINDOWS
- window_handle=(HWND)handle; 
-#endif
-//...
-}
 
 void sub__title(qbs *title){
 if (new_error) return;
-static qbs *sz=NULL; if (!sz) sz=qbs_new(0,0);
+if (!window_title) window_title=qbs_new(0,0);
 static qbs *cz=NULL; if (!cz){cz=qbs_new(1,0); cz->chr[0]=0;}
-qbs_set(sz,qbs_add(title,cz));
-#ifdef QB64_WINDOWS
- while (!generic_window_handle) Sleep(10);//wait for window creation
- SetWindowText(window_handle,(char*)sz->chr);
-#endif
-//...
+qbs_set(window_title,qbs_add(title,cz));
+if (window_exists){
+ #ifdef QB64_GLUT
+ glutSetWindowTitle((char*)window_title->chr);
+ #endif
+}
 }//title
 
 
@@ -28663,10 +28594,7 @@ return resize_event_y;
 extern void set_dynamic_info();
 
 
-int main( int argc, char* argv[] )
-{
-
-
+int main( int argc, char* argv[] ){
 
 set_dynamic_info();
 if (ScreenResize){
@@ -28692,14 +28620,15 @@ if (screen_hide_startup) screen_hide=1;
 
 #ifdef QB64_WINDOWS
 if (console){
-LPDWORD plist=(LPDWORD)malloc(1000);
-if (GetConsoleProcessList(plist,256)==1){
-console_child=1;
-FreeConsole();
-AllocConsole();
-}
+ LPDWORD plist=(LPDWORD)malloc(1000);
+ if (GetConsoleProcessList(plist,256)==1){
+  console_child=1;//only this program is using the console
+ }
 }
 #endif
+
+
+
 
 static int32 i,i2,i3,i4;
 static uint8 c,c2,c3,c4;
@@ -28898,6 +28827,9 @@ singlespace->chr[0]=32;
 unknown_opcode_mess=qbs_new(0,0);
 qbs_set(unknown_opcode_mess,qbs_new_txt_len("Unknown Opcode (  )\0",20));
 
+#ifdef QB64_ANDROID
+func_command_str=qbs_new(0,0);
+#else
 i=argc;
 if (i>1){
 //calculate required size of COMMAND$ string
@@ -28917,6 +28849,7 @@ memcpy(&func_command_str->chr[i3],argv[i],strlen(argv[i])); i3+=strlen(argv[i]);
 }else{
 func_command_str=qbs_new(0,0);
 }
+#endif
 
 
 #ifndef NO_S_D_L
@@ -29297,15 +29230,17 @@ pthread_create(&thread_handle,NULL,&TIMERTHREAD_LINUX,NULL);
 }
 #endif
 
-  glutInit(&argc, argv);
+
+
+
+
 
 //_beginthread(GLUT_MAINLOOP_THREAD,0,NULL);
 
-  glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-  glutInitWindowSize(640, 400);
-  //glutInitWindowPosition(300, 200);
-  glutCreateWindow("Untitled");
-  glutDisplayFunc(GLUT_DISPLAY_REQUEST);
+
+
+
+
 
 
 /*
@@ -29329,7 +29264,38 @@ qbs_print(qbs_new_txt((char*)glewGetString(err)),1);
 }
 */
 
+lock_display_required=1;
 
+#ifdef QB64_WINDOWS
+ _beginthread(MAIN_LOOP_WINDOWS,0,NULL);
+#else
+ {
+  static pthread_t thread_handle;
+  pthread_create(&thread_handle,NULL,&MAIN_LOOP_LINUX,NULL);
+ }
+#endif
+
+if (!screen_hide) create_window=1;
+while (!create_window){Sleep(100);}
+
+
+
+glutInit(&argc, argv);
+
+glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+
+glutInitWindowSize(1024, 552);
+
+//glutInitWindowPosition(300, 200);
+
+if (!window_title){
+ glutCreateWindow("Untitled");
+}else{
+ glutCreateWindow((char*)window_title->chr);
+}
+window_exists=1;
+
+glutDisplayFunc(GLUT_DISPLAY_REQUEST);
 
 #ifdef QB64_WINDOWS
   glutTimerFunc(8,GLUT_TIMER_EVENT,0);
@@ -29350,21 +29316,10 @@ qbs_print(qbs_new_txt((char*)glewGetString(err)),1);
   glutMouseWheelFunc(GLUT_MOUSEWHEEL_FUNC);
 #endif
 
-lock_display_required=1;
-
-#ifdef QB64_WINDOWS
-_beginthread(MAIN_LOOP_WINDOWS,0,NULL);
-#else
-{
-static pthread_t thread_handle;
-pthread_create(&thread_handle,NULL,&MAIN_LOOP_LINUX,NULL);
-}
-#endif
-
-
 glutMainLoop();
 
 }
+
 
 
 //###################### Main Loop ####################
@@ -29384,6 +29339,8 @@ void MAIN_LOOP(){
 int32 update=0;//0=update input,1=update display
 
 main_loop:
+
+
 
 if (lock_mainloop==1){
 lock_mainloop=2;
@@ -30985,6 +30942,10 @@ c3=col>>7;//flashing?
 if (c3&&show_flashing) c=c2;
 i2=display_page->pal[c];
 i3=display_page->pal[c2];
+#ifdef QB64_GLES1 //BGRA<--->RGBA (OPENGL ES does not support GL_BGRA)
+i2=(i2&0xFF00FF00)|((i2&0xFF0000)>>16)|((i2&0x0000FF)<<16);
+i3=(i3&0xFF00FF00)|((i3&0xFF0000)>>16)|((i3&0x0000FF)<<16);
+#endif
 lp=display_surface_offset+qbg_y_offset+y2*x_monitor+x2;
 z=x_monitor-fontwidth[display_page->font];
 
@@ -31059,6 +31020,9 @@ y3=ch-1;
 size=ch/2;
 c=col&0xF;//foreground col
 i2=display_page->pal[c];
+#ifdef QB64_GLES1 //BGRA<--->RGBA (OPENGL ES does not support GL_BGRA)
+i2=(i2&0xFF00FF00)|((i2&0xFF0000)>>16)|((i2&0x0000FF)<<16);
+#endif
 draw_half_curs:
 lp=display_surface_offset+qbg_y_offset+(y2+y3)*x_monitor+x2;
 for (x3=0;x3<cw;x3++){
@@ -31075,6 +31039,9 @@ y3=ch-1;
 if (y3==15) y3=14;//leave bottom line blank in 8x16 char set
 c=col&0xF;//foreground col
 i2=display_page->pal[c];
+#ifdef QB64_GLES1 //BGRA<--->RGBA (OPENGL ES does not support GL_BGRA)
+i2=(i2&0xFF00FF00)|((i2&0xFF0000)>>16)|((i2&0x0000FF)<<16);
+#endif
 draw_curs_from_bottom:
 lp=display_surface_offset+qbg_y_offset+(y2+y3)*x_monitor+x2;
 for (x3=0;x3<cw;x3++){
@@ -31090,6 +31057,9 @@ if (begin<ch){
 y3=begin;
 c=col&0xF;//foreground col
 i2=display_page->pal[c];
+#ifdef QB64_GLES1 //BGRA<--->RGBA (OPENGL ES does not support GL_BGRA)
+i2=(i2&0xFF00FF00)|((i2&0xFF0000)>>16)|((i2&0x0000FF)<<16);
+#endif
 if (size==255) size=ch-begin;
 draw_curs_from_begin:
 lp=display_surface_offset+qbg_y_offset+(y2+y3)*x_monitor+x2;
@@ -31155,6 +31125,21 @@ if ((display_frame_begin!=0)&&(display_frame_begin!=display_frame_end)&&(display
 display_surface_offset=display_frame[frame_i].bgra;
 
 memcpy(display_surface_offset,display_page->offset32,display_page->width*display_page->height*4);
+
+#ifdef QB64_GLES1 //OPENGL ES does not support GL_BGRA
+//BGRA<--->RGBA
+static uint32 col;
+static uint32 *pos;
+pos=display_frame[frame_i].bgra;
+static int32 pixels;
+pixels=display_frame[frame_i].w*display_frame[frame_i].h;
+if (pixels>0){
+while(pixels--){
+col=*pos;
+*pos++= (col&0xFF00FF00) | ((col & 0xFF0000) >> 16) | ((col & 0x0000FF) << 16);
+}
+}
+#endif
 
 goto screen_refreshed;
 }//32
@@ -31231,46 +31216,27 @@ for (x=0;x<x2;x++){
 }//x
 }//y
 
+#ifdef QB64_GLES1 //OPENGL ES does not support GL_BGRA
+//BGRA<--->RGBA
+static uint32 col;
+static uint32 *pos;
+pos=display_frame[frame_i].bgra;
+static int32 pixels;
+pixels=display_frame[frame_i].w*display_frame[frame_i].h;
+if (pixels>0){
+while(pixels--){
+col=*pos;
+*pos++= (col&0xFF00FF00) | ((col & 0xFF0000) >> 16) | ((col & 0x0000FF) << 16);
+}
+}
+#endif
+
 goto screen_refreshed;
 
 screen_refreshed:
 
 
 
-
-#ifndef NO_S_D_L
-if (conversion_required){
-uint8 *rp1;
-uint8 *gp1;
-uint8 *bp1;
-uint8 *rp2;
-uint8 *gp2;
-uint8 *bp2;
-int32 i;
-int32 pixels;
-uint32 *d;
-bp1=(uint8*)display_surface_offset; gp1=bp1+1; rp1=gp1+1;
-d=(uint32*)display_surface->pixels;
-bp2=((uint8*)d)+3; gp2=bp2; rp2=bp2;//default 'safe' positions
-if (display_surface->format->Bmask==255) bp2=bp2-3;
-if (display_surface->format->Bmask==65280) bp2=bp2-2;
-if (display_surface->format->Bmask==16711680) bp2=bp2-1;
-if (display_surface->format->Gmask==255) gp2=gp2-3;
-if (display_surface->format->Gmask==65280) gp2=gp2-2;
-if (display_surface->format->Gmask==16711680) gp2=gp2-1;
-if (display_surface->format->Rmask==255) rp2=rp2-3;
-if (display_surface->format->Rmask==65280) rp2=rp2-2;
-if (display_surface->format->Rmask==16711680) rp2=rp2-1;
-pixels=x_monitor*y_monitor;
-for (i=0;i<pixels;i++){
-*bp2=*bp1;
-*gp2=*gp1;
-*rp2=*rp1;
-rp1+=4; gp1+=4; bp1+=4;
-rp2+=4; gp2+=4; bp2+=4;
-}//i
-}//conversion_required
-#endif //NO_S_D_L
 
 #ifndef NO_S_D_L
 #ifdef QB64_IME
@@ -32204,6 +32170,7 @@ return -1;//Unknown command (use for debugging purposes only)
 
 void reinit_glut_callbacks(){
 
+#ifdef QB64_GLUT
 
 
 glutDisplayFunc(GLUT_DISPLAY_REQUEST);
@@ -32224,30 +32191,6 @@ glutDisplayFunc(GLUT_DISPLAY_REQUEST);
   glutMouseWheelFunc(GLUT_MOUSEWHEEL_FUNC);
 #endif
 
-
+#endif
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
