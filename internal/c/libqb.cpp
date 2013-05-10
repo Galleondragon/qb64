@@ -13575,6 +13575,12 @@ prev=now;
 return;
 }
 elapsed=now-prev;//elapsed time since prev
+
+if (elapsed==ms){
+ prev=prev+ms;
+ return; 
+}
+
 if (elapsed<ms){
  int64 wait;//cannot be static
  wait=ms-elapsed;
@@ -13582,16 +13588,16 @@ if (elapsed<ms){
  if (wait>=10){
   Sleep(9);
   evnt(0);//check for new events
-  //recalculate time
-  goto recalculate;
  }else{
-  Sleep(wait);
-  prev=prev+ms;
+  Sleep(wait);  
  }
-}else{//too long since last call, adjust prev to current time
- //minor overshoot up to 16ms is recovered, otherwise time is re-seeded
- if (elapsed<=(ms+16.0)) prev=prev+ms; else prev=now;
+ //recalculate time
+ goto recalculate;
 }
+
+//too long since last call, adjust prev to current time
+//minor overshoot up to 32ms is recovered, otherwise time is re-seeded
+if (elapsed<=(ms+32.0)) prev=prev+ms; else prev=now;
 }
 
 
@@ -17123,9 +17129,11 @@ return sqrt(value);
 
 #ifdef QB64_BACKSLASH_FILESYSTEM
  #include "parts\\audio\\conversion\\src.c"
+ #include "parts\\audio\\libresample\\src.c"
  #include "parts\\audio\\decode\\src.c"
 #else
  #include "parts/audio/conversion/src.c"
+ #include "parts/audio/libresample/src.c"
  #include "parts/audio/decode/src.c"
 #endif
 
@@ -28546,18 +28554,22 @@ if (direction<0){GLUT_MouseButton_Down(5,x,y); GLUT_MouseButton_Up(5,x,y);}
 
 void sub__title(qbs *title){
 if (new_error) return;
-if (!window_title) window_title=qbs_new(0,0);
-static qbs *cz=NULL; if (!cz){cz=qbs_new(1,0); cz->chr[0]=0;}
-qbs_set(window_title,qbs_add(title,cz));
+static qbs *cz=NULL;
+if (!cz){cz=qbs_new(1,0); cz->chr[0]=0;}
+static qbs *str;
+str=window_title;
+if (!str) str=qbs_new(0,0);
+qbs_set(str,qbs_add(title,cz));
 if (window_exists){
  #ifdef QB64_GLUT
- glutSetWindowTitle((char*)window_title->chr);
+ glutSetWindowTitle((char*)str->chr);
  #endif
 }
+window_title=str;
 }//title
 
 
-//                   0 1  2        0 1       2
+//                     0 1  2        0 1       2
 void sub__resize(int32 on_off, int32 stretch_smooth){
 
 if (on_off==1) resize_snapback=0;
