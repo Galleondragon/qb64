@@ -2325,14 +2325,48 @@ DO
                                 END IF
                             LOOP UNTIL finished
 
+                            ' ### END OF STEVE EDIT FOR EXPANDED CONST SUPPORT ###
+
+                            'New Edit by Steve on 02/23/2014 to add support for the new Math functions
+
+                            l = 0: Emergency_Exit = 0 'A counter where if we're inside the same DO-Loop for more than 10,000 times, we assume it's an endless loop that didn't process properly and toss out an error message instead of locking up the program.
+                            DO
+                                l = INSTR(l + 1, wholestv$, "=")
+                                IF l THEN
+                                    l2 = INSTR(l + 1, wholestv$, ",") 'Look for a comma after that
+                                    IF l2 = 0 THEN 'If there's no comma, then we're working to the end of the line
+                                        l2 = LEN(wholestv$)
+                                    ELSE
+                                        l2 = l2 - 1 'else we only want to take what's before that comma and see if we can use it
+                                    END IF
+                                    temp$ = RTRIM$(LTRIM$(MID$(wholestv$, l + 1, l2 - l)))
+                                    temp1$ = RTRIM$(LTRIM$(Evaluate_Expression$(temp$)))
+                                    IF LEFT$(temp1$, 5) <> "ERROR" AND temp$ <> temp1$ THEN
+                                        'The math routine should have did its replacement for us.
+                                        altered = -1
+                                        wholestv$ = LEFT$(wholestv$, l + 1) + temp1$ + MID$(wholestv$, l2 + 1)
+                                    ELSE
+                                        'We should leave it as it is and let the normal CONST routine handle things from here on out and see if it passes the rest of the error checks.
+                                    END IF
+                                    l = l + 1
+                                END IF
+                                Emergency_Exit = Emergency_Exit + 1
+                                IF Emergency_Exit > 10000 THEN a$ = "CONST ERROR: Attempting to process MATH Function caused Endless Loop.  Please recheck your math formula."
+                            LOOP UNTIL l = 0
+                            'End of Math Support Edit
+
+
+                            'Steve edit to update the CONST with the Math and _RGB functions
                             IF altered THEN
                                 altered = 0
                                 wholeline$ = wholestv$
                                 linenumber = linenumber - 1
                                 GOTO ideprepass
                             END IF
+                            'End of Final Edits to CONST
 
-                            ' ### END OF STEVE EDIT FOR EXPANDED CONST SUPPORT ###
+
+
 
                             IF n < 3 THEN a$ = "Expected CONST name = value/expression": GOTO errmes
                             i = 2
