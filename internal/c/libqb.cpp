@@ -15181,52 +15181,6 @@ int32 n_inputnumberfromfile(int32 fileno){
   return return_value;
 }
 
-void sub_file_line_input_string(int32 fileno,qbs *deststr){
-  if (new_error) return;
-  static qbs *str,*character;
-  int32 c,nextc;
-  int32 inspeechmarks;
-
-  if (gfs_fileno_valid(fileno)!=1){error(52); return;}//Bad file name or number
-  fileno=gfs_fileno[fileno];//convert fileno to gfs index
-  static gfs_file_struct *gfs;
-  gfs=&gfs_file[fileno];
-  if (gfs->type!=3){error(54); return;}//Bad file mode
-  if (!gfs->read){error(75); return;}//Path/file access error
-
-  str=qbs_new(0,0);
-  c=file_input_chr(fileno); if (c==-2) return;
-  if (c==-1){
-    qbs_set(deststr,str);
-    qbs_free(str);
-    error(62);//input past end of file
-    return;
-  }
-  character=qbs_new(1,0);
- nextchr:
-  if (c==-1) goto gotstr;
-  if (c==10) goto gotstr;
-  if (c==13) goto gotstr;
-  character->chr[0]=c; qbs_set(str,qbs_add(str,character));
-  c=file_input_chr(fileno); if (c==-2) return;
-  goto nextchr;
- gotstr:
- nextstr:
-  //scan until next item (or eof) reached
-  if (c==-1) goto returnstr;
-  if ((c==10)||(c==13)){//lf cr
-    file_input_skip1310(fileno,c);
-    goto returnstr;
-  }
-  c=file_input_chr(fileno); if (c==-2) return;
-  goto nextstr;
-  //return string
- returnstr:
-  qbs_set(deststr,str);
-  qbs_free(str);
-  qbs_free(character);
-  return;
-}
 
 void revert_input_check(){
   static uint32 x;
@@ -17600,6 +17554,115 @@ qbs *func_input(int32 n,int32 i,int32 passed){
     if (x<n){SDL_Delay(1); goto waitforinput;}
     return str;
   }
+}
+
+void file_line_input_string_character(int32 filehandle, qbs *deststr) {
+  static qbs *str,*character;
+  int32 c,nextc;
+  int32 inspeechmarks;
+
+  str=qbs_new(0,0);
+  c=file_input_chr(filehandle); if (c==-2) return;
+  if (c==-1){
+    qbs_set(deststr,str);
+    qbs_free(str);
+    error(62);//input past end of file
+    return;
+  }
+  character=qbs_new(1,0);
+ nextchr:
+  if (c==-1) goto gotstr;
+  if (c==10) goto gotstr;
+  if (c==13) goto gotstr;
+  character->chr[0]=c; qbs_set(str,qbs_add(str,character));
+  c=file_input_chr(filehandle); if (c==-2) return;
+  goto nextchr;
+ gotstr:
+ nextstr:
+  //scan until next item (or eof) reached
+  if (c==-1) goto returnstr;
+  if ((c==10)||(c==13)){//lf cr
+    file_input_skip1310(filehandle,c);
+    goto returnstr;
+  }
+  c=file_input_chr(filehandle); if (c==-2) return;
+  goto nextstr;
+  //return string
+ returnstr:
+  qbs_set(deststr,str);
+  qbs_free(str);
+  qbs_free(character);
+  return;
+}
+
+
+void file_line_input_string_binary(int32 fileno, qbs *deststr) {
+  int32 filebuf_size = 512;
+  int32 filehandle;
+  qbs *eol;
+
+  filehandle=gfs_fileno[fileno];//convert fileno to gfs index
+  eol = qbs_new_txt_len("\n", 1);
+
+  int64 start_byte = func_seek(fileno);
+  int64 filelength = func_lof(fileno);
+   if (start_byte > filelength) {
+    error(62);//input past end of file
+	return;
+  }
+  qbs *buffer = qbs_new(filebuf_size, 0);
+  qbs_set(deststr, qbs_new_txt_len("", 0));
+    do {
+      if (start_byte + filebuf_size > filelength) filebuf_size = filelength - start_byte + 1;
+      qbs_set(buffer,func_space(qbr(filebuf_size))); 
+	  
+	  sub_get2(fileno, start_byte, buffer, 1);
+      int32 eol_pos = func_instr(0, buffer, eol, 0);
+      if (eol_pos == 0) {
+		if ((start_byte + filebuf_size)>=filelength) {
+            qbs_set(deststr, buffer);
+			gfs_setpos(filehandle,filelength); //set the position right before the EOF marker
+	        gfs_file[filehandle].eof_passed=1;//also set EOF flag;
+			qbs_free(buffer);
+	        return;
+		}
+        filebuf_size += 512;
+	  }
+      else {
+    	qbs_set(deststr, qbs_add(deststr, qbs_left(buffer, eol_pos - 1)));
+	    break;
+      }
+    } while (!func_eof(fileno));
+  qbs_free(buffer);
+  if (start_byte + deststr->len + 2 >= filelength) { //if we've read to the end of the line
+	  gfs_setpos(filehandle,filelength); //set the position right before the EOF marker
+	  gfs_file[filehandle].eof_passed=1;//also set EOF flag;
+	  if (deststr->chr[deststr->len - 1] == '\r') qbs_set(deststr, qbs_left(deststr, deststr->len-1));
+	  return;
+  }
+  gfs_setpos(filehandle,start_byte + deststr->len); //set the position at the end of the text
+  if (deststr->chr[deststr->len - 1] == '\r') qbs_set(deststr, qbs_left(deststr, deststr->len-1));
+}
+
+
+void sub_file_line_input_string(int32 fileno, qbs *deststr){
+  int32 filehandle;
+  if (new_error) return;
+  if (gfs_fileno_valid(fileno)!=1){error(52); return;}//Bad file name or number
+  filehandle=gfs_fileno[fileno];//convert fileno to gfs index
+  static gfs_file_struct *gfs;
+  gfs=&gfs_file[filehandle];
+  if (!gfs->read){error(75); return;}//Path/file access error
+
+  if (gfs->type == 2) {
+    file_line_input_string_binary(fileno, deststr);
+  }
+  else if (gfs->type == 3) {
+    file_line_input_string_character(filehandle, deststr);
+  } else {
+    error(54); //Bad file mode
+  }
+  return;
 }
 
 double func_sqr(double value){

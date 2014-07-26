@@ -180,13 +180,3 @@ id.n = "_SCREENICON"     'name change to from _ICONIFYWINDOW to _SCREENICON to m
 id.subfunc = 2
 id.callname = "sub_screenicon"
 regid
-
-clearid
-id.n = "_BLINEINPUT"
-id.subfunc = 2
-id.callname = "sub__getinput"
-id.args = 2
-id.specialformat = "[#]?,?"
-id.arg = MKL$(LONGTYPE - ISPOINTER) + MKL$(STRINGTYPE - ISPOINTER)
-regid
-
