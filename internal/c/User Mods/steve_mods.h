@@ -18,3 +18,5 @@ extern int32 func_screenwidth();
 extern int32 func_screenheight();
 int32 func_windowexists ();
 int32 func__controlchr();
+int32 func__str_nc_compare(qbs *s1, qbs *s2);
+int32 func__str_compare(qbs *s1, qbs *s2);

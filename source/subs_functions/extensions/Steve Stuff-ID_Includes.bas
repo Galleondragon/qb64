@@ -195,3 +195,21 @@ id.args = 0
 id.ret = LONGTYPE - ISPOINTER
 regid
 
+clearid
+id.n = "_STRICMP"
+id.subfunc = 1
+id.callname = "func__str_nc_compare"
+id.args = 2
+id.arg = MKL$(STRINGTYPE - ISPOINTER) + MKL$(STRINGTYPE - ISPOINTER)
+id.ret = LONGTYPE - ISPOINTER
+regid
+
+clearid
+id.n = "_STRCMP"
+id.subfunc = 1
+id.callname = "func__str_compare"
+id.args = 2
+id.arg = MKL$(STRINGTYPE - ISPOINTER) + MKL$(STRINGTYPE - ISPOINTER)
+id.ret = LONGTYPE - ISPOINTER
+regid
+

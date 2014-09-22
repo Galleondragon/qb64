@@ -20,11 +20,7 @@ $SCREENHIDE
 
 REDIM SHARED OName(0) AS STRING 'Operation Name
 REDIM SHARED PL(0) AS INTEGER 'Priority Level
-REDIM SHARED vars(26) AS STRING ' 0 is previous answer, 1 - 26 is A - Z
-DIM SHARED FileName AS STRING, DirName AS STRING
 DIM SHARED QuickReturn AS INTEGER
-DirName = "internal/MathEval/"
-FileName = "internal/MathEval/Math Evaluator User Variables.bin"
 Set_OrderOfOperations 'This will also make certain our directories are valid, and if not make them.
 
 DIM SHARED MakeAndroid 'build an Android project (refer to SUB UseAndroid)
@@ -22115,29 +22111,6 @@ DO
     END SELECT
 LOOP UNTIL c >= LEN(exp$)
 
-'Post Parsing work, if we are required to set a variable
-IF var$ <> "" THEN 'we can't possibly have more than 2 characters (letter + optional "&")
-    SELECT CASE LEN(var$)
-        CASE 1: v$ = var$
-        CASE 2: IF RIGHT$(var$, 1) = "#" THEN v$ = LEFT$(var$, 1) ELSE Evaluate_Expression$ = "ERROR - Bad User Variable Value.  (" + var$ + ")": EXIT SUB
-        CASE ELSE: Evaluate_Expression$ = "ERROR - Bad User Variable Value.  (" + var$ + ")": EXIT SUB
-    END SELECT
-    index = ASC(v$) - 64
-    IF index < 1 OR index > 26 THEN Evaluate_Expression$ = "ERROR - Letter required for variable name": EXIT SUB
-    vars(index) = exp$
-END IF
-
-f = FREEFILE
-OPEN FileName FOR BINARY AS #f
-counter = 0
-FOR c = 0 TO 26 'variables
-    length& = LEN(vars(c))
-    PUT #f, , length&
-    PUT #f, , vars(c)
-NEXT c
-CLOSE #f
-
-vars(0) = exp$ 'the "previous result" (think the ANS button on your calculator)
 Evaluate_Expression$ = exp$
 END FUNCTION
 
@@ -22234,20 +22207,7 @@ SUB Set_OrderOfOperations
 'I used a range here so I could add in new priority levels as needed.
 'OName ended up becoming the name of our commands, as I modified things.... Go figure!  LOL!
 
-IF _DIREXISTS("internal") THEN
-    'Good, we're being run from within the QB64 folder as intended
-ELSE
-    MKDIR "internal" 'Make us an internal folder so we don't generate errors.
-END IF
-IF _DIREXISTS("internal/MathEval") THEN
-    'Good, we're have the proper subfolder as well
-ELSE
-    MKDIR "internal/MathEval" 'Make us an internal folder so we don't generate errors.
-END IF
-
 'Constants get evaluated first, with a Priority Level of 1
-i = i + 1: REDIM _PRESERVE OName(i): OName(i) = "ANS" 'the result of the previous calculation
-REDIM _PRESERVE PL(i): PL(i) = 1
 i = i + 1: REDIM _PRESERVE OName(i): OName(i) = "PI"
 REDIM _PRESERVE PL(i): PL(i) = 1
 'I'm not certain where exactly percentages should go.  They kind of seem like a special case to me.  COS10% should be COS.1 I'd think...
@@ -22551,12 +22511,8 @@ SELECT CASE OName(p) 'Depending on our operator..
     CASE "XOR": n1 = VAL(num(1)) XOR VAL(num(2))
     CASE "EQV": n1 = VAL(num(1)) EQV VAL(num(2))
     CASE "IMP": n1 = VAL(num(1)) IMP VAL(num(2))
-    CASE "ANS": n1 = VAL(vars(0))
     CASE ELSE
         EvaluateNumbers$ = "ERROR - Bad operation (We shouldn't see this)" 'Let's say we're bad...
-        FOR c = ASC("A") TO ASC("Z") 'Unless we evaluate to be a user set variable.
-            IF OName(p) = CHR$(c) + "#" THEN EvaluateNumbers$ = RTRIM$(LTRIM$(STR$(VAL(vars(c - 64))))): EXIT FUNCTION
-        NEXT
 END SELECT
 EvaluateNumbers$ = RTRIM$(LTRIM$(STR$(n1)))
 END FUNCTION

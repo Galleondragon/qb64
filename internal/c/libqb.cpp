@@ -7892,54 +7892,40 @@ qbs *qbs_add(qbs *str1,qbs *str2){
 }
 
 qbs *qbs_ucase(qbs *str){
-  uint32 i;
-  uint8 *c;
-  if (!str->len) return str;//pass on
-  qbs *tqbs=NULL;
-  if (str->tmp){ if (!str->fixed){ if (!str->readonly){ if (!str->in_cmem){ tqbs=str; }}}}
-  if (!tqbs){
-    //also pass on if already uppercase
-    c=str->chr;
-    for (i=0;i<str->len;i++){
-      if ((*c>=97)&&(*c<=122)) goto qbs_ucase_cantpass;
-      c++;
-    }
-    return str;
-  qbs_ucase_cantpass:
-    tqbs=qbs_new(str->len,1); memcpy(tqbs->chr,str->chr,str->len);
+  if (!str->len) return str;
+  qbs *tqbs = NULL;
+  if (str->tmp&&!str->fixed&&!str->readonly&&!str->in_cmem) {
+    tqbs=str;
   }
-  c=tqbs->chr;
-  for (i=0;i<tqbs->len;i++){
-    if ((*c>=97)&&(*c<=122)) *c-=32;
+  else {
+    tqbs = qbs_new(str->len,1);
+    memcpy(tqbs->chr,str->chr,str->len);
+  }
+  unsigned char *c=tqbs->chr;
+  for (int32 i=0;i<str->len; i++) {
+    if ((*c>='a')&&(*c<='z')) *c=*c&223;
     c++;
   }
-  if (tqbs!=str) if (str->tmp) qbs_free(str);
+  if (tqbs!=str&&str->tmp) qbs_free(str);
   return tqbs;
 }
 
 qbs *qbs_lcase(qbs *str){
-  uint32 i;
-  uint8 *c;
-  if (!str->len) return str;//pass on
-  qbs *tqbs=NULL;
-  if (str->tmp){ if (!str->fixed){ if (!str->readonly){ if (!str->in_cmem){ tqbs=str; }}}}
-  if (!tqbs){
-    //also pass on if already lowercase
-    c=str->chr;
-    for (i=0;i<str->len;i++){
-      if ((*c>=65)&&(*c<=90)) goto qbs_lcase_cantpass;
-      c++;
-    }
-    return str;
-  qbs_lcase_cantpass:
-    tqbs=qbs_new(str->len,1); memcpy(tqbs->chr,str->chr,str->len);
+  if (!str->len) return str;
+  qbs *tqbs = NULL;
+  if (str->tmp&&!str->fixed&&!str->readonly&&!str->in_cmem) {
+    tqbs=str;
   }
-  c=tqbs->chr;
-  for (i=0;i<tqbs->len;i++){
-    if ((*c>=65)&&(*c<=90)) *c+=32;
+  else {
+    tqbs = qbs_new(str->len,1);
+    memcpy(tqbs->chr,str->chr,str->len);
+  }
+  unsigned char *c=tqbs->chr;
+  for (int32 i=0;i<str->len; i++) {
+    if ((*c>='a')&&(*c<='z')) *c=*c|32;
     c++;
   }
-  if (tqbs!=str) if (str->tmp) qbs_free(str);
+  if (tqbs!=str&&str->tmp) qbs_free(str);
   return tqbs;
 }
 
@@ -8483,56 +8469,54 @@ int32 qbs_notequal(qbs *str1,qbs *str2){
   if (memcmp(str1->chr,str2->chr,str1->len)==0) return 0;
   return -1;
 }
-int32 qbs_greaterthan(qbs *str1,qbs *str2){
-  static int32 i;
-  if (str1->len<=str2->len){
-    i=memcmp(str1->chr,str2->chr,str1->len);
-    if (i>0) return -1;
+int32 qbs_greaterthan(qbs *str2,qbs *str1){
+//same process as for lessthan; we just reverse the string order
+	int32 i, limit, l1, l2;
+    l1 = str1->len; l2 = str2->len;  
+	if (!l1) if (l2) return -1; else return 0;
+	if (l1<=l2) limit = l1; else limit = l2; 
+    i=memcmp(str1->chr,str2->chr,limit); 
+	if (i<0) return -1;
+	if (i>0) return 0; 
+	if (l1<l2) return -1;   
     return 0;
-  }else{
-    i=memcmp(str1->chr,str2->chr,str2->len);
-    if (i<0) return 0;
-    return -1;
-  }
 }
 int32 qbs_lessthan(qbs *str1,qbs *str2){
-  static int32 i;
-  if (str1->len<=str2->len){
-    if (!str1->len) if (str2->len) return -1; else return 0;
-    i=memcmp(str1->chr,str2->chr,str2->len);
-    if (i<0) return -1;
+  int32 i, limit, l1, l2;
+    l1 = str1->len; l2 = str2->len;  //no need to get the length of these strings multiple times.
+	if (!l1) if (l2) return -1; else return 0;  //if one is a null string we known the answer already.
+	if (l1<=l2) limit = l1; else limit = l2; //our limit is going to be the length of the smallest string.
+    i=memcmp(str1->chr,str2->chr,limit); //check only to the length of the shortest string
+	if (i<0) return -1; //if the number is smaller by this point, say so
+	if (i>0) return 0; // if it's larger by this point, say so
+	//if the number is the same at this point, compare length.
+	//if the length of the first one is smaller, then the string is smaller. Otherwise the second one is the same string, or longer.
+	if (l1<l2) return -1;   
     return 0;
-  }else{
-    i=memcmp(str1->chr,str2->chr,str1->len);
-    if (i>=0) return 0;
-    return -1;
-  }
 }
 int32 qbs_lessorequal(qbs *str1,qbs *str2){
-  static int32 i;
-  if (str1->len<=str2->len){
-    i=memcmp(str1->chr,str2->chr,str1->len);
-    if (i<=0) return -1;
+  //same process as lessthan, but we check to see if the lengths are equal here also.
+  int32 i, limit, l1, l2;
+    l1 = str1->len; l2 = str2->len; 
+	if (!l1) return 0;  //if the first string has no length then it HAS to be smaller or equal to the second
+	if (l1<=l2) limit = l1; else limit = l2;
+    i=memcmp(str1->chr,str2->chr,limit); 
+	if (i<0) return -1;
+	if (i>0) return 0; 
+	if (l1<=l2) return -1;  
     return 0;
-  }else{
-    i=memcmp(str1->chr,str2->chr,str2->len);
-    if (i>=0) return 0;
-    return -1;
-  }
 }
-int32 qbs_greaterorequal(qbs *str1,qbs *str2){
-  static int32 i;
-  //greater?
-  if (str1->len<=str2->len){
-    i=memcmp(str1->chr,str2->chr,str1->len);
-    if (i>0) return -1;
-    if (i==0) if (str1->len==str2->len) return -1;//equal?
+int32 qbs_greaterorequal(qbs *str2,qbs *str1){
+  //same process as for lessorequal; we just reverse the string order
+  int32 i, limit, l1, l2;
+    l1 = str1->len; l2 = str2->len; 
+	if (!l1) return 0;
+	if (l1<=l2) limit = l1; else limit = l2;
+    i=memcmp(str1->chr,str2->chr,limit); 
+	if (i<0) return -1;
+	if (i>0) return 0; 
+	if (l1<=l2) return -1;  
     return 0;
-  }else{
-    i=memcmp(str1->chr,str2->chr,str2->len);
-    if (i<0) return 0;
-    return -1;
-  }
 }
 
 int32 qbs_asc(qbs *str,uint32 i){//uint32 speeds up checking for negative

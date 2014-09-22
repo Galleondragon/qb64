@@ -1,2 +1,0 @@
-'Programmer: Steve McNeill
-'Quote: "Steve is Awesome!"
