@@ -4384,6 +4384,10 @@ DO
                 GOTO errmes
             END IF
 
+            'Added by FellippeHeitor: the following two instructions add a level of indentation to SUBs/FUNCTIONs
+            controllevel = controllevel + 1
+            controltype(controllevel) = 32
+            
             subfunc = RTRIM$(id.callname) 'SUB_..."
             subfuncn = subfuncn + 1
             subfuncid = targetid
@@ -4850,8 +4854,8 @@ DO
 
                 IF LEN(subfunc) = 0 THEN a$ = "END " + secondelement$ + " without " + secondelement$: GOTO errmes
 
-                'check for open controls (copy #3)
-                IF controllevel <> 0 AND controltype(controllevel) <> 6 THEN 'It's OK for subs to be inside $IF blocks
+                'check for open controls (copy #3) 'added "AND controltype(controllevel) <> 32" below (FellippeHeitor)
+                IF controllevel <> 0 AND controltype(controllevel) <> 6 AND controltype(controllevel) <> 32 THEN 'It's OK for subs to be inside $IF blocks
                     x = controltype(controllevel)
                     IF x = 1 THEN a$ = "IF without END IF"
                     IF x = 2 THEN a$ = "FOR without NEXT"
@@ -4862,6 +4866,11 @@ DO
                     GOTO errmes
                 END IF
 
+                IF controltype(controllevel) = 32 THEN 'These 4 lines close the controllevel for SUB/FUNCTION (FellippeHeitor)
+                    controltype(controllevel) = 0
+                    controllevel = controllevel - 1
+                END IF
+                
                 l$ = firstelement$ + sp + secondelement$
                 layoutdone = 1: IF LEN(layout$) THEN layout$ = layout$ + sp + l$ ELSE layout$ = l$
 
@@ -12653,7 +12662,7 @@ END FUNCTION
 
 FUNCTION arrayreference$ (indexes$, typ)
 arrayprocessinghappened = 1
-'*returns an array reference: idnumber³index$
+'*returns an array reference: idnumberÂ³index$
 '*does not take into consideration the type of the array
 
 '*expects array id to be passed in the global id structure
@@ -14068,7 +14077,7 @@ IF i <> n THEN
     GOTO udtfindelenext
 END IF
 
-'Change e reference to u³0 reference?
+'Change e reference to uÂ³0 reference?
 IF udtetype(E) AND ISUDT THEN
     u = udtetype(E) AND 511
     E = 0
@@ -17191,11 +17200,11 @@ IF fooindwel = 1 THEN 'actions to take on initial call only
 
     'for variables...
     'before: anyoperator,-,variable
-    'after:  anyoperator,ñ,variable
+    'after:  anyoperator,Ã±,variable
 
     'exception for numbers followed by ^... (they will be bracketed up along with the ^ later)
     'before: anyoperator,-,number,^
-    'after:  anyoperator,ñ,number,^
+    'after:  anyoperator,Ã±,number,^
 
     FOR i = 1 TO n - 1
         IF i > n - 1 THEN EXIT FOR 'n changes, so manually exit if required
@@ -17241,7 +17250,7 @@ IF fooindwel = 1 THEN 'actions to take on initial call only
 
                 'not a number (or for exceptions)...
                 removeelements a$, i, i, 0
-                insertelements a$, i - 1, "ñ"
+                insertelements a$, i - 1, "Ã±"
                 IF Debug THEN PRINT #9, "fixoperationorder:negation:" + a$
 
             END IF 'isoperator
@@ -17258,7 +17267,7 @@ END IF 'fooindwel=1
 '----------------D. 'Quick' Add 'power of' with negation {}bracketing to bottom bracket level----------------
 pownegused = 0
 powneg:
-IF INSTR(a$, "^" + sp + "ñ") THEN 'quick check
+IF INSTR(a$, "^" + sp + "Ã±") THEN 'quick check
     b = 0
     b1 = 0
     FOR i = 1 TO n
@@ -17269,7 +17278,7 @@ IF INSTR(a$, "^" + sp + "ñ") THEN 'quick check
         IF b = 0 THEN
             IF b1 THEN
                 IF isoperator(a2$) THEN
-                    IF a2$ <> "^" AND a2$ <> "ñ" THEN
+                    IF a2$ <> "^" AND a2$ <> "Ã±" THEN
                         insertelements a$, i - 1, "}"
                         insertelements a$, b1, "{"
                         n = n + 2
@@ -17280,7 +17289,7 @@ IF INSTR(a$, "^" + sp + "ñ") THEN 'quick check
                 END IF
             END IF
             IF c = 94 THEN '^
-                IF getelement$(a$, i + 1) = "ñ" THEN b1 = i: i = i + 1
+                IF getelement$(a$, i + 1) = "Ã±" THEN b1 = i: i = i + 1
             END IF
         END IF 'b=0
     NEXT i
@@ -17400,8 +17409,8 @@ IF hco <> 0 THEN 'operators were used
 END IF 'hco <> 0
 
 '--------Bracketting of multiple NOT/negation unary operators--------
-IF LEFT$(a$, 4) = "ñ" + sp + "ñ" + sp THEN
-    a$ = "ñ" + sp + "{" + sp + getelements$(a$, 2, n) + sp + "}": n = n + 2
+IF LEFT$(a$, 4) = "Ã±" + sp + "Ã±" + sp THEN
+    a$ = "Ã±" + sp + "{" + sp + getelements$(a$, 2, n) + sp + "}": n = n + 2
 END IF
 IF UCASE$(LEFT$(a$, 8)) = "NOT" + sp + "NOT" + sp THEN
     a$ = "NOT" + sp + "{" + sp + getelements$(a$, 2, n) + sp + "}": n = n + 2
@@ -17535,7 +17544,7 @@ FOR i = 1 TO n
                 END IF
             END IF
             'append negation
-            IF f2$ = "ñ" THEN f$ = f$ + sp + "-": GOTO classdone_special
+            IF f2$ = "Ã±" THEN f$ = f$ + sp + "-": GOTO classdone_special
             GOTO classdone
         END IF
 
@@ -18158,7 +18167,7 @@ l = l + 1
 IF a$ = "*" THEN GOTO opfound
 IF a$ = "/" THEN GOTO opfound
 'NEGATION LEVEL (MUST BE SET AFTER CALLING ISOPERATOR BY CONTEXT)
-l = l + 1: IF a$ = "ñ" THEN GOTO opfound
+l = l + 1: IF a$ = "Ã±" THEN GOTO opfound
 l = l + 1: IF a$ = "^" THEN GOTO opfound
 EXIT FUNCTION
 opfound:
@@ -19257,7 +19266,7 @@ END IF
 'assume numeric operator
 lhs = 1 + 2: rhs = 1 + 2
 IF operator$ = "^" THEN result = 2: info$ = "pow2": operatorusage = 2: EXIT FUNCTION
-IF operator$ = "ñ" THEN info$ = "-": operatorusage = 5: EXIT FUNCTION
+IF operator$ = "Ã±" THEN info$ = "-": operatorusage = 5: EXIT FUNCTION
 IF operator$ = "/" THEN
     info$ = "/ ": operatorusage = 1
     'for / division, either the lhs or the rhs must be a float to make
@@ -22147,7 +22156,7 @@ IF status(1) = 0 THEN
     IF btype(2) AND ISSTRING THEN Give_Error "Invalid CONST expression.6": EXIT FUNCTION
     o$ = block(1)
 
-    IF o$ = "ñ" THEN
+    IF o$ = "Ã±" THEN
         IF btype(2) AND ISFLOAT THEN
             r## = -_CV(_FLOAT, block(2))
             evaluateconst$ = _MK$(_FLOAT, r##)
@@ -23763,7 +23772,7 @@ REM $STATIC
 ' *   Op&   = Type of string to expect and/or operation to perform
 '
 '   { 00A } = (10) Test Base-10-Format String  ( *!* ALTERS InString$ *!* )
-'   { 00B } = (11) Read Sign ("+", "-", or "ñ")
+'   { 00B } = (11) Read Sign ("+", "-", or "Ã±")
 '
 '   Unlisted values are not used and will return [ Check& = 0 - Op& ].
 '   Different Op& values produce various return values.
@@ -23830,7 +23839,7 @@ SELECT CASE Op&
 
 
     CASE 11
-        ' {00B} Read Sign ("+", "-", or "ñ")
+        ' {00B} Read Sign ("+", "-", or "Ã±")
         ' Returns:
         ' Explicit: +1 = Positive; -1 = Negative; 0 = Unsigned;
         ' Implied: +64 = Positive; -64 = NULL String
