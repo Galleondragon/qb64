@@ -6439,6 +6439,7 @@ IF x <= LEN(a$) THEN
         a2$ = CHR$(ASC(a$, x))
     END IF
     a2$ = UCASE$(a2$) 'a2$ now holds the word or character at current cursor position
+    if not alphanumeric(asc(right$(a2$, 1))) then a2$ = left$(a2$, len(a2$) - 1)  'removes sigil, if any
 END IF
 
 '-------- init --------
@@ -6485,7 +6486,9 @@ FOR y = 1 TO iden
 
         'If the user currently has the cursor over a SUB/FUNC name, let's highlight it
         'instead of the currently in edition, for a quick link functionality:
-        IF a2$ = UCASE$(n$) THEN PreferCurrentCursorSUBFUNC = (LEN(ly$) / 4)
+        n2$ = n$
+        if not alphanumeric(asc(right$(n$, 1))) then n2$ = left$(n$, len(n$) - 1)  'removes sigil, if any
+        IF a2$ = UCASE$(n2$) THEN PreferCurrentCursorSUBFUNC = (LEN(ly$) / 4)
 
         'attempt to cleanse n$, just in case there are any comments or other unwanted stuff
         for CleanseN = 1 to len(n$)
