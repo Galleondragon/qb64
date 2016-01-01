@@ -692,6 +692,19 @@ DO
                     sfname$ = thisline$
                 END IF
 
+                'It could be that SUB or FUNCTION is inside a DECLARE LIBRARY.
+                'In such case, it must be ignored:
+                for declib_CHECK = currSF_CHECK to iden
+                    thisline$ = idegetline(declib_CHECK)
+                    thisline$ = LTRIM$(RTRIM$(thisline$))
+                    DeclaringLibrary = 0
+                    ncthisline$ = UCASE$(thisline$)
+                    IF LEFT$(ncthisline$, 11) = "END DECLARE" THEN DeclaringLibrary = -1: EXIT FOR
+                next
+                if DeclaringLibrary = -1 then sfname$ = ""
+                EXIT FOR
+
+                'Ok, we're not inside a DECLARE LIBRARY.
                 'But what if we're past the end of this module's SUBs and FUNCTIONs,
                 'and all that's left is a bunch of comments or $INCLUDES?
                 'We'll also check for that:
