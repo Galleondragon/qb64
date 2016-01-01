@@ -701,8 +701,7 @@ DO
                     ncthisline$ = UCASE$(thisline$)
                     IF LEFT$(ncthisline$, 11) = "END DECLARE" THEN DeclaringLibrary = -1: EXIT FOR
                 next
-                if DeclaringLibrary = -1 then sfname$ = ""
-                EXIT FOR
+                if DeclaringLibrary = -1 then sfname$ = "": EXIT FOR
 
                 'Ok, we're not inside a DECLARE LIBRARY.
                 'But what if we're past the end of this module's SUBs and FUNCTIONs,
@@ -6452,7 +6451,11 @@ IF x <= LEN(a$) THEN
         a2$ = CHR$(ASC(a$, x))
     END IF
     a2$ = UCASE$(a2$) 'a2$ now holds the word or character at current cursor position
-    if not alphanumeric(asc(right$(a2$, 1))) then a2$ = left$(a2$, len(a2$) - 1)  'removes sigil, if any
+    if len(a2$) > 1 then
+        do until alphanumeric(asc(right$(a2$, 1)))
+            a2$ = left$(a2$, len(a2$) - 1)  'removes sigil, if any
+        loop
+    end if
 END IF
 
 '-------- init --------
@@ -6504,7 +6507,11 @@ FOR y = 1 TO iden
         'If the user currently has the cursor over a SUB/FUNC name, let's highlight it
         'instead of the currently in edition, for a quick link functionality:
         n2$ = n$
-        if not alphanumeric(asc(right$(n$, 1))) then n2$ = left$(n$, len(n$) - 1)  'removes sigil, if any
+        if len(n2$) > 1 then
+            do until alphanumeric(asc(right$(n2$, 1)))
+                n2$ = left$(n$, len(n2$) - 1)  'removes sigil, if any
+            loop
+        end if
         IF a2$ = UCASE$(n2$) THEN PreferCurrentCursorSUBFUNC = (LEN(ly$) / 4)
 
         'attempt to cleanse n$, just in case there are any comments or other unwanted stuff
