@@ -6460,6 +6460,8 @@ END IF
 ly$ = MKL$(1)
 CurrentlyViewingWhichSUBFUNC = 1
 PreferCurrentCursorSUBFUNC = 0
+InsideDECLARE = 0
+FoundExternalSUBFUNC = 0
 l$ = ideprogname$
 IF l$ = "" THEN l$ = "Untitled" + tempfolderindexstr$
 FOR y = 1 TO iden
@@ -6467,6 +6469,8 @@ FOR y = 1 TO iden
     a$ = LTRIM$(RTRIM$(a$))
     sf = 0
     nca$ = UCASE$(a$)
+    IF LEFT$(nca$, 8) = "DECLARE " and INSTR(nca$, " LIBRARY") > 0 THEN InsideDECLARE = -1
+    IF LEFT$(nca$, 11) = "END DECLARE" THEN InsideDECLARE = 0
     IF LEFT$(nca$, 4) = "SUB " THEN sf = 1: sf$ = "SUB  "
     IF LEFT$(nca$, 9) = "FUNCTION " THEN sf = 2: sf$ = "FUNC "
     IF sf THEN
@@ -6477,7 +6481,7 @@ FOR y = 1 TO iden
 
         'Check if the cursor is currently inside this SUB/FUNCTION to position the
         'selection properly in the list.
-        IF idecy >= y THEN
+        IF idecy >= y AND NOT InsideDECLARE THEN
             CurrentlyViewingWhichSUBFUNC = (LEN(ly$) / 4)
         END IF
         'End of current SUB/FUNCTION check
@@ -6511,6 +6515,8 @@ FOR y = 1 TO iden
                     exit for
             end select
         next
+
+        IF InsideDECLARE = -1 THEN n$ = "*" + n$: FoundExternalSUBFUNC = -1
 
         IF LEN(n$) <= 20 THEN
             n$ = n$ + SPACE$(20 - LEN(n$))
@@ -6583,6 +6589,9 @@ DO 'main loop
     '-------- end of generic display dialog box & objects --------
 
     '-------- custom display changes --------
+    IF FoundExternalSUBFUNC = -1 THEN
+        COLOR 8, 7: LOCATE p.h + 3, p.x + 2: PRINT "* external";
+    END IF
     '-------- end of custom display changes --------
 
     'update visual page and cursor position
@@ -7061,7 +7070,7 @@ IF t = 2 THEN 'list box
                 validCHARS$ = ""
                 FOR ai = 1 TO LEN(ListBoxITEMS(FindMatch))
                     aa = ASC(ucase$(ListBoxITEMS(findMatch)), ai)
-                    IF aa > 126 OR (k <> 95 AND aa = 95) THEN
+                    IF aa > 126 OR (k <> 95 AND aa = 95) OR (k <> 42 AND aa = 42) THEN
                         'ignore
                     ELSE
                         validCHARS$ = validCHARS$ + CHR$(aa)
