@@ -674,6 +674,8 @@ DO
             ncthisline$ = UCASE$(thisline$)
             IF LEFT$(ncthisline$, 4) = "SUB " THEN isSF = 1
             IF LEFT$(ncthisline$, 9) = "FUNCTION " THEN isSF = 2
+            IF LEFT$(ncthisline$, 7) = "END SUB" and currSF_CHECK < idecy THEN EXIT FOR
+            IF LEFT$(ncthisline$, 12) = "END FUNCTION" and currSF_CHECK < idecy THEN EXIT FOR
             IF isSF THEN
                 IF RIGHT$(ncthisline$, 7) = " STATIC" THEN
                     thisline$ = RTRIM$(LEFT$(thisline$, LEN(thisline$) - 7))
@@ -692,19 +694,40 @@ DO
                     sfname$ = thisline$
                 END IF
 
-                'But what if we're past the end of this module's SUBs and FUNCTIONs,
-                'and all that's left is a bunch of comments or $INCLUDES?
-                'We'll also check for that:
-                for endSF_CHECK = idecy to iden
-                    thisline$ = idegetline(endSF_CHECK)
+                'It could be that SUB or FUNCTION is inside a DECLARE LIBRARY.
+                'In such case, it must be ignored:
+                InsideDECLARE = 0
+                for declib_CHECK = currSF_CHECK to 1 step -1
+                    thisline$ = idegetline(declib_CHECK)
                     thisline$ = LTRIM$(RTRIM$(thisline$))
-                    endedSF = 0
                     ncthisline$ = UCASE$(thisline$)
-                    IF LEFT$(ncthisline$, 7) = "END SUB" THEN endedSF = 1: EXIT FOR
-                    IF LEFT$(ncthisline$, 12) = "END FUNCTION" THEN endedSF = 2: EXIT FOR
+                    IF LEFT$(ncthisline$, 8) = "DECLARE " and INSTR(ncthisline$, " LIBRARY") > 0 THEN InsideDECLARE = -1: EXIT FOR
+                    IF LEFT$(ncthisline$, 11) = "END DECLARE" THEN EXIT FOR
                 next
-                if endedSF = 0 then sfname$ = ""
-                EXIT FOR
+
+                if InsideDECLARE = -1 then
+                    sfname$ = ""
+                else
+                    'Ok, we're not inside a DECLARE LIBRARY.
+                    'But what if we're past the end of this module's SUBs and FUNCTIONs,
+                    'and all that's left is a bunch of comments or $INCLUDES?
+                    'We'll also check for that:
+                    endedSF = 0
+                    for endSF_CHECK = idecy to iden
+                        thisline$ = idegetline(endSF_CHECK)
+                        thisline$ = LTRIM$(RTRIM$(thisline$))
+                        ncthisline$ = UCASE$(thisline$)
+                        IF LEFT$(ncthisline$, 7) = "END SUB" THEN endedSF = 1: EXIT FOR
+                        IF LEFT$(ncthisline$, 12) = "END FUNCTION" THEN endedSF = 2: EXIT FOR
+                        IF LEFT$(ncthisline$, 4) = "SUB " AND endSF_CHECK = idecy THEN endedSF = 1: EXIT FOR
+                        IF LEFT$(ncthisline$, 9) = "FUNCTION " AND endSF_CHECK = idecy THEN endedSF = 2: EXIT FOR
+                        IF LEFT$(ncthisline$, 4) = "SUB " AND InsideDECLARE = 0 THEN EXIT FOR
+                        IF LEFT$(ncthisline$, 9) = "FUNCTION " AND InsideDECLARE = 0 THEN EXIT FOR
+                        IF LEFT$(ncthisline$, 8) = "DECLARE " and INSTR(ncthisline$, " LIBRARY") > 0 THEN InsideDECLARE = -1
+                        IF LEFT$(ncthisline$, 11) = "END DECLARE" THEN InsideDECLARE = 0
+                    next
+                    if endedSF = 0 then sfname$ = "" else exit for
+                end if
             END IF
         NEXT
 
@@ -727,7 +750,7 @@ DO
         COLOR 1, 7: LOCATE 2, ((idewx / 2) - 1) - (LEN(a$) - 1) \ 2: PRINT a$;
 
         'update search bar
-        LOCATE 2, idewx - 30
+        LOCATE idewy - 4, idewx - 30
         COLOR 7, 1: PRINT chr$(180);
         COLOR 3, 1: PRINT "Find[                     " + chr$(18) + "]";
         COLOR 7, 1: PRINT chr$(195);
@@ -735,7 +758,7 @@ DO
         IF LEN(f$) > 20 THEN
             f$ = string$(3, 250) + RIGHT$(f$, 17)
         END IF
-        LOCATE 2, idewx - 28 + 4: COLOR 3, 1: PRINT f$
+        LOCATE idewy - 4, idewx - 28 + 4: COLOR 3, 1: PRINT f$
         findtext$ = f$
 
         'alter cursor style to match insert mode
@@ -848,7 +871,7 @@ DO
 
         IF IdeSystem = 2 THEN 'override cursor position
             SCREEN , , 0, 0
-            LOCATE 2, idewx - 28 + 4 + LEN(findtext$)
+            LOCATE idewy - 4, idewx - 28 + 4 + LEN(findtext$)
             SCREEN , , 3, 0
         END IF
 
@@ -1424,8 +1447,8 @@ DO
 
     'IdeSystem specific code goes here
 
-    IF mCLICK THEN
-        IF mY = 2 AND mX > idewx - 30 AND mX < idewx - 1 THEN 'inside text box
+    IF mCLICK THEN 'Find [...] search field
+        IF mY = idewy - 4 AND mX > idewx - 30 AND mX < idewx - 1 THEN 'inside text box
             IF mX <= idewx - 28 + 2 THEN
                 IF LEN(idefindtext) = 0 THEN
                     IdeSystem = 2 'no search string, so begin editing
@@ -1982,6 +2005,7 @@ DO
                 IF lnks > 1 THEN
                     'clarify context
                     lnk$ = idef1box$(lnks$, lnks)
+                    if lnk$ = "C" then goto ideloop
                 END IF
 
 
@@ -2036,12 +2060,12 @@ DO
                     WikiParse a$
                     idehelp = 1
                     skipdisplay = 0
-                    IdeSystem = 1 '***
+                    IdeSystem = 3 'Standard qb45 behaviour. Allows for quick peek at help then ESC.
                     retval = 1: GOTO redraweverything2
                 END IF
 
                 WikiParse a$
-                IdeSystem = 1 '***
+                IdeSystem = 3 'Standard qb45 behaviour. Allows for quick peek at help then ESC.
                 GOTO specialchar
 
             END IF 'lnks
@@ -6439,6 +6463,11 @@ IF x <= LEN(a$) THEN
         a2$ = CHR$(ASC(a$, x))
     END IF
     a2$ = UCASE$(a2$) 'a2$ now holds the word or character at current cursor position
+    if len(a2$) > 1 then
+        do until alphanumeric(asc(right$(a2$, 1)))
+            a2$ = left$(a2$, len(a2$) - 1)  'removes sigil, if any
+        loop
+    end if
 END IF
 
 '-------- init --------
@@ -6446,6 +6475,8 @@ END IF
 ly$ = MKL$(1)
 CurrentlyViewingWhichSUBFUNC = 1
 PreferCurrentCursorSUBFUNC = 0
+InsideDECLARE = 0
+FoundExternalSUBFUNC = 0
 l$ = ideprogname$
 IF l$ = "" THEN l$ = "Untitled" + tempfolderindexstr$
 FOR y = 1 TO iden
@@ -6453,6 +6484,8 @@ FOR y = 1 TO iden
     a$ = LTRIM$(RTRIM$(a$))
     sf = 0
     nca$ = UCASE$(a$)
+    IF LEFT$(nca$, 8) = "DECLARE " and INSTR(nca$, " LIBRARY") > 0 THEN InsideDECLARE = -1
+    IF LEFT$(nca$, 11) = "END DECLARE" THEN InsideDECLARE = 0
     IF LEFT$(nca$, 4) = "SUB " THEN sf = 1: sf$ = "SUB  "
     IF LEFT$(nca$, 9) = "FUNCTION " THEN sf = 2: sf$ = "FUNC "
     IF sf THEN
@@ -6463,7 +6496,7 @@ FOR y = 1 TO iden
 
         'Check if the cursor is currently inside this SUB/FUNCTION to position the
         'selection properly in the list.
-        IF idecy >= y THEN
+        IF idecy >= y AND NOT InsideDECLARE THEN
             CurrentlyViewingWhichSUBFUNC = (LEN(ly$) / 4)
         END IF
         'End of current SUB/FUNCTION check
@@ -6485,7 +6518,13 @@ FOR y = 1 TO iden
 
         'If the user currently has the cursor over a SUB/FUNC name, let's highlight it
         'instead of the currently in edition, for a quick link functionality:
-        IF a2$ = UCASE$(n$) THEN PreferCurrentCursorSUBFUNC = (LEN(ly$) / 4)
+        n2$ = n$
+        if len(n2$) > 1 then
+            do until alphanumeric(asc(right$(n2$, 1)))
+                n2$ = left$(n$, len(n2$) - 1)  'removes sigil, if any
+            loop
+        end if
+        IF a2$ = UCASE$(n2$) THEN PreferCurrentCursorSUBFUNC = (LEN(ly$) / 4)
 
         'attempt to cleanse n$, just in case there are any comments or other unwanted stuff
         for CleanseN = 1 to len(n$)
@@ -6495,6 +6534,8 @@ FOR y = 1 TO iden
                     exit for
             end select
         next
+
+        IF InsideDECLARE = -1 THEN n$ = "*" + n$: FoundExternalSUBFUNC = -1
 
         IF LEN(n$) <= 20 THEN
             n$ = n$ + SPACE$(20 - LEN(n$))
@@ -6567,6 +6608,9 @@ DO 'main loop
     '-------- end of generic display dialog box & objects --------
 
     '-------- custom display changes --------
+    IF FoundExternalSUBFUNC = -1 THEN
+        COLOR 8, 7: LOCATE p.h + 3, p.x + 2: PRINT "* external";
+    END IF
     '-------- end of custom display changes --------
 
     'update visual page and cursor position
@@ -7045,7 +7089,7 @@ IF t = 2 THEN 'list box
                 validCHARS$ = ""
                 FOR ai = 1 TO LEN(ListBoxITEMS(FindMatch))
                     aa = ASC(ucase$(ListBoxITEMS(findMatch)), ai)
-                    IF aa > 126 OR (k <> 95 AND aa = 95) THEN
+                    IF aa > 126 OR (k <> 95 AND aa = 95) OR (k <> 42 AND aa = 42) THEN
                         'ignore
                     ELSE
                         validCHARS$ = validCHARS$ + CHR$(aa)
@@ -9222,14 +9266,14 @@ CLOSE #fh
 
 '72,19
 
-h = idewy + idesubwindow - 6
+h = idewy + idesubwindow - 9
 IF ln < h THEN h = ln
 IF h < 3 THEN h = 3
 
 i = 0
 idepar p, 20, h, ""
 p.x = idewx - 24
-p.y = 3
+p.y = idewy - 6 - h
 
 i = i + 1
 o(i).typ = 2
@@ -9855,6 +9899,9 @@ DO 'main loop
     IF K$ = CHR$(13) OR (focus = 2 AND info <> 0) OR (info = 1 AND focus = 1) THEN
         f$ = idetxt(o(1).stx)
         idef1box$ = f$
+        EXIT FUNCTION
+    ELSEIF K$ = CHR$(27) THEN
+        idef1box$ = "C"
         EXIT FUNCTION
     END IF
 
