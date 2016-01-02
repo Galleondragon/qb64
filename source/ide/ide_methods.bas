@@ -674,6 +674,8 @@ DO
             ncthisline$ = UCASE$(thisline$)
             IF LEFT$(ncthisline$, 4) = "SUB " THEN isSF = 1
             IF LEFT$(ncthisline$, 9) = "FUNCTION " THEN isSF = 2
+            IF LEFT$(ncthisline$, 7) = "END SUB" and currSF_CHECK < idecy THEN EXIT FOR
+            IF LEFT$(ncthisline$, 12) = "END FUNCTION" and currSF_CHECK < idecy THEN EXIT FOR
             IF isSF THEN
                 IF RIGHT$(ncthisline$, 7) = " STATIC" THEN
                     thisline$ = RTRIM$(LEFT$(thisline$, LEN(thisline$) - 7))
@@ -694,29 +696,38 @@ DO
 
                 'It could be that SUB or FUNCTION is inside a DECLARE LIBRARY.
                 'In such case, it must be ignored:
-                for declib_CHECK = currSF_CHECK to iden
+                InsideDECLARE = 0
+                for declib_CHECK = currSF_CHECK to 1 step -1
                     thisline$ = idegetline(declib_CHECK)
                     thisline$ = LTRIM$(RTRIM$(thisline$))
-                    DeclaringLibrary = 0
                     ncthisline$ = UCASE$(thisline$)
-                    IF LEFT$(ncthisline$, 11) = "END DECLARE" THEN DeclaringLibrary = -1: EXIT FOR
+                    IF LEFT$(ncthisline$, 8) = "DECLARE " and INSTR(ncthisline$, " LIBRARY") > 0 THEN InsideDECLARE = -1: EXIT FOR
+                    IF LEFT$(ncthisline$, 11) = "END DECLARE" THEN EXIT FOR
                 next
-                if DeclaringLibrary = -1 then sfname$ = "": EXIT FOR
 
-                'Ok, we're not inside a DECLARE LIBRARY.
-                'But what if we're past the end of this module's SUBs and FUNCTIONs,
-                'and all that's left is a bunch of comments or $INCLUDES?
-                'We'll also check for that:
-                for endSF_CHECK = idecy to iden
-                    thisline$ = idegetline(endSF_CHECK)
-                    thisline$ = LTRIM$(RTRIM$(thisline$))
+                if InsideDECLARE = -1 then
+                    sfname$ = ""
+                else
+                    'Ok, we're not inside a DECLARE LIBRARY.
+                    'But what if we're past the end of this module's SUBs and FUNCTIONs,
+                    'and all that's left is a bunch of comments or $INCLUDES?
+                    'We'll also check for that:
                     endedSF = 0
-                    ncthisline$ = UCASE$(thisline$)
-                    IF LEFT$(ncthisline$, 7) = "END SUB" THEN endedSF = 1: EXIT FOR
-                    IF LEFT$(ncthisline$, 12) = "END FUNCTION" THEN endedSF = 2: EXIT FOR
-                next
-                if endedSF = 0 then sfname$ = ""
-                EXIT FOR
+                    for endSF_CHECK = idecy to iden
+                        thisline$ = idegetline(endSF_CHECK)
+                        thisline$ = LTRIM$(RTRIM$(thisline$))
+                        ncthisline$ = UCASE$(thisline$)
+                        IF LEFT$(ncthisline$, 7) = "END SUB" THEN endedSF = 1: EXIT FOR
+                        IF LEFT$(ncthisline$, 12) = "END FUNCTION" THEN endedSF = 2: EXIT FOR
+                        IF LEFT$(ncthisline$, 4) = "SUB " AND endSF_CHECK = idecy THEN endedSF = 1: EXIT FOR
+                        IF LEFT$(ncthisline$, 9) = "FUNCTION " AND endSF_CHECK = idecy THEN endedSF = 2: EXIT FOR
+                        IF LEFT$(ncthisline$, 4) = "SUB " AND InsideDECLARE = 0 THEN EXIT FOR
+                        IF LEFT$(ncthisline$, 9) = "FUNCTION " AND InsideDECLARE = 0 THEN EXIT FOR
+                        IF LEFT$(ncthisline$, 8) = "DECLARE " and INSTR(ncthisline$, " LIBRARY") > 0 THEN InsideDECLARE = -1
+                        IF LEFT$(ncthisline$, 11) = "END DECLARE" THEN InsideDECLARE = 0
+                    next
+                    if endedSF = 0 then sfname$ = "" else exit for
+                end if
             END IF
         NEXT
 
