@@ -2005,6 +2005,7 @@ DO
                 IF lnks > 1 THEN
                     'clarify context
                     lnk$ = idef1box$(lnks$, lnks)
+                    if lnk$ = "C" then goto ideloop
                 END IF
 
 
@@ -2059,12 +2060,12 @@ DO
                     WikiParse a$
                     idehelp = 1
                     skipdisplay = 0
-                    IdeSystem = 1 '***
+                    IdeSystem = 3 'Standard qb45 behaviour. Allows for quick peek at help then ESC.
                     retval = 1: GOTO redraweverything2
                 END IF
 
                 WikiParse a$
-                IdeSystem = 1 '***
+                IdeSystem = 3 'Standard qb45 behaviour. Allows for quick peek at help then ESC.
                 GOTO specialchar
 
             END IF 'lnks
@@ -9898,6 +9899,9 @@ DO 'main loop
     IF K$ = CHR$(13) OR (focus = 2 AND info <> 0) OR (info = 1 AND focus = 1) THEN
         f$ = idetxt(o(1).stx)
         idef1box$ = f$
+        EXIT FUNCTION
+    ELSEIF K$ = CHR$(27) THEN
+        idef1box$ = "C"
         EXIT FUNCTION
     END IF
 
