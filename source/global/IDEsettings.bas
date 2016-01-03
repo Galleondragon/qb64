@@ -7,18 +7,18 @@ DIM SHARED LoadedIDESettings AS INTEGER
 DIM SHARED MouseButtonSwapped AS _BYTE
 
 IF LoadedIDESettings = 0 THEN
-  'We only want to load the file once when QB64 first starts
-  'Other changes should occur to our settings when we change them in their appropiate routines.
-  'There's no reason to open and close and open and close the same file a million times.
+    'We only want to load the file once when QB64 first starts
+    'Other changes should occur to our settings when we change them in their appropiate routines.
+    'There's no reason to open and close and open and close the same file a million times.
 
-  LoadedIDESettings = -1
+    LoadedIDESettings = -1
 
-  ConfigFile$ = "internal/config.txt"
-  ConfigBak$ = "internal/config.bak"
+    ConfigFile$ = "internal/config.txt"
+    ConfigBak$ = "internal/config.bak"
 
-  GOSUB CheckConfigFileExists 'make certain the config file exists and if not, create one
+    GOSUB CheckConfigFileExists 'make certain the config file exists and if not, create one
 
-  IF INSTR(_OS$, "WIN") THEN
+    IF INSTR(_OS$, "WIN") THEN
 
         result = ReadConfigSetting("AllowIndependentSettings", value$)
         IF result THEN
@@ -191,6 +191,20 @@ IF LoadedIDESettings = 0 THEN
             ideindentsubs = 1
     else
             ideindentsubs = 0
+    end if
+
+    result = ReadConfigSetting("IDE_SortSUBs", value$)
+    idesortsubs = VAL(value$)
+    IF UCASE$(value$) = "TRUE" OR idesortsubs <> 0 THEN
+        idesortsubs = 1
+    elseif result = 0 then
+        WriteConfigSetting "'[IDE DISPLAY SETTINGS]", "IDE_SortSUBs", "FALSE"
+        idesortsubs = 0
+    ELSEIF UCASE$(value$) <> "FALSE" AND value$ <> "0" THEN
+            WriteConfigSetting "'[IDE DISPLAY SETTINGS]", "IDE_SortSUBs", "TRUE"
+            idesortsubs = 1
+    else
+            idesortsubs = 0
     end if
 
     result = ReadConfigSetting("IDE_IndentSize", value$)
