@@ -6580,6 +6580,7 @@ if TotalSUBs > 1 then
         for RestoreCaseBkp = 1 to TotalSUBs
             IF MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 6, 4) = MID$(CaseBkpSubsList(RestoreCaseBkp), LEN(CaseBkpSubsList(RestoreCaseBkp)) - 6, 4) THEN
                 lSorted$ = lSorted$ + sep + chr$(195) + chr$(196) + left$(CaseBkpSubsList(RestoreCaseBkp), ListItemLength)
+                EXIT FOR
             END IF
         next
     NEXT
