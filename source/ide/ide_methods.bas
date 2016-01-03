@@ -103,6 +103,7 @@ ide = ide2(0)
 END FUNCTION
 
 FUNCTION ide2 (ignore)
+STATIC MenuLocations as STRING
 
 c$ = idecommand$
 
@@ -178,17 +179,17 @@ IF idelaunched = 0 THEN
 
     m = m + 1: i = 0
     menu$(m, i) = "Edit": i = i + 1
-    menu$(m, i) = "Cu#t  Shift+Del or CTRL+X": i = i + 1
-    menu$(m, i) = "#Copy  Ctrl+Ins or CTRL+C": i = i + 1
-    menu$(m, i) = "#Paste  Shift+Ins or CTRL+V": i = i + 1
+    menu$(m, i) = "Cu#t  Shift+Del or Ctrl+X": i = i + 1
+    menu$(m, i) = "#Copy  Ctrl+Ins or Ctrl+C": i = i + 1
+    menu$(m, i) = "#Paste  Shift+Ins or Ctrl+V": i = i + 1
     menu$(m, i) = "Cl#ear  Del": i = i + 1
-    menu$(m, i) = "Select #All  CTRL+A": i = i + 1
+    menu$(m, i) = "Select #All  Ctrl+A": i = i + 1
     menu$(m, i) = "-": i = i + 1
-    menu$(m, i) = "#Undo  CTRL+Z": i = i + 1
-    menu$(m, i) = "#Redo  CTRL+Y": i = i + 1
+    menu$(m, i) = "#Undo  Ctrl+Z": i = i + 1
+    menu$(m, i) = "#Redo  Ctrl+Y": i = i + 1
     menu$(m, i) = "-": i = i + 1
-    menu$(m, i) = "Comment (add ')": i = i + 1
-    menu$(m, i) = "Uncomment (remove ')": i = i + 1
+    menu$(m, i) = "Comme#nt (add ')": i = i + 1
+    menu$(m, i) = "Uncomment (remo#ve ')": i = i + 1
     menu$(m, i) = "-": i = i + 1
     menu$(m, i) = "New #SUB...": i = i + 1
     menu$(m, i) = "New #FUNCTION...": i = i + 1
@@ -201,13 +202,13 @@ IF idelaunched = 0 THEN
 
     m = m + 1: i = 0
     menu$(m, i) = "Search": i = i + 1
-    menu$(m, i) = "#Find...": i = i + 1
+    menu$(m, i) = "#Find...  Ctrl+F3": i = i + 1
     menu$(m, i) = "#Repeat Last Find  (Shift+) F3": i = i + 1
     menu$(m, i) = "#Change...": i = i + 1
     menu$(m, i) = "-": i = i + 1
-    menu$(m, i) = "Add/Remove #Bookmark  ALT+Left": i = i + 1
-    menu$(m, i) = "#Next Bookmark  ALT+Down": i = i + 1
-    menu$(m, i) = "#Previous Bookmark  ALT+Up": i = i + 1
+    menu$(m, i) = "Add/Remove #Bookmark  Alt+Left": i = i + 1
+    menu$(m, i) = "#Next Bookmark  Alt+Down": i = i + 1
+    menu$(m, i) = "#Previous Bookmark  Alt+Up": i = i + 1
     menu$(m, i) = "-": i = i + 1
     menu$(m, i) = "#Go to line...": i = i + 1
 
@@ -261,9 +262,11 @@ IF idelaunched = 0 THEN
     menu$(m, i) = "#About...": i = i + 1
     menusize(m) = i - 1
 
-
-
     menus = m
+
+    'Hidden contextual menu (ID is retrieved for later use; allows expansion of the original menu system above):
+    m = m + 1
+    idecontextualmenuID = m
 
     IF os$ = "WIN" THEN
         idepathsep$ = "\"
@@ -294,10 +297,13 @@ IF idelaunched = 0 THEN
 
 
     menubar$ = "   "
+    MenuLocations = ""
     FOR i = 1 TO menus - 1
+        MenuLocations = MenuLocations + MKI$(LEN(menubar$))
         menubar$ = menubar$ + menu$(i, 0) + "  "
     NEXT
     menubar$ = menubar$ + SPACE$(idewx - LEN(menubar$) - LEN(menu$(i, 0)) - 2)
+    MenuLocations = MenuLocations + MKI$(LEN(menubar$))
     menubar$ = menubar$ + menu$(i, 0) + "  "
 
 
@@ -623,7 +629,7 @@ idefocusline = 0
 'main loop
 DO
     ideloop:
-
+    idecontextualmenu = 0
     idedeltxt 'removes temporary strings (typically created by guibox commands) by setting an index to 0
     STATIC ForceResize
     if IDE_AutoPosition then
@@ -674,6 +680,8 @@ DO
             ncthisline$ = UCASE$(thisline$)
             IF LEFT$(ncthisline$, 4) = "SUB " THEN isSF = 1
             IF LEFT$(ncthisline$, 9) = "FUNCTION " THEN isSF = 2
+            IF LEFT$(ncthisline$, 7) = "END SUB" and currSF_CHECK < idecy THEN EXIT FOR
+            IF LEFT$(ncthisline$, 12) = "END FUNCTION" and currSF_CHECK < idecy THEN EXIT FOR
             IF isSF THEN
                 IF RIGHT$(ncthisline$, 7) = " STATIC" THEN
                     thisline$ = RTRIM$(LEFT$(thisline$, LEN(thisline$) - 7))
@@ -692,19 +700,40 @@ DO
                     sfname$ = thisline$
                 END IF
 
-                'But what if we're past the end of this module's SUBs and FUNCTIONs,
-                'and all that's left is a bunch of comments or $INCLUDES?
-                'We'll also check for that:
-                for endSF_CHECK = idecy to iden
-                    thisline$ = idegetline(endSF_CHECK)
+                'It could be that SUB or FUNCTION is inside a DECLARE LIBRARY.
+                'In such case, it must be ignored:
+                InsideDECLARE = 0
+                for declib_CHECK = currSF_CHECK to 1 step -1
+                    thisline$ = idegetline(declib_CHECK)
                     thisline$ = LTRIM$(RTRIM$(thisline$))
-                    endedSF = 0
                     ncthisline$ = UCASE$(thisline$)
-                    IF LEFT$(ncthisline$, 7) = "END SUB" THEN endedSF = 1: EXIT FOR
-                    IF LEFT$(ncthisline$, 12) = "END FUNCTION" THEN endedSF = 2: EXIT FOR
+                    IF LEFT$(ncthisline$, 8) = "DECLARE " and INSTR(ncthisline$, " LIBRARY") > 0 THEN InsideDECLARE = -1: EXIT FOR
+                    IF LEFT$(ncthisline$, 11) = "END DECLARE" THEN EXIT FOR
                 next
-                if endedSF = 0 then sfname$ = ""
-                EXIT FOR
+
+                if InsideDECLARE = -1 then
+                    sfname$ = ""
+                else
+                    'Ok, we're not inside a DECLARE LIBRARY.
+                    'But what if we're past the end of this module's SUBs and FUNCTIONs,
+                    'and all that's left is a bunch of comments or $INCLUDES?
+                    'We'll also check for that:
+                    endedSF = 0
+                    for endSF_CHECK = idecy to iden
+                        thisline$ = idegetline(endSF_CHECK)
+                        thisline$ = LTRIM$(RTRIM$(thisline$))
+                        ncthisline$ = UCASE$(thisline$)
+                        IF LEFT$(ncthisline$, 7) = "END SUB" THEN endedSF = 1: EXIT FOR
+                        IF LEFT$(ncthisline$, 12) = "END FUNCTION" THEN endedSF = 2: EXIT FOR
+                        IF LEFT$(ncthisline$, 4) = "SUB " AND endSF_CHECK = idecy THEN endedSF = 1: EXIT FOR
+                        IF LEFT$(ncthisline$, 9) = "FUNCTION " AND endSF_CHECK = idecy THEN endedSF = 2: EXIT FOR
+                        IF LEFT$(ncthisline$, 4) = "SUB " AND InsideDECLARE = 0 THEN EXIT FOR
+                        IF LEFT$(ncthisline$, 9) = "FUNCTION " AND InsideDECLARE = 0 THEN EXIT FOR
+                        IF LEFT$(ncthisline$, 8) = "DECLARE " and INSTR(ncthisline$, " LIBRARY") > 0 THEN InsideDECLARE = -1
+                        IF LEFT$(ncthisline$, 11) = "END DECLARE" THEN InsideDECLARE = 0
+                    next
+                    if endedSF = 0 then sfname$ = "" else exit for
+                end if
             END IF
         NEXT
 
@@ -727,7 +756,7 @@ DO
         COLOR 1, 7: LOCATE 2, ((idewx / 2) - 1) - (LEN(a$) - 1) \ 2: PRINT a$;
 
         'update search bar
-        LOCATE 2, idewx - 30
+        LOCATE idewy - 4, idewx - 30
         COLOR 7, 1: PRINT chr$(180);
         COLOR 3, 1: PRINT "Find[                     " + chr$(18) + "]";
         COLOR 7, 1: PRINT chr$(195);
@@ -735,7 +764,7 @@ DO
         IF LEN(f$) > 20 THEN
             f$ = string$(3, 250) + RIGHT$(f$, 17)
         END IF
-        LOCATE 2, idewx - 28 + 4: COLOR 3, 1: PRINT f$
+        LOCATE idewy - 4, idewx - 28 + 4: COLOR 3, 1: PRINT f$
         findtext$ = f$
 
         'alter cursor style to match insert mode
@@ -848,7 +877,7 @@ DO
 
         IF IdeSystem = 2 THEN 'override cursor position
             SCREEN , , 0, 0
-            LOCATE 2, idewx - 28 + 4 + LEN(findtext$)
+            LOCATE idewy - 4, idewx - 28 + 4 + LEN(findtext$)
             SCREEN , , 3, 0
         END IF
 
@@ -1262,6 +1291,14 @@ DO
         END IF
     NEXT
 
+    IF KCTRL AND UCASE$(K$) = "F" THEN
+        IdeSystem = 2
+    END IF
+
+    IF KCTRL AND KB = KEY_F3 THEN
+        IF IdeSystem = 3 THEN IdeSystem = 1
+        GOTO idefindjmp
+    END IF
 
     IF KB = KEY_F3 THEN
         IF IdeSystem = 3 THEN IdeSystem = 1
@@ -1424,8 +1461,8 @@ DO
 
     'IdeSystem specific code goes here
 
-    IF mCLICK THEN
-        IF mY = 2 AND mX > idewx - 30 AND mX < idewx - 1 THEN 'inside text box
+    IF mCLICK THEN 'Find [...] search field
+        IF mY = idewy - 4 AND mX > idewx - 30 AND mX < idewx - 1 THEN 'inside text box
             IF mX <= idewx - 28 + 2 THEN
                 IF LEN(idefindtext) = 0 THEN
                     IdeSystem = 2 'no search string, so begin editing
@@ -1462,7 +1499,7 @@ DO
     END IF
 
     IF idehelp = 1 THEN 'switch windows?
-        IF mCLICK THEN
+        IF mCLICK OR mCLICK2 THEN
             IF IdeSystem = 3 THEN
                 IF mY >= 2 AND mY < idewy THEN
                     IdeSystem = 1
@@ -1523,9 +1560,10 @@ DO
             GOTO specialchar
         END IF
 
-        IF mCLICK THEN
+        IF mCLICK or mCLICK2 THEN
             IF mX > 1 AND mX < idewx AND mY > 2 AND mY < (idewy - 5) THEN 'inside text box
                 IdeSystem = 1
+                goto invokecontextualmenu
             END IF
         END IF
 
@@ -1938,6 +1976,7 @@ DO
 
 
     IF KB = KEY_F1 THEN
+        contextualhelp:
         'identify word or character at current cursor position
         a$ = idegetline(idecy)
         x = idecx
@@ -1982,6 +2021,7 @@ DO
                 IF lnks > 1 THEN
                     'clarify context
                     lnk$ = idef1box$(lnks$, lnks)
+                    if lnk$ = "C" then goto ideloop
                 END IF
 
 
@@ -2036,12 +2076,12 @@ DO
                     WikiParse a$
                     idehelp = 1
                     skipdisplay = 0
-                    IdeSystem = 1 '***
+                    IdeSystem = 3 'Standard qb45 behaviour. Allows for quick peek at help then ESC.
                     retval = 1: GOTO redraweverything2
                 END IF
 
                 WikiParse a$
-                IdeSystem = 1 '***
+                IdeSystem = 3 'Standard qb45 behaviour. Allows for quick peek at help then ESC.
                 GOTO specialchar
 
             END IF 'lnks
@@ -2079,7 +2119,7 @@ DO
 
     IF KALT AND (KB = KEY_DOWN OR KB = KEY_UP) THEN
         IF IdeBmkN = 0 THEN
-            idemessagebox "Bookmarks", "No bookmarks exist (Use ALT+Left to create a bookmark)"
+            idemessagebox "Bookmarks", "No bookmarks exist (Use Alt+Left to create a bookmark)"
             SCREEN , , 3, 0: idewait4mous: idewait4alt
             idealthighlight = 0
             LOCATE , , 0: COLOR 0, 7: LOCATE 1, 1: PRINT menubar$;
@@ -2125,6 +2165,68 @@ DO
             IF idecy > iden THEN idecy = iden
             ideselect = 1: ideselectx1 = idecx: ideselecty1 = idecy
             idemouseselect = 1
+        END IF
+    END IF
+
+    IF mCLICK2 THEN 'Second mouse button pressed.
+        invokecontextualmenu:
+        IF mX > 1 AND mX < idewx AND mY > 2 AND mY < (idewy - 5) THEN 'inside text box
+            if ideselect = 0 then 'Right click only positions the cursor if no selection is active
+                idecx = mX - 1 + idesx - 1
+                idecy = mY - 2 + idesy - 1
+                IF idecy > iden THEN idecy = iden
+            else 'A selection is reported but it may be that the user only clicked the screen. Let's check:
+                IF ideselecty1 = idecy THEN 'single line selected
+                    a$ = idegetline(idecy)
+                    a2$ = ""
+                    sx1 = ideselectx1: sx2 = idecx
+                    IF sx2 < sx1 THEN SWAP sx1, sx2
+                    FOR x = sx1 TO sx2 - 1
+                        IF x <= LEN(a$) THEN a2$ = a2$ + MID$(a$, x, 1) ELSE a2$ = a2$ + " "
+                    NEXT
+                    IF a2$ = "" THEN
+                        'Told ya.
+                        ideselect = 0
+                        idecx = mX - 1 + idesx - 1
+                        idecy = mY - 2 + idesy - 1
+                        IF idecy > iden THEN idecy = iden
+                    ELSE
+                        'Ok, there is a selection. But we'll override it if the click was outside it
+                        IF mX - 1 + idesx - 1 < sx1 OR mX - 1 + idesx - 1 > sx2 THEN
+                            ideselect = 0
+                            idecx = mX - 1 + idesx - 1
+                            idecy = mY - 2 + idesy - 1
+                            IF idecy > iden THEN idecy = iden
+                            ideshowtext
+                            PCOPY 3, 0
+                        END IF
+                        IF mY - 2 + idesy - 1 < idecy OR mY - 2 + idesy - 1 > idecy THEN
+                            ideselect = 0
+                            idecx = mX - 1 + idesx - 1
+                            idecy = mY - 2 + idesy - 1
+                            IF idecy > iden THEN idecy = iden
+                            ideshowtext
+                            PCOPY 3, 0
+                        END IF
+                    END IF
+                ELSE 'Multiple lines selected
+                    'We'll override the selection if the click was outside it
+                    sy1 = ideselecty1
+                    sy2 = idecy
+                    IF sy1 > sy2 THEN SWAP sy1, sy2
+                    IF mY - 2 + idesy - 1 < sy1 OR mY - 2 + idesy - 1 > sy2 THEN
+                        ideselect = 0
+                        idecx = mX - 1 + idesx - 1
+                        idecy = mY - 2 + idesy - 1
+                        IF idecy > iden THEN idecy = iden
+                        ideshowtext
+                        PCOPY 3, 0
+                    END IF
+                END IF
+            end if
+            idecontextualmenu = 1
+            IdeMakeContextualMenu
+            GOTO showmenu
         END IF
     END IF
 
@@ -2925,7 +3027,7 @@ DO
         GOTO ideloop
     END IF
     IF m < 1 THEN m = menus
-    IF m > menus THEN m = 1
+    IF m > menus and idecontextualmenu = 0 THEN m = 1
     IF KB = KEY_UP OR KB = KEY_DOWN OR KB = KEY_ENTER THEN
         LOCATE 1, 1: COLOR 0, 7: PRINT menubar$;
         PCOPY 3, 0
@@ -2950,14 +3052,17 @@ altheld = 1
 PCOPY 0, 2
 SCREEN , , 1, 0
 r = 1
+IF idecontextualmenu = 1 THEN idectxmenuX = mX: idectxmenuY = mY: m = idecontextualmenuID
 DO
     PCOPY 2, 1
 
-    'find pos of menu m
-    x = 4: FOR i = 1 TO m - 1: x = x + LEN(menu$(i, 0)) + 2
-        IF i = menus - 1 THEN x = idewx - LEN(menu$(menus, 0)) - 1
-    NEXT: xx = x
-    LOCATE 1, xx - 1: COLOR 7, 0: PRINT " " + menu$(m, 0) + " "
+    if idecontextualmenu = 0 then
+        'find pos of menu m
+        x = 4: FOR i = 1 TO m - 1: x = x + LEN(menu$(i, 0)) + 2
+            IF i = menus - 1 THEN x = idewx - LEN(menu$(menus, 0)) - 1
+        NEXT: xx = x
+        LOCATE 1, xx - 1: COLOR 7, 0: PRINT " " + menu$(m, 0) + " "
+    END IF
     COLOR 0, 7
     'calculate menu width
     w = 0
@@ -2968,18 +3073,25 @@ DO
         IF INSTR(m$, "  ") THEN l = l + 2 'min 4 spacing
         IF l > w THEN w = l
     NEXT
+    yy = 2
+    IF idecontextualmenu = 1 THEN
+        xx = idectxmenuX
+        if xx < 3 then xx = 3
+        yy = idectxmenuY
+        if yy + menusize(m) + 2 > idewy then yy = idewy - 2 - menusize(m)
+    END IF
     IF xx > idewx - w - 3 THEN xx = idewx - w - 3
-    ideboxshadow xx - 2, 2, w + 4, menusize(m) + 2
 
+    ideboxshadow xx - 2, yy, w + 4, menusize(m) + 2
 
     'draw menu items
     FOR i = 1 TO menusize(m)
         m$ = menu$(m, i)
         IF m$ = "-" THEN
-            COLOR 0, 7: LOCATE i + 2, xx - 2: PRINT chr$(195) + STRING$(w + 2, chr$(196)) + chr$(180);
+            COLOR 0, 7: LOCATE i + yy, xx - 2: PRINT chr$(195) + STRING$(w + 2, chr$(196)) + chr$(180);
         ELSE
-            IF r = i THEN LOCATE i + 2, xx - 1: COLOR 7, 0: PRINT SPACE$(w + 2);
-            LOCATE i + 2, xx
+            IF r = i THEN LOCATE i + yy, xx - 1: COLOR 7, 0: PRINT SPACE$(w + 2);
+            LOCATE i + yy, xx
             h = -1: x = INSTR(m$, "#"): IF x THEN h = x: m$ = LEFT$(m$, x - 1) + RIGHT$(m$, LEN(m$) - x)
             x = INSTR(m$, "  "): IF x THEN m1$ = LEFT$(m$, x - 1): m2$ = RIGHT$(m$, LEN(m$) - x - 1): m$ = m1$ + SPACE$(w - LEN(m1$) - LEN(m2$)) + m2$
             FOR x = 1 TO LEN(m$)
@@ -3008,7 +3120,11 @@ DO
         IF iCHANGED THEN
             IF KB THEN change = 1
             IF mCLICK THEN change = 1: mousedown = 1
+            IF mCLICK2 THEN change = 1
             IF mRELEASE THEN change = 1: mouseup = 1
+            IF mWHEEL THEN change = 1
+            IF mX THEN change = 1
+            IF mY THEN change = 1
         END IF
         IF mB THEN change = 1
         'revert to previous menuwhen alt pressed again
@@ -3022,29 +3138,71 @@ DO
 
     s = 0
 
+    IF mWHEEL THEN
+        PCOPY 3, 0: SCREEN , , 3, 0
+        GOTO ideloop
+    END IF
+
+    IF mCLICK2 AND idecontextualmenu THEN 'A new right click in the text area repositions the contextual menu
+        IF mX > 1 AND mX < idewx AND mY > 2 AND mY < (idewy - 5) THEN
+            PCOPY 3, 0: SCREEN , , 3, 0
+            GOTO invokecontextualmenu
+        ELSE
+            PCOPY 3, 0: SCREEN , , 3, 0
+            GOTO ideloop
+        END IF
+    END IF
+
     'mouse selection
     IF mouseup THEN
-        'uses pre-calc xx & w
         IF mX >= xx - 2 AND mX < xx - 2 + w + 4 THEN
-            IF mY > 2 AND mY <= menusize(m) + 2 THEN
-                y = mY - 2
+            IF mY > yy AND mY <= menusize(m) + yy THEN
+                y = mY - yy
                 IF menu$(m, y) <> "-" THEN
                     s = r
                 END IF
             END IF
         END IF
 
-        IF mX < xx - 2 OR mX >= xx - 2 + w + 4 OR mY > menusize(m) + 3 THEN
+        IF mX < xx - 2 OR mX >= xx - 2 + w + 4 OR mY > yy + menusize(m) + 1 or (mY < yy and idecontextualmenu) THEN
             PCOPY 3, 0: SCREEN , , 3, 0
             GOTO ideloop
         END IF
-
+    END IF
+    IF not mouseup and not mousedown THEN 'Check if we're hovering on menu options
+      if oldmy <> mY then
+        IF mX >= xx - 2 AND mX < xx - 2 + w + 4 THEN
+            IF mY > yy AND mY <= menusize(m) + yy THEN
+                y = mY - yy
+                IF menu$(m, y) <> "-" THEN
+                    r = y
+                END IF
+            END IF
+        END IF
+        oldmy = mY
+      end if
+      if oldmx <> mX then
+        IF mY = 1 and idecontextualmenu = 0 THEN 'Check if we're hovering on menu bar
+            lastm = m
+            FOR i = 1 to menus
+                x = CVI(MID$(MenuLocations, i * 2 - 1, 2))
+                x2 = CVI(MID$(MenuLocations, i * 2 - 1, 2)) + len(menu$(i, 0))
+                IF mX >= x and mX < x2 THEN
+                    m = i
+                    r = 1
+                    EXIT FOR
+                END IF
+            NEXT
+        END IF
+        oldmx = mX
+      end if
     END IF
 
     IF mB THEN
 
         'top row
         IF mY = 1 THEN
+            idecontextualmenu = 0
             lastm = m
             x = 3
             FOR i = 1 TO menus
@@ -3062,18 +3220,18 @@ DO
 
         'uses pre-calc xx & w
         IF mX >= xx - 2 AND mX < xx - 2 + w + 4 THEN
-            IF mY > 2 AND mY <= menusize(m) + 2 THEN
-                y = mY - 2
+            IF mY > yy AND mY <= menusize(m) + yy THEN
+                y = mY - yy
                 IF menu$(m, y) <> "-" THEN r = y
             END IF
         END IF
 
     END IF 'mb
 
-    IF KB = KEY_LEFT THEN m = m - 1: r = 1
-    IF KB = KEY_RIGHT THEN m = m + 1: r = 1
+    IF KB = KEY_LEFT AND idecontextualmenu = 0 THEN m = m - 1: r = 1
+    IF KB = KEY_RIGHT AND idecontextualmenu = 0 THEN m = m + 1: r = 1
     IF m < 1 THEN m = menus
-    IF m > menus THEN m = 1
+    IF m > menus AND idecontextualmenu = 0 THEN m = 1
     IF KB = KEY_ESC THEN
         PCOPY 3, 0: SCREEN , , 3, 0
         GOTO ideloop
@@ -3111,7 +3269,7 @@ DO
 
         IF KALT THEN idehl = 1 ELSE idehl = 0 'set idehl, a shared variable used by various dialogue boxes
 
-        IF menu$(m, s) = "Comment (add ')" THEN
+        IF menu$(m, s) = "Comme#nt (add ')" THEN
             y1 = idecy: y2 = y1
             IF ideselect = 1 THEN
                 y1 = ideselecty1
@@ -3141,7 +3299,7 @@ DO
             GOTO ideloop
         END IF
 
-        IF menu$(m, s) = "Uncomment (remove ')" THEN
+        IF menu$(m, s) = "Uncomment (remo#ve ')" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
             y1 = idecy: y2 = y1
             IF ideselect = 1 THEN
@@ -3232,7 +3390,7 @@ DO
             GOTO ideloop
         END IF
 
-        IF menu$(m, s) = "Add/Remove #Bookmark  ALT+Left" THEN
+        IF menu$(m, s) = "Add/Remove #Bookmark  Alt+Left" THEN
             PCOPY 2, 0
             bmkremoved = 0
             bmkremoveb:
@@ -3258,10 +3416,10 @@ DO
             GOTO ideloop
         END IF
 
-        IF menu$(m, s) = "#Next Bookmark  ALT+Down" OR menu$(m, s) = "#Previous Bookmark  ALT+Up" THEN
+        IF menu$(m, s) = "#Next Bookmark  Alt+Down" OR menu$(m, s) = "#Previous Bookmark  Alt+Up" THEN
             PCOPY 2, 0
             IF IdeBmkN = 0 THEN
-                idemessagebox "Bookmarks", "No bookmarks exist (Use ALT+Left to create a bookmark)"
+                idemessagebox "Bookmarks", "No bookmarks exist (Use Alt+Left to create a bookmark)"
                 PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
                 GOTO ideloop
             END IF
@@ -3273,7 +3431,7 @@ DO
                 END IF
             END IF
             l = idecy
-            z = 0: IF menu$(m, s) = "#Next Bookmark  ALT+Down" THEN z = 1
+            z = 0: IF menu$(m, s) = "#Next Bookmark  Alt+Down" THEN z = 1
             DO
                 IF z = 1 THEN l = l + 1 ELSE l = l - 1
                 IF l < 1 THEN l = iden
@@ -3325,6 +3483,11 @@ DO
             retval = 1
             GOTO redraweverything2
             GOTO ideloop
+        END IF
+
+        IF left$(menu$(m, s), 10) = "#Help on '" THEN  'Contextual menu Help
+            PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+            GOTO contextualhelp
         END IF
 
         IF menu$(m, s) = "#Contents page" THEN
@@ -3499,15 +3662,20 @@ DO
             GOTO ideloop
         END IF
 
-
-
-        IF menu$(m, s) = "#Find..." THEN
+        IF menu$(m, s) = "#Find...  Ctrl+F3" THEN
             PCOPY 2, 0
             idefindjmp:
             r$ = idefind
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
             '...
             GOTO ideloop
+        END IF
+
+        IF left$(menu$(m, s), 6) = "Find '" THEN  'Contextual menu Find
+            idefindtext = idecontextualSearch$
+            IdeAddSearched idefindtext
+            PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+            GOTO idemf3
         END IF
 
         IF menu$(m, s) = "#Change..." THEN
@@ -3670,18 +3838,18 @@ DO
             GOTO ideloop
         END IF
 
-        IF menu$(m, s) = "#Paste  Shift+Ins or CTRL+V" THEN
+        IF menu$(m, s) = "#Paste  Shift+Ins or Ctrl+V" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
             GOTO idempaste
         END IF
 
-        IF menu$(m, s) = "#Copy  Ctrl+Ins or CTRL+C" THEN
+        IF menu$(m, s) = "#Copy  Ctrl+Ins or Ctrl+C" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
             IF ideselect = 1 THEN GOTO copy2clip
             GOTO ideloop
         END IF
 
-        IF menu$(m, s) = "Cu#t  Shift+Del or CTRL+X" THEN
+        IF menu$(m, s) = "Cu#t  Shift+Del or Ctrl+X" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
             IF ideselect = 1 THEN
                 K$ = CHR$(0) + "S" 'tricks handler into del after copy
@@ -3690,23 +3858,23 @@ DO
             GOTO ideloop
         END IF
 
-        IF menu$(m, s) = "#Undo  CTRL+Z" THEN
+        IF menu$(m, s) = "#Undo  Ctrl+Z" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
             GOTO idemundo
         END IF
 
-        IF menu$(m, s) = "#Redo  CTRL+Y" THEN
+        IF menu$(m, s) = "#Redo  Ctrl+Y" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
             GOTO idemredo
         END IF
 
 
-        IF menu$(m, s) = "Select #All  CTRL+A" THEN
+        IF menu$(m, s) = "Select #All  Ctrl+A" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
             GOTO idemselectall
         END IF
 
-        menu$(m, i) = "Select #All  CTRL+A": i = i + 1
+        menu$(m, i) = "Select #All  Ctrl+A": i = i + 1
 
         IF menu$(m, s) = "#Start  F5" THEN
             PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
@@ -6439,20 +6607,33 @@ IF x <= LEN(a$) THEN
         a2$ = CHR$(ASC(a$, x))
     END IF
     a2$ = UCASE$(a2$) 'a2$ now holds the word or character at current cursor position
+    if len(a2$) > 1 then
+        do until alphanumeric(asc(right$(a2$, 1)))
+            a2$ = left$(a2$, len(a2$) - 1)  'removes sigil, if any
+        loop
+    end if
 END IF
 
 '-------- init --------
 
 ly$ = MKL$(1)
+lySorted$ = ly$
 CurrentlyViewingWhichSUBFUNC = 1
 PreferCurrentCursorSUBFUNC = 0
+InsideDECLARE = 0
+FoundExternalSUBFUNC = 0
 l$ = ideprogname$
 IF l$ = "" THEN l$ = "Untitled" + tempfolderindexstr$
+lSorted$ = l$
+
+TotalSUBs = 0
 FOR y = 1 TO iden
     a$ = idegetline(y)
     a$ = LTRIM$(RTRIM$(a$))
     sf = 0
     nca$ = UCASE$(a$)
+    IF LEFT$(nca$, 8) = "DECLARE " and INSTR(nca$, " LIBRARY") > 0 THEN InsideDECLARE = -1
+    IF LEFT$(nca$, 11) = "END DECLARE" THEN InsideDECLARE = 0
     IF LEFT$(nca$, 4) = "SUB " THEN sf = 1: sf$ = "SUB  "
     IF LEFT$(nca$, 9) = "FUNCTION " THEN sf = 2: sf$ = "FUNC "
     IF sf THEN
@@ -6463,7 +6644,7 @@ FOR y = 1 TO iden
 
         'Check if the cursor is currently inside this SUB/FUNCTION to position the
         'selection properly in the list.
-        IF idecy >= y THEN
+        IF idecy >= y AND NOT InsideDECLARE THEN
             CurrentlyViewingWhichSUBFUNC = (LEN(ly$) / 4)
         END IF
         'End of current SUB/FUNCTION check
@@ -6485,7 +6666,13 @@ FOR y = 1 TO iden
 
         'If the user currently has the cursor over a SUB/FUNC name, let's highlight it
         'instead of the currently in edition, for a quick link functionality:
-        IF a2$ = UCASE$(n$) THEN PreferCurrentCursorSUBFUNC = (LEN(ly$) / 4)
+        n2$ = n$
+        if len(n2$) > 1 then
+            do until alphanumeric(asc(right$(n2$, 1)))
+                n2$ = left$(n$, len(n2$) - 1)  'removes sigil, if any
+            loop
+        end if
+        IF a2$ = UCASE$(n2$) THEN PreferCurrentCursorSUBFUNC = (LEN(ly$) / 4)
 
         'attempt to cleanse n$, just in case there are any comments or other unwanted stuff
         for CleanseN = 1 to len(n$)
@@ -6495,6 +6682,8 @@ FOR y = 1 TO iden
                     exit for
             end select
         next
+
+        IF InsideDECLARE = -1 THEN n$ = "*" + n$: FoundExternalSUBFUNC = -1
 
         IF LEN(n$) <= 20 THEN
             n$ = n$ + SPACE$(20 - LEN(n$))
@@ -6508,6 +6697,15 @@ FOR y = 1 TO iden
         END IF
         l$ = l$ + sep + chr$(195) + chr$(196) + n$ + " " + sf$ + args$
 
+        'Populate SortedSubsList()
+        TotalSUBs = TotalSUBs + 1
+        ListItemLength = LEN(n$ + " " + sf$ + args$)
+        REDIM _PRESERVE SortedSubsList(1 to TotalSUBs) as string * 998
+        REDIM _PRESERVE CaseBkpSubsList(1 to TotalSUBs) as string * 998
+        CaseBkpSubsList(TotalSUBs) = n$ + " " + sf$ + args$
+        SortedSubsList(TotalSUBs) = UCASE$(CaseBkpSubsList(TotalSUBs))
+        MID$(CaseBkpSubsList(TotalSUBs), 992, 6) = MKL$(y) + MKI$(ListItemLength)
+        MID$(SortedSubsList(TotalSUBs), 992, 6) = MKL$(y) + MKI$(ListItemLength)
     END IF
 NEXT
 
@@ -6516,7 +6714,29 @@ FOR x = LEN(l$) TO 1 STEP -1
     IF a$ = chr$(195) THEN MID$(l$, x, 1) = chr$(192): EXIT FOR
 NEXT
 
+if TotalSUBs > 1 then
+    DIM m as _MEM
+    m = _MEM(SortedSubsList())
+    Sort m 'Steve's sorting routine
+    FOR x = 1 to TotalSUBs
+        ListItemLength = CVI(MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 2, 2))
+        lySorted$ = lySorted$ + MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 6, 4)
+        for RestoreCaseBkp = 1 to TotalSUBs
+            IF MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 6, 4) = MID$(CaseBkpSubsList(RestoreCaseBkp), LEN(CaseBkpSubsList(RestoreCaseBkp)) - 6, 4) THEN
+                lSorted$ = lSorted$ + sep + chr$(195) + chr$(196) + left$(CaseBkpSubsList(RestoreCaseBkp), ListItemLength)
+                EXIT FOR
+            END IF
+        next
+    NEXT
 
+    FOR x = LEN(lSorted$) TO 1 STEP -1
+        a$ = MID$(lSorted$, x, 1)
+        IF a$ = chr$(195) THEN MID$(lSorted$, x, 1) = chr$(192): EXIT FOR
+    NEXT
+    SortedSubsFlag = idesortsubs
+else
+    SortedSubsFlag = 0 'Override idesortsubs if the current program doesn't have more than 1 subprocedure
+end if
 
 '72,19
 i = 0
@@ -6528,10 +6748,29 @@ o(i).y = 1
 '68
 o(i).w = idewx - 12: o(i).h = idewy + idesubwindow - 9
 o(i).txt = idenewtxt(l$)
-IF PreferCurrentCursorSUBFUNC <> 0 THEN
-    o(i).sel = PreferCurrentCursorSUBFUNC
+IF SortedSubsFlag = 0 THEN
+    IF PreferCurrentCursorSUBFUNC <> 0 THEN
+        o(i).sel = PreferCurrentCursorSUBFUNC
+    ELSE
+        o(i).sel = CurrentlyViewingWhichSUBFUNC
+    END IF
 ELSE
-    o(i).sel = CurrentlyViewingWhichSUBFUNC
+    idetxt(o(i).txt) = lSorted$
+    IF PreferCurrentCursorSUBFUNC <> 0 THEN
+        for x = 1 to TotalSUBs
+            if MID$(ly$, PreferCurrentCursorSUBFUNC * 4 - 3, 4) = MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 6, 4) THEN
+                o(i).sel = x + 1 'The sorted list items array doesn't contain the first line (ideprogname$)
+                EXIT FOR
+            END IF
+        NEXT
+    ELSE
+        for x = 1 to TotalSUBs
+            if MID$(ly$, CurrentlyViewingWhichSUBFUNC * 4 - 3, 4) = MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 6, 4) THEN
+                o(i).sel = x + 1 'The sorted list items array doesn't contain the first line (ideprogname$)
+                EXIT FOR
+            END IF
+        NEXT
+    END IF
 END IF
 o(i).nam = idenewtxt("Program Items")
 
@@ -6541,6 +6780,16 @@ o(i).typ = 3
 o(i).y = idewy + idesubwindow - 6
 o(i).txt = idenewtxt("#Edit" + sep + "#Cancel")
 o(i).dft = 1
+
+If TotalSUBs > 1 then
+    i = i + 1
+    o(i).typ = 4 'check box
+    o(i).x = idewx - 22
+    o(i).y = idewy + idesubwindow - 6
+    o(i).nam = idenewtxt("#Sorted A-Z")
+    o(i).sel = SortedSubsFLAG
+END IF
+
 
 '-------- end of init --------
 
@@ -6567,6 +6816,9 @@ DO 'main loop
     '-------- end of generic display dialog box & objects --------
 
     '-------- custom display changes --------
+    IF FoundExternalSUBFUNC = -1 THEN
+        COLOR 8, 7: LOCATE idewy + idesubwindow - 3, p.x + 2: PRINT "* external";
+    END IF
     '-------- end of custom display changes --------
 
     'update visual page and cursor position
@@ -6617,26 +6869,80 @@ DO 'main loop
 
     IF K$ = CHR$(27) OR (focus = 3 AND info <> 0) THEN
         idesubs$ = "C"
+        GOSUB SaveSortSettings
         EXIT FUNCTION
     END IF
 
     IF K$ = CHR$(13) OR (focus = 2 AND info <> 0) OR (info = 1 AND focus = 1) THEN
         y = o(1).sel
         IF y < 1 THEN y = -y
-        idecy = CVL(MID$(ly$, y * 4 - 3, 4))
+        if SortedSubsFLAG = 0 THEN
+            idecy = CVL(MID$(ly$, y * 4 - 3, 4))
+        ELSE
+            idecy = CVL(MID$(lySorted$, y * 4 - 3, 4))
+        END IF
         idesy = idecy
         idecx = 1
         idesx = 1
+
+        GOSUB SaveSortSettings
         EXIT FUNCTION
     END IF
 
+    if TotalSUBs > 1 THEN
+        if o(3).sel <> SortedSubsFLAG then
+            SortedSubsFLAG = o(3).sel
+
+            IF SortedSubsFLAG = 0 THEN
+                'Replace list contents with unsorted version while mantaining current selection.
+                PreviousSelection = -1
+                IF o(1).sel > 0 THEN
+                    TargetSourceLine$ = MID$(lySorted$, o(1).sel * 4 - 3, 4)
+                    for x = 1 to TotalSUBs
+                        if MID$(ly$, x * 4 - 3, 4) = TargetSourceLine$ then
+                            PreviousSelection = x
+                        end if
+                    next
+                END IF
+
+                idetxt(o(1).txt) = l$
+                o(1).sel = PreviousSelection
+                focus = 1
+            ELSE
+                'Replace list contents with sorted version while mantaining current selection.
+                PreviousSelection = -1
+                IF o(1).sel > 0 THEN
+                    TargetSourceLine$ = MID$(ly$, o(1).sel * 4 - 3, 4)
+                    for x = 1 to TotalSUBs
+                        if MID$(lySorted$, x * 4 - 3, 4) = TargetSourceLine$ then
+                            PreviousSelection = x
+                        end if
+                    next
+                END IF
+
+                idetxt(o(1).txt) = lSorted$
+                o(1).sel = PreviousSelection
+                focus = 1
+            END IF
+        end if
+    end if
 
     'end of custom controls
     mousedown = 0
     mouseup = 0
 LOOP
 
-
+EXIT FUNCTION
+SaveSortSettings:
+If TotalSUBs > 1 and idesortsubs <> SortedSubsFLAG THEN
+    idesortsubs = SortedSubsFLAG
+    if idesortsubs then
+        WriteConfigSetting "'[IDE DISPLAY SETTINGS]", "IDE_SortSUBs", "TRUE"
+    else
+        WriteConfigSetting "'[IDE DISPLAY SETTINGS]", "IDE_SortSUBs", "FALSE"
+    end if
+END IF
+RETURN
 
 END FUNCTION
 
@@ -7045,7 +7351,7 @@ IF t = 2 THEN 'list box
                 validCHARS$ = ""
                 FOR ai = 1 TO LEN(ListBoxITEMS(FindMatch))
                     aa = ASC(ucase$(ListBoxITEMS(findMatch)), ai)
-                    IF aa > 126 OR (k <> 95 AND aa = 95) THEN
+                    IF aa > 126 OR (k <> 95 AND aa = 95) OR (k <> 42 AND aa = 42) THEN
                         'ignore
                     ELSE
                         validCHARS$ = validCHARS$ + CHR$(aa)
@@ -9222,14 +9528,14 @@ CLOSE #fh
 
 '72,19
 
-h = idewy + idesubwindow - 6
+h = idewy + idesubwindow - 9
 IF ln < h THEN h = ln
 IF h < 3 THEN h = 3
 
 i = 0
 idepar p, 20, h, ""
 p.x = idewx - 24
-p.y = 3
+p.y = idewy - 6 - h
 
 i = i + 1
 o(i).typ = 2
@@ -9577,6 +9883,96 @@ menu$(m, i) = "E#xit": i = i + 1
 menusize(m) = i - 1
 END SUB
 
+SUB IdeMakeContextualMenu
+    m = idecontextualmenuID: i = 0
+    menu$(m, i) = "Contextual": i = i + 1
+
+    'Figure out if the user wants to search for a selected term -- copied from idefind$
+    IF ideselect THEN
+        IF ideselecty1 = idecy THEN 'single line selected
+            a$ = idegetline(idecy)
+            a2$ = ""
+            sx1 = ideselectx1: sx2 = idecx
+            IF sx2 < sx1 THEN SWAP sx1, sx2
+            FOR x = sx1 TO sx2 - 1
+                IF x <= LEN(a$) THEN a2$ = a2$ + MID$(a$, x, 1) ELSE a2$ = a2$ + " "
+            NEXT
+        END IF
+        IF len(a2$) > 0 THEN
+            sela2$ = ucase$(a2$)
+            idecontextualSearch$ = a2$
+            IF LEN(a2$) > 22 THEN
+                a2$ = LEFT$(a2$, 19) + string$(3, 250)
+            END IF
+            menu$(m, i) = "Find '" + a2$ + "'": i = i + 1
+        END IF
+    END IF
+        'identify if word or character at current cursor position is in the help system -- copied from ide2
+        a$ = idegetline(idecy)
+        x = idecx
+        HelpOnSelection = 0
+        IF x <= LEN(a$) THEN
+            IF alphanumeric(ASC(a$, x)) THEN
+                x1 = x
+                DO WHILE x1 > 1
+                    IF alphanumeric(ASC(a$, x1 - 1)) OR ASC(a$, x1 - 1) = 36 THEN x1 = x1 - 1 ELSE EXIT DO
+                LOOP
+                x2 = x
+                DO WHILE x2 < LEN(a$)
+                    IF alphanumeric(ASC(a$, x2 + 1)) OR ASC(a$, x2 + 1) = 36 THEN x2 = x2 + 1 ELSE EXIT DO
+                LOOP
+                a2$ = MID$(a$, x1, x2 - x1 + 1)
+            ELSE
+                a2$ = CHR$(ASC(a$, x))
+            END IF
+            a2$ = UCASE$(a2$)
+            'check if F1 is in help links
+            fh = FREEFILE
+            OPEN "internal\help\links.bin" FOR INPUT AS #fh
+            lnks = 0: lnks$ = CHR$(0)
+            DO UNTIL EOF(fh)
+                LINE INPUT #fh, l$
+                c = INSTR(l$, ","): l1$ = LEFT$(l$, c - 1): l2$ = RIGHT$(l$, LEN(l$) - c)
+                IF a2$ = UCASE$(l1$) THEN
+                    IF INSTR(lnks$, CHR$(0) + l2$ + CHR$(0)) = 0 THEN
+                        lnks = lnks + 1
+                        EXIT DO
+                    END IF
+                END IF
+            LOOP
+            CLOSE #fh
+
+            IF lnks THEN
+                IF LEN(l2$) > 15 THEN
+                    l2$ = LEFT$(l2$, 12) + string$(3, 250)
+                END IF
+                if instr(l2$, "Parenthesis") = 0 then
+                    menu$(m, i) = "#Help on '" + l2$ + "'": i = i + 1
+                end if
+            END IF
+        END IF
+
+    IF i > 1 THEN
+        menu$(m, i) = "-": i = i + 1
+    END IF
+
+    menu$(m, i) = "Cu#t  Shift+Del or Ctrl+X": i = i + 1
+    menu$(m, i) = "#Copy  Ctrl+Ins or Ctrl+C": i = i + 1
+    menu$(m, i) = "#Paste  Shift+Ins or Ctrl+V": i = i + 1
+    menu$(m, i) = "Cl#ear  Del": i = i + 1
+    menu$(m, i) = "Select #All  Ctrl+A": i = i + 1
+    menu$(m, i) = "-": i = i + 1
+    menu$(m, i) = "#Undo  Ctrl+Z": i = i + 1
+    menu$(m, i) = "#Redo  Ctrl+Y": i = i + 1
+    menu$(m, i) = "-": i = i + 1
+    menu$(m, i) = "Comme#nt (add ')": i = i + 1
+    menu$(m, i) = "Uncomment (remo#ve ')": i = i + 1
+    menu$(m, i) = "-": i = i + 1
+    menu$(m, i) = "New #SUB...": i = i + 1
+    menu$(m, i) = "New #FUNCTION...": i = i + 1
+    menusize(m) = i - 1
+END SUB
+
 SUB IdeAddRecent (f2$)
 f$ = CRLF + f2$ + CRLF
 fh = FREEFILE
@@ -9856,6 +10252,9 @@ DO 'main loop
         f$ = idetxt(o(1).stx)
         idef1box$ = f$
         EXIT FUNCTION
+    ELSEIF K$ = CHR$(27) THEN
+        idef1box$ = "C"
+        EXIT FUNCTION
     END IF
 
     'end of custom controls
@@ -10110,5 +10509,278 @@ idet$ = l$ + m$ + r$
 idecx = idecx + LEN(messagestr$)
 END SUB
 
-'$INCLUDE:'wiki\wiki_methods.bas'
+SUB Sort (m AS _MEM) 'Provided by Steve McNeill
+DIM t AS LONG: t = m.TYPE
+DIM i AS _UNSIGNED LONG
+DIM ES AS LONG, EC AS LONG
 
+IF NOT t AND 65536 THEN EXIT SUB 'We won't work without an array
+IF t AND 1024 THEN DataType = 10
+IF t AND 1 THEN DataType = DataType + 1
+IF t AND 2 THEN DataType = DataType + 2
+IF t AND 4 THEN IF t AND 128 THEN DataType = DataType + 4 ELSE DataType = 3
+IF t AND 8 THEN IF t AND 128 THEN DataType = DataType + 8 ELSE DataType = 5
+IF t AND 32 THEN DataType = 6
+IF t AND 512 THEN DataType = 7
+
+'Convert our offset data over to something we can work with
+DIM m1 AS _MEM: m1 = _MEMNEW(8)
+_MEMPUT m1, m1.OFFSET, m.ELEMENTSIZE: _MEMGET m1, m1.OFFSET, ES 'Element Size
+_MEMPUT m1, m1.OFFSET, m.SIZE: _MEMGET m1, m1.OFFSET, EC 'Element Count will temporily hold the WHOLE array size
+_MEMFREE m1
+EC = EC / ES - 1 'Now we take the whole element size / the size of the elements and get our actual element count.  We subtract 1 so our arrays start at 0 and not 1.
+'And work with it!
+DIM o AS _OFFSET, o1 AS _OFFSET, counter AS _UNSIGNED LONG
+
+SELECT CASE DataType
+    CASE 1 'BYTE
+        DIM temp1(-128 TO 127) AS _UNSIGNED LONG
+        DIM t1 AS _BYTE
+        i = 0
+        DO
+            _MEMGET m, m.OFFSET + i, t1
+            temp1(t1) = temp1(t1) + 1
+            i = i + 1
+        LOOP UNTIL i > EC
+        i1 = -128
+        DO
+            DO UNTIL temp1(i1) = 0
+                _MEMPUT m, m.OFFSET + counter, i1 AS _BYTE
+                counter = counter + 1
+                temp1(i1) = temp1(i1) - 1
+                IF counter > EC THEN EXIT SUB
+            LOOP
+            i1 = i1 + 1
+        LOOP UNTIL i1 > 127
+    CASE 2: 'INTEGER
+        DIM temp2(-32768 TO 32767) AS _UNSIGNED LONG
+        DIM t2 AS INTEGER
+        i = 0
+        DO
+            _MEMGET m, m.OFFSET + i * 2, t2
+            temp2(t2) = temp2(t2) + 1
+            i = i + 1
+        LOOP UNTIL i > EC
+        i1 = -32768
+        DO
+            DO UNTIL temp2(i1) = 0
+                _MEMPUT m, m.OFFSET + counter * 2, i1 AS INTEGER
+                counter = counter + 1
+                temp2(i1) = temp2(i1) - 1
+                IF counter > EC THEN EXIT SUB
+            LOOP
+            i1 = i1 + 1
+        LOOP UNTIL i1 > 32767
+    CASE 3 'SINGLE
+        DIM T3a AS SINGLE, T3b AS SINGLE
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 4
+                o1 = m.OFFSET + (i + gap) * 4
+                IF _MEMGET(m, o, SINGLE) > _MEMGET(m, o1, SINGLE) THEN
+                    _MEMGET m, o1, T3a
+                    _MEMGET m, o, T3b
+                    _MEMPUT m, o1, T3b
+                    _MEMPUT m, o, T3a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 4 'LONG
+        DIM T4a AS LONG, T4b AS LONG
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 4
+                o1 = m.OFFSET + (i + gap) * 4
+                IF _MEMGET(m, o, LONG) > _MEMGET(m, o1, LONG) THEN
+                    _MEMGET m, o1, T4a
+                    _MEMGET m, o, T4b
+                    _MEMPUT m, o1, T4b
+                    _MEMPUT m, o, T4a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 5 'DOUBLE
+        DIM T5a AS DOUBLE, T5b AS DOUBLE
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 8
+                o1 = m.OFFSET + (i + gap) * 8
+                IF _MEMGET(m, o, DOUBLE) > _MEMGET(m, o1, DOUBLE) THEN
+                    _MEMGET m, o1, T5a
+                    _MEMGET m, o, T5b
+                    _MEMPUT m, o1, T5b
+                    _MEMPUT m, o, T5a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 6 ' _FLOAT
+        DIM T6a AS _FLOAT, T6b AS _FLOAT
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 32
+                o1 = m.OFFSET + (i + gap) * 32
+                IF _MEMGET(m, o, _FLOAT) > _MEMGET(m, o1, _FLOAT) THEN
+                    _MEMGET m, o1, T6a
+                    _MEMGET m, o, T6b
+                    _MEMPUT m, o1, T6b
+                    _MEMPUT m, o, T6a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 7 'String
+        DIM T7a AS STRING, T7b AS STRING, T7c AS STRING
+        T7a = SPACE$(ES): T7b = SPACE$(ES): T7c = SPACE$(ES)
+        gap = EC
+        DO
+            gap = INT(gap / 1.247330950103979)
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * ES
+                o1 = m.OFFSET + (i + gap) * ES
+                _MEMGET m, o, T7a
+                _MEMGET m, o1, T7b
+                IF T7a > T7b THEN
+                    T7c = T7b
+                    _MEMPUT m, o1, T7a
+                    _MEMPUT m, o, T7c
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = false
+    CASE 8 '_INTEGER64
+        DIM T8a AS _INTEGER64, T8b AS _INTEGER64
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 8
+                o1 = m.OFFSET + (i + gap) * 8
+                IF _MEMGET(m, o, _INTEGER64) > _MEMGET(m, o1, _INTEGER64) THEN
+                    _MEMGET m, o1, T8a
+                    _MEMGET m, o, T8b
+                    _MEMPUT m, o1, T8b
+                    _MEMPUT m, o, T8a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 11: '_UNSIGNED _BYTE
+        DIM temp11(0 TO 255) AS _UNSIGNED LONG
+        DIM t11 AS _UNSIGNED _BYTE
+        i = 0
+        DO
+            _MEMGET m, m.OFFSET + i, t11
+            temp11(t11) = temp11(t11) + 1
+            i = i + 1
+        LOOP UNTIL i > EC
+        i1 = 0
+        DO
+            DO UNTIL temp11(i1) = 0
+                _MEMPUT m, m.OFFSET + counter, i1 AS _UNSIGNED _BYTE
+                counter = counter + 1
+                temp11(i1) = temp11(i1) - 1
+                IF counter > EC THEN EXIT SUB
+            LOOP
+            i1 = i1 + 1
+        LOOP UNTIL i1 > 255
+    CASE 12 '_UNSIGNED INTEGER
+        DIM temp12(0 TO 65535) AS _UNSIGNED LONG
+        DIM t12 AS _UNSIGNED INTEGER
+        i = 0
+        DO
+            _MEMGET m, m.OFFSET + i * 2, t12
+            temp12(t12) = temp12(t12) + 1
+            i = i + 1
+        LOOP UNTIL i > EC
+        i1 = 0
+        DO
+            DO UNTIL temp12(i1) = 0
+                _MEMPUT m, m.OFFSET + counter * 2, i1 AS _UNSIGNED INTEGER
+                counter = counter + 1
+                temp12(i1) = temp12(i1) - 1
+                IF counter > EC THEN EXIT SUB
+            LOOP
+            i1 = i1 + 1
+        LOOP UNTIL i1 > 65535
+    CASE 14 '_UNSIGNED LONG
+        DIM T14a AS _UNSIGNED LONG, T14b AS _UNSIGNED LONG
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 4
+                o1 = m.OFFSET + (i + gap) * 4
+                IF _MEMGET(m, o, _UNSIGNED LONG) > _MEMGET(m, o1, _UNSIGNED LONG) THEN
+                    _MEMGET m, o1, T14a
+                    _MEMGET m, o, T14b
+                    _MEMPUT m, o1, T14b
+                    _MEMPUT m, o, T14a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 18: '_UNSIGNED _INTEGER64
+        DIM T18a AS _UNSIGNED _INTEGER64, T18b AS _UNSIGNED _INTEGER64
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 8
+                o1 = m.OFFSET + (i + gap) * 8
+                IF _MEMGET(m, o, _UNSIGNED _INTEGER64) > _MEMGET(m, o1, _UNSIGNED _INTEGER64) THEN
+                    _MEMGET m, o1, T18a
+                    _MEMGET m, o, T18b
+                    _MEMPUT m, o1, T18b
+                    _MEMPUT m, o, T18a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+END SELECT
+END SUB
+
+
+'$INCLUDE:'wiki\wiki_methods.bas'
