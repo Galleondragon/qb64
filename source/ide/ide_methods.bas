@@ -6473,12 +6473,16 @@ END IF
 '-------- init --------
 
 ly$ = MKL$(1)
+lySorted$ = ly$
 CurrentlyViewingWhichSUBFUNC = 1
 PreferCurrentCursorSUBFUNC = 0
 InsideDECLARE = 0
 FoundExternalSUBFUNC = 0
 l$ = ideprogname$
 IF l$ = "" THEN l$ = "Untitled" + tempfolderindexstr$
+lSorted$ = l$
+
+TotalSUBs = 0
 FOR y = 1 TO iden
     a$ = idegetline(y)
     a$ = LTRIM$(RTRIM$(a$))
@@ -6549,6 +6553,15 @@ FOR y = 1 TO iden
         END IF
         l$ = l$ + sep + chr$(195) + chr$(196) + n$ + " " + sf$ + args$
 
+        'Populate SortedSubsList()
+        TotalSUBs = TotalSUBs + 1
+        ListItemLength = LEN(n$ + " " + sf$ + args$)
+        REDIM _PRESERVE SortedSubsList(1 to TotalSUBs) as string * 998
+        REDIM _PRESERVE CaseBkpSubsList(1 to TotalSUBs) as string * 998
+        CaseBkpSubsList(TotalSUBs) = n$ + " " + sf$ + args$
+        SortedSubsList(TotalSUBs) = UCASE$(CaseBkpSubsList(TotalSUBs))
+        MID$(CaseBkpSubsList(TotalSUBs), 992, 6) = MKL$(y) + MKI$(ListItemLength)
+        MID$(SortedSubsList(TotalSUBs), 992, 6) = MKL$(y) + MKI$(ListItemLength)
     END IF
 NEXT
 
@@ -6557,7 +6570,28 @@ FOR x = LEN(l$) TO 1 STEP -1
     IF a$ = chr$(195) THEN MID$(l$, x, 1) = chr$(192): EXIT FOR
 NEXT
 
+if TotalSUBs > 1 then
+    DIM m as _MEM
+    m = _MEM(SortedSubsList())
+    Sort m 'Steve's sorting routine
+    FOR x = 1 to TotalSUBs
+        ListItemLength = CVI(MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 2, 2))
+        lySorted$ = lySorted$ + MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 6, 4)
+        for RestoreCaseBkp = 1 to TotalSUBs
+            IF MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 6, 4) = MID$(CaseBkpSubsList(RestoreCaseBkp), LEN(CaseBkpSubsList(RestoreCaseBkp)) - 6, 4) THEN
+                lSorted$ = lSorted$ + sep + chr$(195) + chr$(196) + left$(CaseBkpSubsList(RestoreCaseBkp), ListItemLength)
+            END IF
+        next
+    NEXT
 
+    FOR x = LEN(lSorted$) TO 1 STEP -1
+        a$ = MID$(lSorted$, x, 1)
+        IF a$ = chr$(195) THEN MID$(lSorted$, x, 1) = chr$(192): EXIT FOR
+    NEXT
+    SortedSubsFlag = idesortsubs
+else
+    SortedSubsFlag = 0 'Override idesortsubs if the current program doesn't have more than 1 subprocedure
+end if
 
 '72,19
 i = 0
@@ -6569,10 +6603,29 @@ o(i).y = 1
 '68
 o(i).w = idewx - 12: o(i).h = idewy + idesubwindow - 9
 o(i).txt = idenewtxt(l$)
-IF PreferCurrentCursorSUBFUNC <> 0 THEN
-    o(i).sel = PreferCurrentCursorSUBFUNC
+IF SortedSubsFlag = 0 THEN
+    IF PreferCurrentCursorSUBFUNC <> 0 THEN
+        o(i).sel = PreferCurrentCursorSUBFUNC
+    ELSE
+        o(i).sel = CurrentlyViewingWhichSUBFUNC
+    END IF
 ELSE
-    o(i).sel = CurrentlyViewingWhichSUBFUNC
+    idetxt(o(i).txt) = lSorted$
+    IF PreferCurrentCursorSUBFUNC <> 0 THEN
+        for x = 1 to TotalSUBs
+            if MID$(ly$, PreferCurrentCursorSUBFUNC * 4 - 3, 4) = MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 6, 4) THEN
+                o(i).sel = x + 1 'The sorted list items array doesn't contain the first line (ideprogname$)
+                EXIT FOR
+            END IF
+        NEXT
+    ELSE
+        for x = 1 to TotalSUBs
+            if MID$(ly$, CurrentlyViewingWhichSUBFUNC * 4 - 3, 4) = MID$(SortedSubsList(x), LEN(SortedSubsList(x)) - 6, 4) THEN
+                o(i).sel = x + 1 'The sorted list items array doesn't contain the first line (ideprogname$)
+                EXIT FOR
+            END IF
+        NEXT
+    END IF
 END IF
 o(i).nam = idenewtxt("Program Items")
 
@@ -6582,6 +6635,16 @@ o(i).typ = 3
 o(i).y = idewy + idesubwindow - 6
 o(i).txt = idenewtxt("#Edit" + sep + "#Cancel")
 o(i).dft = 1
+
+If TotalSUBs > 1 then
+    i = i + 1
+    o(i).typ = 4 'check box
+    o(i).x = idewx - 22
+    o(i).y = idewy + idesubwindow - 6
+    o(i).nam = idenewtxt("#Sorted A-Z")
+    o(i).sel = SortedSubsFLAG
+END IF
+
 
 '-------- end of init --------
 
@@ -6609,7 +6672,7 @@ DO 'main loop
 
     '-------- custom display changes --------
     IF FoundExternalSUBFUNC = -1 THEN
-        COLOR 8, 7: LOCATE p.h + 3, p.x + 2: PRINT "* external";
+        COLOR 8, 7: LOCATE idewy + idesubwindow - 3, p.x + 2: PRINT "* external";
     END IF
     '-------- end of custom display changes --------
 
@@ -6661,26 +6724,80 @@ DO 'main loop
 
     IF K$ = CHR$(27) OR (focus = 3 AND info <> 0) THEN
         idesubs$ = "C"
+        GOSUB SaveSortSettings
         EXIT FUNCTION
     END IF
 
     IF K$ = CHR$(13) OR (focus = 2 AND info <> 0) OR (info = 1 AND focus = 1) THEN
         y = o(1).sel
         IF y < 1 THEN y = -y
-        idecy = CVL(MID$(ly$, y * 4 - 3, 4))
+        if SortedSubsFLAG = 0 THEN
+            idecy = CVL(MID$(ly$, y * 4 - 3, 4))
+        ELSE
+            idecy = CVL(MID$(lySorted$, y * 4 - 3, 4))
+        END IF
         idesy = idecy
         idecx = 1
         idesx = 1
+
+        GOSUB SaveSortSettings
         EXIT FUNCTION
     END IF
 
+    if TotalSUBs > 1 THEN
+        if o(3).sel <> SortedSubsFLAG then
+            SortedSubsFLAG = o(3).sel
+
+            IF SortedSubsFLAG = 0 THEN
+                'Replace list contents with unsorted version while mantaining current selection.
+                PreviousSelection = -1
+                IF o(1).sel > 0 THEN
+                    TargetSourceLine$ = MID$(lySorted$, o(1).sel * 4 - 3, 4)
+                    for x = 1 to TotalSUBs
+                        if MID$(ly$, x * 4 - 3, 4) = TargetSourceLine$ then
+                            PreviousSelection = x
+                        end if
+                    next
+                END IF
+
+                idetxt(o(1).txt) = l$
+                o(1).sel = PreviousSelection
+                focus = 1
+            ELSE
+                'Replace list contents with sorted version while mantaining current selection.
+                PreviousSelection = -1
+                IF o(1).sel > 0 THEN
+                    TargetSourceLine$ = MID$(ly$, o(1).sel * 4 - 3, 4)
+                    for x = 1 to TotalSUBs
+                        if MID$(lySorted$, x * 4 - 3, 4) = TargetSourceLine$ then
+                            PreviousSelection = x
+                        end if
+                    next
+                END IF
+
+                idetxt(o(1).txt) = lSorted$
+                o(1).sel = PreviousSelection
+                focus = 1
+            END IF
+        end if
+    end if
 
     'end of custom controls
     mousedown = 0
     mouseup = 0
 LOOP
 
-
+EXIT FUNCTION
+SaveSortSettings:
+If TotalSUBs > 1 and idesortsubs <> SortedSubsFLAG THEN
+    idesortsubs = SortedSubsFLAG
+    if idesortsubs then
+        WriteConfigSetting "'[IDE DISPLAY SETTINGS]", "IDE_SortSUBs", "TRUE"
+    else
+        WriteConfigSetting "'[IDE DISPLAY SETTINGS]", "IDE_SortSUBs", "FALSE"
+    end if
+END IF
+RETURN
 
 END FUNCTION
 
@@ -10156,6 +10273,280 @@ r$ = RIGHT$(idet$, LEN(idet$) - ideli - LEN(a$) - 7)
 idet$ = l$ + m$ + r$
 idecx = idecx + LEN(messagestr$)
 END SUB
+
+SUB Sort (m AS _MEM) 'Provided by Steve McNeill
+DIM t AS LONG: t = m.TYPE
+DIM i AS _UNSIGNED LONG
+DIM ES AS LONG, EC AS LONG
+
+IF NOT t AND 65536 THEN EXIT SUB 'We won't work without an array
+IF t AND 1024 THEN DataType = 10
+IF t AND 1 THEN DataType = DataType + 1
+IF t AND 2 THEN DataType = DataType + 2
+IF t AND 4 THEN IF t AND 128 THEN DataType = DataType + 4 ELSE DataType = 3
+IF t AND 8 THEN IF t AND 128 THEN DataType = DataType + 8 ELSE DataType = 5
+IF t AND 32 THEN DataType = 6
+IF t AND 512 THEN DataType = 7
+
+'Convert our offset data over to something we can work with
+DIM m1 AS _MEM: m1 = _MEMNEW(8)
+_MEMPUT m1, m1.OFFSET, m.ELEMENTSIZE: _MEMGET m1, m1.OFFSET, ES 'Element Size
+_MEMPUT m1, m1.OFFSET, m.SIZE: _MEMGET m1, m1.OFFSET, EC 'Element Count will temporily hold the WHOLE array size
+_MEMFREE m1
+EC = EC / ES - 1 'Now we take the whole element size / the size of the elements and get our actual element count.  We subtract 1 so our arrays start at 0 and not 1.
+'And work with it!
+DIM o AS _OFFSET, o1 AS _OFFSET, counter AS _UNSIGNED LONG
+
+SELECT CASE DataType
+    CASE 1 'BYTE
+        DIM temp1(-128 TO 127) AS _UNSIGNED LONG
+        DIM t1 AS _BYTE
+        i = 0
+        DO
+            _MEMGET m, m.OFFSET + i, t1
+            temp1(t1) = temp1(t1) + 1
+            i = i + 1
+        LOOP UNTIL i > EC
+        i1 = -128
+        DO
+            DO UNTIL temp1(i1) = 0
+                _MEMPUT m, m.OFFSET + counter, i1 AS _BYTE
+                counter = counter + 1
+                temp1(i1) = temp1(i1) - 1
+                IF counter > EC THEN EXIT SUB
+            LOOP
+            i1 = i1 + 1
+        LOOP UNTIL i1 > 127
+    CASE 2: 'INTEGER
+        DIM temp2(-32768 TO 32767) AS _UNSIGNED LONG
+        DIM t2 AS INTEGER
+        i = 0
+        DO
+            _MEMGET m, m.OFFSET + i * 2, t2
+            temp2(t2) = temp2(t2) + 1
+            i = i + 1
+        LOOP UNTIL i > EC
+        i1 = -32768
+        DO
+            DO UNTIL temp2(i1) = 0
+                _MEMPUT m, m.OFFSET + counter * 2, i1 AS INTEGER
+                counter = counter + 1
+                temp2(i1) = temp2(i1) - 1
+                IF counter > EC THEN EXIT SUB
+            LOOP
+            i1 = i1 + 1
+        LOOP UNTIL i1 > 32767
+    CASE 3 'SINGLE
+        DIM T3a AS SINGLE, T3b AS SINGLE
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 4
+                o1 = m.OFFSET + (i + gap) * 4
+                IF _MEMGET(m, o, SINGLE) > _MEMGET(m, o1, SINGLE) THEN
+                    _MEMGET m, o1, T3a
+                    _MEMGET m, o, T3b
+                    _MEMPUT m, o1, T3b
+                    _MEMPUT m, o, T3a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 4 'LONG
+        DIM T4a AS LONG, T4b AS LONG
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 4
+                o1 = m.OFFSET + (i + gap) * 4
+                IF _MEMGET(m, o, LONG) > _MEMGET(m, o1, LONG) THEN
+                    _MEMGET m, o1, T4a
+                    _MEMGET m, o, T4b
+                    _MEMPUT m, o1, T4b
+                    _MEMPUT m, o, T4a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 5 'DOUBLE
+        DIM T5a AS DOUBLE, T5b AS DOUBLE
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 8
+                o1 = m.OFFSET + (i + gap) * 8
+                IF _MEMGET(m, o, DOUBLE) > _MEMGET(m, o1, DOUBLE) THEN
+                    _MEMGET m, o1, T5a
+                    _MEMGET m, o, T5b
+                    _MEMPUT m, o1, T5b
+                    _MEMPUT m, o, T5a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 6 ' _FLOAT
+        DIM T6a AS _FLOAT, T6b AS _FLOAT
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 32
+                o1 = m.OFFSET + (i + gap) * 32
+                IF _MEMGET(m, o, _FLOAT) > _MEMGET(m, o1, _FLOAT) THEN
+                    _MEMGET m, o1, T6a
+                    _MEMGET m, o, T6b
+                    _MEMPUT m, o1, T6b
+                    _MEMPUT m, o, T6a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 7 'String
+        DIM T7a AS STRING, T7b AS STRING, T7c AS STRING
+        T7a = SPACE$(ES): T7b = SPACE$(ES): T7c = SPACE$(ES)
+        gap = EC
+        DO
+            gap = INT(gap / 1.247330950103979)
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * ES
+                o1 = m.OFFSET + (i + gap) * ES
+                _MEMGET m, o, T7a
+                _MEMGET m, o1, T7b
+                IF T7a > T7b THEN
+                    T7c = T7b
+                    _MEMPUT m, o1, T7a
+                    _MEMPUT m, o, T7c
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = false
+    CASE 8 '_INTEGER64
+        DIM T8a AS _INTEGER64, T8b AS _INTEGER64
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 8
+                o1 = m.OFFSET + (i + gap) * 8
+                IF _MEMGET(m, o, _INTEGER64) > _MEMGET(m, o1, _INTEGER64) THEN
+                    _MEMGET m, o1, T8a
+                    _MEMGET m, o, T8b
+                    _MEMPUT m, o1, T8b
+                    _MEMPUT m, o, T8a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 11: '_UNSIGNED _BYTE
+        DIM temp11(0 TO 255) AS _UNSIGNED LONG
+        DIM t11 AS _UNSIGNED _BYTE
+        i = 0
+        DO
+            _MEMGET m, m.OFFSET + i, t11
+            temp11(t11) = temp11(t11) + 1
+            i = i + 1
+        LOOP UNTIL i > EC
+        i1 = 0
+        DO
+            DO UNTIL temp11(i1) = 0
+                _MEMPUT m, m.OFFSET + counter, i1 AS _UNSIGNED _BYTE
+                counter = counter + 1
+                temp11(i1) = temp11(i1) - 1
+                IF counter > EC THEN EXIT SUB
+            LOOP
+            i1 = i1 + 1
+        LOOP UNTIL i1 > 255
+    CASE 12 '_UNSIGNED INTEGER
+        DIM temp12(0 TO 65535) AS _UNSIGNED LONG
+        DIM t12 AS _UNSIGNED INTEGER
+        i = 0
+        DO
+            _MEMGET m, m.OFFSET + i * 2, t12
+            temp12(t12) = temp12(t12) + 1
+            i = i + 1
+        LOOP UNTIL i > EC
+        i1 = 0
+        DO
+            DO UNTIL temp12(i1) = 0
+                _MEMPUT m, m.OFFSET + counter * 2, i1 AS _UNSIGNED INTEGER
+                counter = counter + 1
+                temp12(i1) = temp12(i1) - 1
+                IF counter > EC THEN EXIT SUB
+            LOOP
+            i1 = i1 + 1
+        LOOP UNTIL i1 > 65535
+    CASE 14 '_UNSIGNED LONG
+        DIM T14a AS _UNSIGNED LONG, T14b AS _UNSIGNED LONG
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 4
+                o1 = m.OFFSET + (i + gap) * 4
+                IF _MEMGET(m, o, _UNSIGNED LONG) > _MEMGET(m, o1, _UNSIGNED LONG) THEN
+                    _MEMGET m, o1, T14a
+                    _MEMGET m, o, T14b
+                    _MEMPUT m, o1, T14b
+                    _MEMPUT m, o, T14a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+    CASE 18: '_UNSIGNED _INTEGER64
+        DIM T18a AS _UNSIGNED _INTEGER64, T18b AS _UNSIGNED _INTEGER64
+        gap = EC
+        DO
+            gap = 10 * gap \ 13
+            IF gap < 1 THEN gap = 1
+            i = 0
+            swapped = 0
+            DO
+                o = m.OFFSET + i * 8
+                o1 = m.OFFSET + (i + gap) * 8
+                IF _MEMGET(m, o, _UNSIGNED _INTEGER64) > _MEMGET(m, o1, _UNSIGNED _INTEGER64) THEN
+                    _MEMGET m, o1, T18a
+                    _MEMGET m, o, T18b
+                    _MEMPUT m, o1, T18b
+                    _MEMPUT m, o, T18a
+                    swapped = -1
+                END IF
+                i = i + 1
+            LOOP UNTIL i + gap > EC
+        LOOP UNTIL gap = 1 AND swapped = 0
+END SELECT
+END SUB
+
 
 '$INCLUDE:'wiki\wiki_methods.bas'
 
