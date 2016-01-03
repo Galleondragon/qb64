@@ -623,7 +623,7 @@ idefocusline = 0
 'main loop
 DO
     ideloop:
-
+    idecontextualmenu = 0
     idedeltxt 'removes temporary strings (typically created by guibox commands) by setting an index to 0
     STATIC ForceResize
     if IDE_AutoPosition then
@@ -2152,6 +2152,14 @@ DO
         END IF
     END IF
 
+    IF mCLICK2 THEN 'Second mouse button pressed.
+        IF mX > 1 AND mX < idewx AND mY > 2 AND mY < (idewy - 5) THEN 'inside text box
+            idecontextualmenu = 1
+            m = 2
+            GOTO showmenu
+        END IF
+    END IF
+
     IF mCLICK THEN
         IF mX = idewx THEN
             IF iden > 1 THEN 'take no action if not slider available
@@ -2974,6 +2982,7 @@ altheld = 1
 PCOPY 0, 2
 SCREEN , , 1, 0
 r = 1
+IF idecontextualmenu = 1 THEN idectxmenuX = mX: idectxmenuY = mY
 DO
     PCOPY 2, 1
 
@@ -2981,7 +2990,9 @@ DO
     x = 4: FOR i = 1 TO m - 1: x = x + LEN(menu$(i, 0)) + 2
         IF i = menus - 1 THEN x = idewx - LEN(menu$(menus, 0)) - 1
     NEXT: xx = x
-    LOCATE 1, xx - 1: COLOR 7, 0: PRINT " " + menu$(m, 0) + " "
+    IF idecontextualmenu = 0 THEN
+        LOCATE 1, xx - 1: COLOR 7, 0: PRINT " " + menu$(m, 0) + " "
+    END IF
     COLOR 0, 7
     'calculate menu width
     w = 0
@@ -2992,18 +3003,26 @@ DO
         IF INSTR(m$, "  ") THEN l = l + 2 'min 4 spacing
         IF l > w THEN w = l
     NEXT
+    yy = 2
+    IF idecontextualmenu = 1 THEN
+        xx = idectxmenuX
+        if xx < 3 then xx = 3
+        yy = idectxmenuY
+        if yy + menusize(m) + 2 > idewy then yy = idewy - 2 - menusize(m)
+    END IF
     IF xx > idewx - w - 3 THEN xx = idewx - w - 3
-    ideboxshadow xx - 2, 2, w + 4, menusize(m) + 2
+
+    ideboxshadow xx - 2, yy, w + 4, menusize(m) + 2
 
 
     'draw menu items
     FOR i = 1 TO menusize(m)
         m$ = menu$(m, i)
         IF m$ = "-" THEN
-            COLOR 0, 7: LOCATE i + 2, xx - 2: PRINT chr$(195) + STRING$(w + 2, chr$(196)) + chr$(180);
+            COLOR 0, 7: LOCATE i + yy, xx - 2: PRINT chr$(195) + STRING$(w + 2, chr$(196)) + chr$(180);
         ELSE
-            IF r = i THEN LOCATE i + 2, xx - 1: COLOR 7, 0: PRINT SPACE$(w + 2);
-            LOCATE i + 2, xx
+            IF r = i THEN LOCATE i + yy, xx - 1: COLOR 7, 0: PRINT SPACE$(w + 2);
+            LOCATE i + yy, xx
             h = -1: x = INSTR(m$, "#"): IF x THEN h = x: m$ = LEFT$(m$, x - 1) + RIGHT$(m$, LEN(m$) - x)
             x = INSTR(m$, "  "): IF x THEN m1$ = LEFT$(m$, x - 1): m2$ = RIGHT$(m$, LEN(m$) - x - 1): m$ = m1$ + SPACE$(w - LEN(m1$) - LEN(m2$)) + m2$
             FOR x = 1 TO LEN(m$)
@@ -3032,6 +3051,7 @@ DO
         IF iCHANGED THEN
             IF KB THEN change = 1
             IF mCLICK THEN change = 1: mousedown = 1
+            IF mCLICK2 THEN change = 1
             IF mRELEASE THEN change = 1: mouseup = 1
         END IF
         IF mB THEN change = 1
@@ -3046,19 +3066,20 @@ DO
 
     s = 0
 
+    IF mCLICK2 AND idecontextualmenu THEN PCOPY 3, 0: SCREEN , , 3, 0: GOTO ShowMenu
+
     'mouse selection
     IF mouseup THEN
-        'uses pre-calc xx & w
         IF mX >= xx - 2 AND mX < xx - 2 + w + 4 THEN
-            IF mY > 2 AND mY <= menusize(m) + 2 THEN
-                y = mY - 2
+            IF mY > yy AND mY <= menusize(m) + yy THEN
+                y = mY - yy
                 IF menu$(m, y) <> "-" THEN
                     s = r
                 END IF
             END IF
         END IF
 
-        IF mX < xx - 2 OR mX >= xx - 2 + w + 4 OR mY > menusize(m) + 3 THEN
+        IF mX < xx - 2 OR mX >= xx - 2 + w + 4 OR mY > yy + menusize(m) + 1 THEN
             PCOPY 3, 0: SCREEN , , 3, 0
             GOTO ideloop
         END IF
@@ -3068,7 +3089,7 @@ DO
     IF mB THEN
 
         'top row
-        IF mY = 1 THEN
+        IF mY = 1 AND idecontextualmenu = 0 THEN
             lastm = m
             x = 3
             FOR i = 1 TO menus
@@ -3086,16 +3107,16 @@ DO
 
         'uses pre-calc xx & w
         IF mX >= xx - 2 AND mX < xx - 2 + w + 4 THEN
-            IF mY > 2 AND mY <= menusize(m) + 2 THEN
-                y = mY - 2
+            IF mY > yy AND mY <= menusize(m) + yy THEN
+                y = mY - yy
                 IF menu$(m, y) <> "-" THEN r = y
             END IF
         END IF
 
     END IF 'mb
 
-    IF KB = KEY_LEFT THEN m = m - 1: r = 1
-    IF KB = KEY_RIGHT THEN m = m + 1: r = 1
+    IF KB = KEY_LEFT AND idecontextualmenu = 0 THEN m = m - 1: r = 1
+    IF KB = KEY_RIGHT AND idecontextualmenu = 0 THEN m = m + 1: r = 1
     IF m < 1 THEN m = menus
     IF m > menus THEN m = 1
     IF KB = KEY_ESC THEN
