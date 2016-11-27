@@ -8,7 +8,7 @@ CXXFLAGS += -iquote $(srcdir)/internal/source
 VPATH = $(srcdir)/internal/c
 .PATH: $(VPATH)
 
-.PHONY: all clean
+.PHONY: all clean install
 all: qb64
 
 objs = qbx.o libqb.o
@@ -18,3 +18,9 @@ qb64: $(objs)
 clean:
 	rm -f qb64 $(objs)
 
+prefix = /usr/local
+bindir = $(prefix)/bin
+
+INSTALL = install -D -t
+install:
+	$(INSTALL) $(DESTDIR)$(bindir) qb64
