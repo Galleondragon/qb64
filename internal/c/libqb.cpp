@@ -33393,9 +33393,7 @@ else{
 
     }
     if (*qb64_os_event_info==OS_EVENT_POST_PROCESSING){
-
-
-
+		if(event->type=Expose) sub__display();
     }
     return;
   }
