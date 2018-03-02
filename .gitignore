@@ -9,3 +9,5 @@ internal/config.txt
 internal/help
 internal/config(2).txt
 internal/config(1).txt
+/.vs
+/source/.vs

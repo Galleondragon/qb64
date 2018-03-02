@@ -680,34 +680,10 @@ FUNCTION ide2 (ignore)
             IF showexecreated THEN
                 showexecreated = 0
                 LOCATE idewy - 3, 2
-
-                IF MakeAndroid THEN
-                    PRINT "Project [programs\android\" + file$ + "] created";
-                ELSE
-                    IF os$ = "LNX" THEN
-                        PRINT "Executable file created";
-                    ELSE
-                        PRINT ".EXE file created";
-                    END IF
-
-                    IF SaveExeWithSource THEN
-                        LOCATE idewy - 2, 2
-                        PRINT "Location: ";
-                        COLOR 11, 1
-                        IF path.exe$ = "" THEN path.exe$ = getfilepath$(COMMAND$(0))
-                        IF RIGHT$(path.exe$, 1) <> pathsep$ THEN path.exe$ = path.exe$ + pathsep$
-                        IF POS(0) + LEN(path.exe$) > idewx THEN
-                            PRINT "..."; RIGHT$(path.exe$, idewx - 15);
-                        ELSE
-                            PRINT path.exe$;
-                        END IF
-                    END IF
-                END IF
-
-            END IF
+            End IF
         END IF
 
-    END IF 'skipdisplay
+    END If 'skipdisplay
 
     idefocusline = 0
 
@@ -716,31 +692,8 @@ FUNCTION ide2 (ignore)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     'main loop
-    DO
+    Do
         ideloop:
         IF ShowLineNumbers THEN maxLineNumberLength = LEN(STR$(iden)) + 1 ELSE maxLineNumberLength = 0
         idecontextualmenu = 0
@@ -1217,14 +1170,8 @@ FUNCTION ide2 (ignore)
             'begin new compilation
             IF IDEBuildModeChanged = 0 THEN
                 ideautorun = 0
-            END IF
+            END If
             IDEBuildModeChanged = 0
-
-            IF MakeAndroid THEN
-                'Cleanup excess files in temp folder
-                SHELL _HIDE "cmd /c del /q " + tmpdir$ + "ret*.txt " + tmpdir$ + "data*.txt " + tmpdir$ + "free*.txt"
-            END IF
-
             idecompiling = 1
             ide2 = 2
             idecompiledline$ = idegetline(1)
@@ -1431,80 +1378,77 @@ FUNCTION ide2 (ignore)
                     GOTO specialchar
                 END IF
             END IF
-        END IF
+        END If
 
-        IF KB = KEY_F5 AND KCTRL THEN 'run detached
-            UseAndroid 0
-            idemdetached:
+        If KB = KEY_F5 And KCTRL Then 'run detached
+idemdetached:
             iderunmode = 1
-            GOTO idemrunspecial
-        END IF
+            GoTo idemrunspecial
+        End If
 
-        IF KB = KEY_F11 THEN 'make exe only
-            UseAndroid 0
-            idemexe:
+        If KB = KEY_F11 Then 'make exe only
+idemexe:
             iderunmode = 2
-            GOTO idemrunspecial
-        END IF
+            GoTo idemrunspecial
+        End If
 
-        IF KB = KEY_F5 THEN 'Note: F5 or SHIFT+F5 accepted
-            UseAndroid 0
-            idemrun:
+        If KB = KEY_F5 Then 'Note: F5 or SHIFT+F5 accepted
+idemrun:
             iderunmode = 0 'standard run
-            idemrunspecial:
+idemrunspecial:
             IDECompilationRequested = -1
             'run program
-            IF ready <> 0 AND idechangemade = 0 THEN
+            If ready <> 0 And idechangemade = 0 Then
 
                 LOCATE , , 0
                 COLOR 7, 1: LOCATE idewy - 3, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 2, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 1, 2: PRINT SPACE$(idewx - 2); 'clear status window
 
-                IF idecompiled THEN
+                If idecompiled Then
 
-                    IF iderunmode = 2 THEN
+                    If iderunmode = 2 Then
                         LOCATE idewy - 3, 2
 
-                        IF os$ = "LNX" THEN
+                        If os$ = "LNX" Then
                             PRINT "Already created executable file!";
-                        ELSE
+                        Else
                             PRINT "Already created .EXE file!";
-                        END IF
+                        End If
 
-                        GOTO specialchar
-                    END IF
+                        GoTo specialchar
+                    End If
 
                     dummy = DarkenFGBG(1)
-                    BkpIdeSystem = IdeSystem: IdeSystem = 2: GOSUB UpdateTitleOfMainWindow: IdeSystem = BkpIdeSystem
+                    BkpIdeSystem = IdeSystem : IdeSystem = 2 :  GOSUB UpdateTitleOfMainWindow: IdeSystem = BkpIdeSystem
                     COLOR 1, 7: LOCATE idewy - 4, (idewx - 8) / 2: PRINT " Status "
                     COLOR 15, 1
                     LOCATE idewy - 3, 2: PRINT "Starting program...";
-                ELSE
+                Else
                     dummy = DarkenFGBG(1)
-                    BkpIdeSystem = IdeSystem: IdeSystem = 2: GOSUB UpdateTitleOfMainWindow: IdeSystem = BkpIdeSystem
+                    BkpIdeSystem = IdeSystem : IdeSystem = 2 :  GOSUB UpdateTitleOfMainWindow: IdeSystem = BkpIdeSystem
                     COLOR 1, 7: LOCATE idewy - 4, (idewx - 8) / 2: PRINT " Status "
                     COLOR 15, 1
-                    IF os$ = "LNX" THEN
+                    If os$ = "LNX" Then
                         LOCATE idewy - 3, 2: PRINT "Creating executable file...";
-                    ELSE
+                    Else
                         LOCATE idewy - 3, 2: PRINT "Creating .EXE file...";
-                    END IF
+                    End If
 
-                END IF
+                End If
                 PCOPY 3, 0
 
                 'send run request
                 'prepare name
-                IF ideprogname$ = "" THEN
+                If ideprogname$ = "" Then
                     f$ = "untitled" + tempfolderindexstr$
-                ELSE
+                Else
                     f$ = ideprogname$
                     f$ = RemoveFileExtension$(f$)
-                END IF
-                ide2 = 9: idereturn$ = f$
-                EXIT FUNCTION
-            END IF
+                End If
+                ide2 = 9 : idereturn$ = f$
+                Exit Function
+            End If
             'not ready!
-            IF failed = 1 THEN GOTO specialchar
+            If failed = 1 Then GoTo specialchar
             'assume still compiling ...
             ideautorun = 1
 
@@ -1515,12 +1459,12 @@ FUNCTION ide2 (ignore)
             LOCATE idewy - 3, 2: PRINT "Checking program... (editing program will cancel request)";
 
             'must move the cursor back to its correct location
-            ideshowtext
+            ideshowtext()
             LOCATE , , 1
             PCOPY 3, 0
 
-            GOTO specialchar
-        END IF
+            GoTo specialchar
+        End If
 
         LOCATE , , 0
         LOCATE , , , IDENormalCursorStart, IDENormalCursorEnd
@@ -4478,24 +4422,16 @@ FUNCTION ide2 (ignore)
                 IF ideselect THEN GOTO IdeBlockDecreaseIndent
                 PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
                 GOTO ideloop
-            END IF
+            END If
 
-            IF menu$(m, s) = "#Language..." THEN
-                PCOPY 2, 0
+                    If menu$(m, s) = "#Language..." Then
+                        PCOPY 2, 0
                 retval = idelanguagebox
-                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                GOTO ideloop
-            END IF
+                        PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous : idewait4alt
+                        GoTo ideloop
+                    End If
 
-            IF menu$(m, s) = "#Google Android..." THEN
-                PCOPY 2, 0
-                retval = ideandroidbox
-                'retval is ignored
-                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                GOTO ideloop
-            END IF
-
-            IF menu$(m, s) = "#Display..." THEN
+                    If menu$(m, s) = "#Display..." THEN
                 PCOPY 2, 0
                 IF idehelp = 0 THEN
                     retval = idedisplaybox
@@ -5188,36 +5124,30 @@ FUNCTION ide2 (ignore)
 
             menu$(m, i) = "Select #All  Ctrl+A": i = i + 1
 
-            IF menu$(m, s) = "#Start  F5" THEN
-                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                UseAndroid 0
-                GOTO idemrun
-            END IF
+            IF menu$(m, s) = "#Start  F5" Then
+                        PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous() :
+                        idewait4alt()
+                        GoTo idemrun
+            END If
 
-            IF menu$(m, s) = "Modify #COMMAND$..." THEN
-                PCOPY 2, 0
+                    If menu$(m, s) = "Modify #COMMAND$..." Then
+                        PCOPY 2, 0
                 retval = idemodifycommandbox
-                'retval is ignored
-                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                GOTO ideloop
+                        'retval is ignored
+                        PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous : idewait4alt
+                        GoTo ideloop
+                    End If
+
+                    If menu$(m, s) = "Start (#Detached)  Ctrl+F5" Then
+                        PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous() :
+                        idewait4alt()
+                        GoTo idemdetached
             END IF
 
-            IF menu$(m, s) = "Make #Android Project" THEN
-                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                UseAndroid 1
-                GOTO idemrun
-            END IF
-
-            IF menu$(m, s) = "Start (#Detached)  Ctrl+F5" THEN
-                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                UseAndroid 0
-                GOTO idemdetached
-            END IF
-
-            IF menu$(m, s) = "Make E#XE Only  F11" OR menu$(m, s) = "Make E#xecutable Only  F11" THEN
-                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                UseAndroid 0
-                GOTO idemexe
+            IF menu$(m, s) = "Make E#XE Only  F11" OR menu$(m, s) = "Make E#xecutable Only  F11" Then
+                        PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous() :
+                        idewait4alt()
+                        GoTo idemexe
             END IF
 
             IF menu$(m, s) = "E#xit" THEN
@@ -11172,21 +11102,21 @@ SUB idemessagebox (titlestr$, messagestr$)
         mousedown = 0
         mouseup = 0
     LOOP
-END SUB
+END Sub
 
 
 
-FUNCTION ideyesnobox$ (titlestr$, messagestr$) 'returns "Y" or "N"
+Function ideyesnobox$(titlestr$, messagestr$) 'returns "Y" or "N"
     '-------- generic dialog box header --------
     PCOPY 3, 0
     PCOPY 0, 2
     PCOPY 0, 1
     SCREEN , , 1, 0
     focus = 1
-    DIM p AS idedbptype
-    DIM o(1 TO 100) AS idedbotype
-    DIM oo AS idedbotype
-    DIM sep AS STRING * 1
+    Dim p As idedbptype
+    Dim o(1 To 100) As idedbotype
+    Dim oo As idedbotype
+    Dim sep As String * 1
     sep = CHR$(0)
     '-------- end of generic dialog box header --------
 
@@ -11194,7 +11124,7 @@ FUNCTION ideyesnobox$ (titlestr$, messagestr$) 'returns "Y" or "N"
     i = 0
     w = LEN(messagestr$) + 2
     w2 = LEN(titlestr$) + 4
-    IF w < w2 THEN w = w2
+    If w < w2 Then w = w2
     idepar p, w, 4, titlestr$
 
     i = i + 1
@@ -11205,23 +11135,23 @@ FUNCTION ideyesnobox$ (titlestr$, messagestr$) 'returns "Y" or "N"
     '-------- end of init --------
 
     '-------- generic init --------
-    FOR i = 1 TO 100: o(i).par = p: NEXT 'set parent info of objects
+    For i = 1 To 100 : o(i).par = p : Next 'set parent info of objects
     '-------- end of generic init --------
 
-    DO 'main loop
+    Do 'main loop
 
         '-------- generic display dialog box & objects --------
         idedrawpar p
-        f = 1: cx = 0: cy = 0
-        FOR i = 1 TO 100
-            IF o(i).typ THEN
+        f = 1 : cx = 0 : cy = 0
+        For i = 1 To 100
+            If o(i).typ Then
                 'prepare object
                 o(i).foc = focus - f 'focus offset
-                o(i).cx = 0: o(i).cy = 0
+                o(i).cx = 0 : o(i).cy = 0
                 idedrawobj o(i), f 'display object
-                IF o(i).cx THEN cx = o(i).cx: cy = o(i).cy
-            END IF
-        NEXT i
+                If o(i).cx Then cx = o(i).cx : cy = o(i).cy
+            End If
+        Next i
         lastfocus = f - 1
         '-------- end of generic display dialog box & objects --------
 
@@ -11232,255 +11162,72 @@ FUNCTION ideyesnobox$ (titlestr$, messagestr$) 'returns "Y" or "N"
         'update visual page and cursor position
         PCOPY 1, 0
 
-        IF cx THEN SCREEN , , 0, 0: LOCATE cy, cx, 1: SCREEN , , 1, 0
+        If cx Then SCREEN , , 0, 0: LOCATE cy, cx, 1: SCREEN , , 1, 0
 
         '-------- read input --------
         change = 0
-        DO
+        Do
             GetInput
-            IF mWHEEL THEN change = 1
-            IF KB THEN change = 1
-            IF mCLICK THEN mousedown = 1: change = 1
-            IF mRELEASE THEN mouseup = 1: change = 1
-            IF mB THEN change = 1
-            alt = KALT: IF alt <> oldalt THEN change = 1
+            If mWHEEL Then change = 1
+            If KB Then change = 1
+            If mCLICK Then mousedown = 1 : change = 1
+            If mRELEASE Then mouseup = 1 : change = 1
+            If mB Then change = 1
+            alt = KALT : If alt <> oldalt Then change = 1
             oldalt = alt
             _LIMIT 100
-        LOOP UNTIL change
-        IF alt AND NOT KCTRL THEN idehl = 1 ELSE idehl = 0
+        Loop Until change
+        If alt And Not KCTRL Then idehl = 1 Else idehl = 0
         'convert "alt+letter" scancode to letter's ASCII character
         altletter$ = ""
-        IF alt AND NOT KCTRL THEN
-            IF LEN(K$) = 1 THEN
+        If alt And Not KCTRL Then
+            If LEN(K$) = 1 Then
                 k = ASC(UCASE$(K$))
-                IF k >= 65 AND k <= 90 THEN altletter$ = CHR$(k)
-            END IF
-        END IF
+                If k >= 65 And k <= 90 Then altletter$ = CHR$(k)
+            End If
+        End If
         SCREEN , , 0, 0: LOCATE , , 0: SCREEN , , 1, 0
         '-------- end of read input --------
 
-        IF UCASE$(K$) = "Y" THEN altletter$ = "Y"
-        IF UCASE$(K$) = "N" THEN altletter$ = "N"
+        If UCASE$(K$) = "Y" Then altletter$ = "Y"
+        If UCASE$(K$) = "N" Then altletter$ = "N"
 
         '-------- generic input response --------
         info = 0
-        IF K$ = "" THEN K$ = CHR$(255)
-        IF KSHIFT = 0 AND K$ = CHR$(9) THEN focus = focus + 1
-        IF (KSHIFT AND K$ = CHR$(9)) OR (INSTR(_OS$, "MAC") AND K$ = CHR$(25)) THEN focus = focus - 1: K$ = ""
-        IF focus < 1 THEN focus = lastfocus
-        IF focus > lastfocus THEN focus = 1
+        If K$ = "" Then K$ = CHR$(255)
+        If KSHIFT = 0 And K$ = CHR$(9) Then focus = focus + 1
+        If (KSHIFT And K$ = CHR$(9)) Or (INSTR(_OS$, "MAC") And K$ = CHR$(25)) Then focus = focus - 1 : K$ = ""
+        If focus < 1 Then focus = lastfocus
+        If focus > lastfocus Then focus = 1
         f = 1
-        FOR i = 1 TO 100
+        For i = 1 To 100
             t = o(i).typ
-            IF t THEN
+            If t Then
                 focusoffset = focus - f
                 ideobjupdate o(i), focus, f, focusoffset, K$, altletter$, mB, mousedown, mouseup, mX, mY, info, mWHEEL
-            END IF
-        NEXT
+            End If
+        Next
         '-------- end of generic input response --------
 
-        IF K$ = CHR$(27) THEN
+        If K$ = CHR$(27) Then
             ideyesnobox$ = "N"
-            EXIT FUNCTION
-        END IF
+            Exit Function
+        End If
 
-        IF info THEN
-            IF info = 1 THEN ideyesnobox$ = "Y" ELSE ideyesnobox$ = "N"
-            EXIT FUNCTION
-        END IF
+        If info Then
+            If info = 1 Then ideyesnobox$ = "Y" Else ideyesnobox$ = "N"
+            Exit Function
+        End If
 
         'end of custom controls
         mousedown = 0
         mouseup = 0
-    LOOP
+    Loop
 
-END FUNCTION 'yes/no box
-
-
-
-FUNCTION ideandroidbox
-
-    '-------- generic dialog box header --------
-    PCOPY 0, 2
-    PCOPY 0, 1
-    SCREEN , , 1, 0
-    focus = 1
-    DIM p AS idedbptype
-    DIM o(1 TO 100) AS idedbotype
-    DIM oo AS idedbotype
-    DIM sep AS STRING * 1
-    sep = CHR$(0)
-    '-------- end of generic dialog box header --------
-
-    '-------- init --------
-    i = 0
-
-    idepar p, 75, 15 - 4 - 4, "Google Android Options"
-
-    i = i + 1
-    o(i).typ = 4 'check box
-    o(i).y = 2
-    o(i).nam = idenewtxt("Enable #Run Menu Commands")
-    o(i).sel = IdeAndroidMenu
-
-    'a2$ = IdeAndroidStartScript
-    'IF a2$ = "" THEN a2$ = "programs\android\start_android.bat"
-    'i = i + 1
-    'o(i).typ = 1
-    'o(i).y = 7
-    'o(i).nam = idenewtxt(CHR$(34) + "Start Android Project" + CHR$(34) + " Script")
-    'o(i).txt = idenewtxt(a2$)
-    'o(i).v1 = LEN(a2$)
+End Function 'yes/no box
 
 
-    'a2$ = IdeAndroidMakeScript
-    'IF a2$ = "" THEN a2$ = "programs\android\make_android.bat"
-    'i = i + 1
-    'o(i).typ = 1
-    'o(i).y = 11 - 4
-    'o(i).nam = idenewtxt(CHR$(34) + "Make Android Project Only" + CHR$(34) + " Script")
-    'o(i).txt = idenewtxt(a2$)
-    'o(i).v1 = LEN(a2$)
-
-    i = i + 1
-    o(i).typ = 3
-    o(i).y = 15 - 4 - 4
-    o(i).txt = idenewtxt("OK" + sep + "#Cancel")
-    o(i).dft = 1
-    '-------- end of init --------
-
-    '-------- generic init --------
-    FOR i = 1 TO 100: o(i).par = p: NEXT 'set parent info of objects
-    '-------- end of generic init --------
-
-    DO 'main loop
-
-
-        '-------- generic display dialog box & objects --------
-        idedrawpar p
-        f = 1: cx = 0: cy = 0
-        FOR i = 1 TO 100
-            IF o(i).typ THEN
-
-                'prepare object
-                o(i).foc = focus - f 'focus offset
-                o(i).cx = 0: o(i).cy = 0
-                idedrawobj o(i), f 'display object
-                IF o(i).cx THEN cx = o(i).cx: cy = o(i).cy
-            END IF
-        NEXT i
-        lastfocus = f - 1
-        '-------- end of generic display dialog box & objects --------
-
-        '-------- custom display changes --------
-        COLOR 2, 7: LOCATE p.y + 3, p.x + 4: PRINT "Projects are created at:";
-        COLOR 2, 7: LOCATE p.y + 4, p.x + 6: PRINT "qb64\programs\android\";
-        COLOR 0, 7
-        PRINT "bas_file_name_without_extension";
-        COLOR 2, 7: PRINT "\";
-        'COLOR 2, 7: LOCATE p.y + 9, p.x + 4: PRINT "Script file is launched from within project's folder";
-        'COLOR 2, 7: LOCATE p.y + 13 - 4, p.x + 4: PRINT "Script file is launched from within project's folder";
-
-        '-------- end of custom display changes --------
-
-        'update visual page and cursor position
-        PCOPY 1, 0
-        IF cx THEN SCREEN , , 0, 0: LOCATE cy, cx, 1: SCREEN , , 1, 0
-
-        '-------- read input --------
-        change = 0
-        DO
-            GetInput
-            IF mWHEEL THEN change = 1
-            IF KB THEN change = 1
-            IF mCLICK THEN mousedown = 1: change = 1
-            IF mRELEASE THEN mouseup = 1: change = 1
-            IF mB THEN change = 1
-            alt = KALT: IF alt <> oldalt THEN change = 1
-            oldalt = alt
-            _LIMIT 100
-        LOOP UNTIL change
-        IF alt AND NOT KCTRL THEN idehl = 1 ELSE idehl = 0
-        'convert "alt+letter" scancode to letter's ASCII character
-        altletter$ = ""
-        IF alt AND NOT KCTRL THEN
-            IF LEN(K$) = 1 THEN
-                k = ASC(UCASE$(K$))
-                IF k >= 65 AND k <= 90 THEN altletter$ = CHR$(k)
-            END IF
-        END IF
-        SCREEN , , 0, 0: LOCATE , , 0: SCREEN , , 1, 0
-        '-------- end of read input --------
-
-        '-------- generic input response --------
-        info = 0
-        IF K$ = "" THEN K$ = CHR$(255)
-        IF KSHIFT = 0 AND K$ = CHR$(9) THEN focus = focus + 1
-        IF (KSHIFT AND K$ = CHR$(9)) OR (INSTR(_OS$, "MAC") AND K$ = CHR$(25)) THEN focus = focus - 1: K$ = ""
-        IF focus < 1 THEN focus = lastfocus
-        IF focus > lastfocus THEN focus = 1
-        f = 1
-        FOR i = 1 TO 100
-            t = o(i).typ
-            IF t THEN
-                focusoffset = focus - f
-                ideobjupdate o(i), focus, f, focusoffset, K$, altletter$, mB, mousedown, mouseup, mX, mY, info, mWHEEL
-            END IF
-        NEXT
-        '-------- end of generic input response --------
-
-        'specific post controls
-
-        a$ = idetxt(o(2).txt)
-        IF LEN(a$) > 256 THEN a$ = LEFT$(a$, 256)
-        idetxt(o(2).txt) = a$
-        a$ = idetxt(o(3).txt)
-        IF LEN(a$) > 256 THEN a$ = LEFT$(a$, 256)
-        idetxt(o(3).txt) = a$
-
-        IF K$ = CHR$(27) OR (focus = 3 AND info <> 0) THEN EXIT FUNCTION
-        IF K$ = CHR$(13) OR (focus = 2 AND info <> 0) THEN
-            v% = o(1).sel
-            IF v% < IdeAndroidMenu THEN
-                menusize(5) = menusize(5) - 2
-            END IF
-            IF v% > IdeAndroidMenu THEN
-                menusize(5) = menusize(5) + 2
-            END IF
-            IF v% THEN
-                WriteConfigSetting "'[ANDROID MENU]", "IDE_AndroidMenu", "TRUE"
-            ELSE
-                WriteConfigSetting "'[ANDROID MENU]", "IDE_AndroidMenu", "FALSE"
-            END IF
-
-            'v$ = ""
-            'IF LEN(v$) > 256 THEN v$ = LEFT$(v$, 256)
-            'IF LEN(v$) < 256 THEN v$ = v$ + SPACE$(256 - LEN(v$))
-            'v3$ = idetxt(o(3 - 1).txt)
-            'IF LEN(v3$) > 256 THEN v3$ = LEFT$(v3$, 256)
-            'IF LEN(v3$) < 256 THEN v3$ = v3$ + SPACE$(256 - LEN(v3$))
-            '    WriteConfigSetting "'[ANDROID MENU]", "IDE_AndroidMakeScript$",  v3$
-            '    WriteConfigSetting "'[ANDROID MENU]", "IDE_AndroidStartScript$", v$
-
-            IdeAndroidMenu = o(1).sel
-            'IdeAndroidStartScript = "" 'idetxt(o(2).txt)
-            'IdeAndroidMakeScript = idetxt(o(3 - 1).txt)
-
-            EXIT FUNCTION
-        END IF
-
-        'end of custom controls
-
-        mousedown = 0
-        mouseup = 0
-    LOOP
-END FUNCTION
-
-
-
-
-
-FUNCTION idedisplaybox
+Function idedisplaybox
 
     '-------- generic dialog box header --------
     PCOPY 0, 2
