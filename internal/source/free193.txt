@@ -1,0 +1,6 @@
+if(oldstr5536){
+if(oldstr5536->fixed)qbs_set(oldstr5536,_SUB_IDEADDSEARCHED_STRING_S2);
+qbs_free(_SUB_IDEADDSEARCHED_STRING_S2);
+}
+qbs_free(_SUB_IDEADDSEARCHED_STRING_S);
+qbs_free(_SUB_IDEADDSEARCHED_STRING_A);
