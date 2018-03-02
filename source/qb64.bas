@@ -21,9 +21,6 @@ DEFLNG A-Z
 'INCLUDE:'virtual_keyboard\virtual_keyboard_global.bas'
 DEFLNG A-Z
 
-'$INCLUDE:'android\android_global.bas'
-DEFLNG A-Z
-
 '-------- Optional IDE Component (1/2) --------
 '$INCLUDE:'ide\ide_global.bas'
 
@@ -32,7 +29,6 @@ REDIM SHARED PL(0) AS INTEGER 'Priority Level
 DIM SHARED QuickReturn AS INTEGER
 Set_OrderOfOperations 'This will also make certain our directories are valid, and if not make them.
 
-DIM SHARED MakeAndroid 'build an Android project (refer to SUB UseAndroid)
 DIM SHARED VirtualKeyboardState
 DIM SHARED DesiredVirtualKeyboardState
 DIM SHARED RecompileAttemptsForVirtualKeyboardState
@@ -1037,136 +1033,6 @@ IF C = 9 THEN 'run
     END IF
 
 
-    IF MakeAndroid THEN
-
-
-        CreateAndroidProject file$
-
-
-        'generate program name
-
-
-        'pf$ = "programs\android\" + file$
-
-        'IF _DIREXISTS(pf$) = 0 THEN
-        '    'once only setup
-
-        '    COLOR 7, 1: LOCATE idewy - 3, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 2, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 1, 2: PRINT SPACE$(idewx - 2); 'clear status window
-        '    LOCATE idewy - 3, 2: PRINT "Initializing project [programs\android\" + file$ + "]...";
-        '    PCOPY 3, 0
-
-
-        '    MKDIR pf$
-        '    SHELL _HIDE "cmd /c xcopy /e programs\android\project_template\*.* " + pf$
-        '    SHELL _HIDE "cmd /c xcopy /e programs\android\eclipse_template\*.* " + pf$
-
-        '    'modify templates
-        '    fr_fh = FREEFILE
-        '    OPEN pf$ + "\AndroidManifest.xml" FOR BINARY AS #fr_fh
-        '    a$ = SPACE$(LOF(fr_fh))
-        '    GET #fr_fh, , a$
-        '    CLOSE fr_fh
-        '    OPEN pf$ + "\AndroidManifest.xml" FOR OUTPUT AS #fr_fh
-        '    ss$ = CHR$(34) + "com.example.native_activity" + CHR$(34)
-        '    file_namespace$ = LCASE$(file$)
-        '    a = ASC(file_namespace$)
-        '    IF a >= 48 AND a <= 57 THEN file_namespace$ = "ns_" + file_namespace$
-        '    i = INSTR(a$, ss$)
-        '    a$ = LEFT$(a$, i - 1) + CHR$(34) + "com.example." + file_namespace$ + CHR$(34) + RIGHT$(a$, LEN(a$) - i - LEN(ss$) + 1)
-        '    PRINT #fr_fh, a$;
-        '    CLOSE fr_fh
-
-        '    fr_fh = FREEFILE
-        '    OPEN pf$ + "\res\values\strings.xml" FOR BINARY AS #fr_fh
-        '    a$ = SPACE$(LOF(fr_fh))
-        '    GET #fr_fh, , a$
-        '    CLOSE fr_fh
-        '    OPEN pf$ + "\res\values\strings.xml" FOR OUTPUT AS #fr_fh
-        '    ss$ = ">NativeActivity<"
-        '    i = INSTR(a$, ss$)
-        '    a$ = LEFT$(a$, i - 1) + ">" + file$ + "<" + RIGHT$(a$, LEN(a$) - i - LEN(ss$) + 1)
-        '    PRINT #fr_fh, a$;
-        '    CLOSE fr_fh
-
-        '    fr_fh = FREEFILE
-        '    OPEN pf$ + "\.project" FOR BINARY AS #fr_fh
-        '    a$ = SPACE$(LOF(fr_fh))
-        '    GET #fr_fh, , a$
-        '    CLOSE fr_fh
-        '    OPEN pf$ + "\.project" FOR OUTPUT AS #fr_fh
-        '    ss$ = "<name>NativeActivity</name>"
-        '    i = INSTR(a$, ss$)
-        '    a$ = LEFT$(a$, i - 1) + "<name>" + file$ + "</name>" + RIGHT$(a$, LEN(a$) - i - LEN(ss$) + 1)
-        '    PRINT #fr_fh, a$;
-        '    CLOSE fr_fh
-
-        '    IF _DIREXISTS(pf$ + "\jni\temp") = 0 THEN MKDIR pf$ + "\jni\temp"
-
-        '    IF _DIREXISTS(pf$ + "\jni\c") = 0 THEN MKDIR pf$ + "\jni\c"
-
-        '    'c
-        '    ex_fh = FREEFILE
-        '    OPEN "internal\temp\xcopy_exclude.txt" FOR OUTPUT AS #ex_fh
-        '    PRINT #ex_fh, "c_compiler\"
-        '    CLOSE ex_fh
-        '    SHELL _HIDE "cmd /c xcopy /e /EXCLUDE:internal\temp\xcopy_exclude.txt internal\c\*.* " + pf$ + "\jni\c"
-
-        'ELSE
-
-        '    COLOR 7, 1: LOCATE idewy - 3, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 2, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 1, 2: PRINT SPACE$(idewx - 2); 'clear status window
-        '    LOCATE idewy - 3, 2: PRINT "Updating project [programs\android\" + file$ + "]...";
-        '    PCOPY 3, 0
-
-        'END IF
-
-        ''temp
-        'SHELL _HIDE "cmd /c del " + pf$ + "\jni\temp\*.txt"
-        'SHELL _HIDE "cmd /c copy " + tmpdir$ + "*.txt " + pf$ + "\jni\temp"
-
-        ''touch main.cpp (for ndk)
-        'fr_fh = FREEFILE
-        'OPEN pf$ + "\jni\main.cpp" FOR BINARY AS #fr_fh
-        'a$ = SPACE$(LOF(fr_fh))
-        'GET #fr_fh, , a$
-        'CLOSE fr_fh
-        'OPEN pf$ + "\jni\main.cpp" FOR OUTPUT AS #fr_fh
-        'IF ASC(a$, LEN(a$)) <> 32 THEN a$ = a$ + " " ELSE a$ = LEFT$(a$, LEN(a$) - 1)
-        'PRINT #fr_fh, a$;
-        'CLOSE fr_fh
-
-        ''note: .bat files affect the directory they are called from
-        'CHDIR pf$
-        'IF INSTR(IdeAndroidStartScript$, ":") THEN
-        '    SHELL _HIDE IdeAndroidMakeScript$
-        'ELSE
-        '    SHELL _HIDE "..\..\..\" + IdeAndroidMakeScript$
-        'END IF
-        'CHDIR "..\..\.."
-
-        '''touch manifest (for Eclipse)
-        ''fr_fh = FREEFILE
-        ''OPEN pf$ + "\AndroidManifest.xml" FOR BINARY AS #fr_fh
-        ''a$ = SPACE$(LOF(fr_fh))
-        ''GET #fr_fh, , a$
-        ''CLOSE fr_fh
-        ''OPEN pf$ + "\AndroidManifest.xml" FOR OUTPUT AS #fr_fh
-        ''IF ASC(a$, LEN(a$)) <> 32 THEN a$ = a$ + " " ELSE a$ = LEFT$(a$, LEN(a$) - 1)
-        ''PRINT #fr_fh, a$;
-        ''CLOSE fr_fh
-        ''^^^^above inconsistent^^^^
-
-        ''clear the gen folder (for Eclipse)
-        'IF _DIREXISTS(pf$ + "\gen") THEN
-        '    SHELL _HIDE "cmd /c rmdir /s /q " + pf$ + "\gen"
-        '    SHELL _HIDE "cmd /c md " + pf$ + "\gen"
-        'END IF
-
-        sendc$ = CHR$(11) '".EXE file created" aka "Android project created"
-        GOTO sendcommand
-
-    END IF
-
-
     IF iderunmode = 2 THEN
         sendc$ = CHR$(11) '.EXE file created
         GOTO sendcommand
@@ -1305,18 +1171,9 @@ sflistn = -1 'no entries
 SubNameLabels = sp 'QB64 will perform a repass to resolve sub names used as labels
 
 DesiredVirtualKeyboardState = 0
-IF MakeAndroid THEN DesiredVirtualKeyboardState = 1
 RecompileAttemptsForVirtualKeyboardState = 0
 
 recompile:
-
-'For installing Android assets
-REDIM SHARED installFiles(0) AS STRING
-REDIM SHARED installFilesSourceLocation(0) AS STRING
-REDIM SHARED installFilesIn(0) AS STRING
-REDIM SHARED installFolder(0) AS STRING
-REDIM SHARED installFolderSourceLocation(0) AS STRING
-REDIM SHARED installFolderIn(0) AS STRING
 
 'move desired state into active state
 VirtualKeyboardState = DesiredVirtualKeyboardState
@@ -11901,40 +11758,6 @@ END IF
 'link-time only defines
 IF DEPENDENCY(DEPENDENCY_AUDIO_OUT) THEN
     IF mac THEN defines$ = defines$ + " -framework AudioUnit -framework AudioToolbox "
-END IF
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-IF MakeAndroid THEN
-
-
-
-
-
-
-
-    GOTO Skip_Build
 END IF
 
 IF os$ = "WIN" THEN
@@ -23300,33 +23123,6 @@ ELSE
 END IF
 END SUB
 
-SUB UseAndroid (Yes)
-
-STATIC inline_DATA_backup
-STATIC inline_DATA_backup_set
-IF inline_DATA_backup_set = 0 THEN
-    inline_DATA_backup_set = 1
-    inline_DATA_backup = inline_DATA
-END IF
-
-IF Yes THEN
-    IF MakeAndroid = 0 THEN
-        MakeAndroid = 1
-        inline_DATA = 1
-        idechangemade = 1
-        IDEBuildModeChanged = 1
-    END IF
-ELSE
-    IF MakeAndroid THEN
-        MakeAndroid = 0
-        inline_DATA = inline_DATA_backup
-        idechangemade = 1
-        IDEBuildModeChanged = 1
-    END IF
-END IF
-
-END SUB
-
 'Steve Subs/Functins for _MATH support with CONST
 FUNCTION Evaluate_Expression$ (e$)
 t$ = e$ 'So we preserve our original data, we parse a temp copy of it
@@ -25353,9 +25149,6 @@ END FUNCTION
 DEFLNG A-Z
 
 'INCLUDE:'virtual_keyboard\virtual_keyboard_methods.bas'
-DEFLNG A-Z
-
-'$INCLUDE:'android\android_methods.bas'
 DEFLNG A-Z
 
 '-------- Optional IDE Component (2/2) --------

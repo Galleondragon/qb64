@@ -23,7 +23,7 @@ int32 new_hardware_img(int32 x, int32 y, uint32 *pixels, int32 flags){
   hardware_img->source_state.texture_wrap=TEXTURE_WRAP_MODE__UNKNOWN;
   hardware_img->source_state.smooth_stretched=SMOOTH_MODE__UNKNOWN;
   hardware_img->source_state.smooth_shrunk=SMOOTH_MODE__UNKNOWN;
-  if (flags&NEW_HARDWARE_IMG__BUFFER_CONTENT){    
+  if (flags&NEW_HARDWARE_IMG__BUFFER_CONTENT){
     hardware_img->texture_handle=0;
     if (flags&NEW_HARDWARE_IMG__DUPLICATE_PROVIDED_BUFFER){
       hardware_img->software_pixel_buffer=NULL;
@@ -73,7 +73,7 @@ if (ox!=1){//x is not a power of 2
 	while (ox!=0){
 		ox>>=1;
 		nx<<=1;
-	}	
+	}
 	nx<<1;
 }
 while ((oy&1)==0){
@@ -84,7 +84,7 @@ if (oy!=1){//y is not a power of 2
 	while (oy!=0){
 		oy>>=1;
 		ny<<=1;
-	}	
+	}
 	ny<<1;
 }
 
@@ -132,7 +132,7 @@ NPO2_buffer[nx*oy+x]=NPO2_buffer[nx*oy+x-nx];
 
 //int maxtexsize;
 //glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexsize);
-//alert(maxtexsize); 
+//alert(maxtexsize);
 
 //alert(nx);
 //alert(ny);
@@ -177,31 +177,21 @@ int32 new_hardware_img(int32 x, int32 y, uint32 *pixels, int32 flags){
   hardware_img->source_state.smooth_shrunk=SMOOTH_MODE__UNKNOWN;
 
   if (flags&NEW_HARDWARE_IMG__BUFFER_CONTENT){
-    hardware_img->texture_handle=0;    
+    hardware_img->texture_handle=0;
     if (flags&NEW_HARDWARE_IMG__DUPLICATE_PROVIDED_BUFFER){
       hardware_img->software_pixel_buffer=(uint32*)malloc(x*y*4);
       memcpy(hardware_img->software_pixel_buffer,pixels,x*y*4);
-      #ifdef QB64_ANDROID
-	//BGRA->RGBA
-        uint32 *pos=(uint32*)hardware_img->software_pixel_buffer;
-        int32 numPixels=x*y;
-        uint32 col;
-        while(numPixels--){
-          col=*pos;
-          *pos++= (col&0xFF00FF00) | ((col & 0xFF0000) >> 16) | ((col & 0x0000FF) << 16);
-        }
-      #endif
     }else{
       hardware_img->software_pixel_buffer=pixels;
     }
   }else{
     hardware_img->software_pixel_buffer=NULL;
     hardware_img->texture_handle=new_texture_handle();
-    glBindTexture (GL_TEXTURE_2D, hardware_img->texture_handle); 
-    //non-power of 2 dimensions fallback support    
+    glBindTexture (GL_TEXTURE_2D, hardware_img->texture_handle);
+    //non-power of 2 dimensions fallback support
     static int glerrorcode;
     glerrorcode=glGetError();//clear any previous errors
-    if (force_NPO2_fix==0) glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_BGRA, GL_UNSIGNED_BYTE, pixels); 
+    if (force_NPO2_fix==0) glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
     glerrorcode=glGetError();
     if (glerrorcode!=0||force_NPO2_fix==1){
 	int32 nx=x,ny=y;
@@ -210,7 +200,7 @@ int32 new_hardware_img(int32 x, int32 y, uint32 *pixels, int32 flags){
 	hardware_img->source_state.PO2_fix=PO2_FIX__EXPANDED;
 	hardware_img->PO2_w=nx;
 	hardware_img->PO2_h=ny;
-	glerrorcode=glGetError();	
+	glerrorcode=glGetError();
 	if (glerrorcode){
 		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, x, y, GL_BGRA, GL_UNSIGNED_BYTE, pixels );
 		glerrorcode=glGetError();
@@ -233,21 +223,21 @@ void hardware_img_buffer_to_texture(int32 handle){
   hardware_img=(hardware_img_struct*)list_get(hardware_img_handles,handle);
   if (hardware_img->texture_handle==0){
     hardware_img->texture_handle=new_texture_handle();
-    glBindTexture (GL_TEXTURE_2D, hardware_img->texture_handle);    
+    glBindTexture (GL_TEXTURE_2D, hardware_img->texture_handle);
     //non-power of 2 dimensions fallback support
     static int glerrorcode;
     glerrorcode=glGetError();//clear any previous errors
-    if (force_NPO2_fix==0) glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, hardware_img->w, hardware_img->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, hardware_img->software_pixel_buffer);  
+    if (force_NPO2_fix==0) glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, hardware_img->w, hardware_img->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, hardware_img->software_pixel_buffer);
     glerrorcode=glGetError();
     if (glerrorcode!=0||force_NPO2_fix==1){
-        hardware_img->source_state.PO2_fix=PO2_FIX__EXPANDED;	
+        hardware_img->source_state.PO2_fix=PO2_FIX__EXPANDED;
 	int32 x=hardware_img->w;
 	int32 y=hardware_img->h;
 	uint32 *pixels=NPO2_texture_generate(&x,&y,hardware_img->software_pixel_buffer);
 	hardware_img->PO2_w=x;
 	hardware_img->PO2_h=y;
 	glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_BGRA, GL_UNSIGNED_BYTE,pixels);
-	glerrorcode=glGetError();	
+	glerrorcode=glGetError();
 	if (glerrorcode){
 		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, hardware_img->w, hardware_img->h, GL_BGRA, GL_UNSIGNED_BYTE, hardware_img->software_pixel_buffer);
 		glerrorcode=glGetError();
@@ -283,7 +273,7 @@ if (hardware_img->depthbuffer_handle==0){
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, hardware_img->w, hardware_img->h, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
   glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, depth_tex, 0/*mipmap level*/);
 #else
-  glGenRenderbuffers(1, &depth_tex);    
+  glGenRenderbuffers(1, &depth_tex);
   glBindRenderbuffer(GL_RENDERBUFFER, depth_tex);
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, hardware_img->w, hardware_img->h);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_tex);
