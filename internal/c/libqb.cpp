@@ -17792,6 +17792,9 @@ void sub_mkdir(qbs *str){
     #ifdef QB64_GUI
     if (!screen_hide){
       while (!window_exists){Sleep(100);}
+      #ifdef QB64_GLUT
+      glutSetCursor(GLUT_CURSOR_NONE);
+      #endif
     }
     #endif
   }

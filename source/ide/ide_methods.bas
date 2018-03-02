@@ -680,7 +680,26 @@ FUNCTION ide2 (ignore)
             IF showexecreated THEN
                 showexecreated = 0
                 LOCATE idewy - 3, 2
-            End IF
+
+                IF os$ = "LNX" THEN
+                    PRINT "Executable file created";
+                ELSE
+                    PRINT ".EXE file created";
+                END IF
+
+                IF SaveExeWithSource THEN
+                    LOCATE idewy - 2, 2
+                    PRINT "Location: ";
+                    COLOR 11, 1
+                    IF path.exe$ = "" THEN path.exe$ = getfilepath$(COMMAND$(0))
+                    IF RIGHT$(path.exe$, 1) <> pathsep$ THEN path.exe$ = path.exe$ + pathsep$
+                    IF POS(0) + LEN(path.exe$) > idewx THEN
+                        PRINT "..."; RIGHT$(path.exe$, idewx - 15);
+                    ELSE
+                        PRINT path.exe$;
+                    END IF
+                END IF
+            END IF
         END IF
 
     END IF 'skipdisplay
