@@ -9,3 +9,7 @@ internal/config.txt
 internal/help
 internal/config(2).txt
 internal/config(1).txt
+/.vs
+/QB64.sln
+/QB64.vcxproj
+/QB64.vcxproj.filters
