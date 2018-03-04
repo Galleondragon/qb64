@@ -1424,19 +1424,19 @@ FUNCTION ide2 (ignore)
         END IF
 
         IF KB = KEY_F5 AND KCTRL THEN 'run detached
-			idemdetached:
+	    idemdetached:
             iderunmode = 1
             GOTO idemrunspecial
         END IF
 
         IF KB = KEY_F11 THEN 'make exe only
-			idemexe:
+            idemexe:
             iderunmode = 2
             GOTO idemrunspecial
         END IF
 
         IF KB = KEY_F5 THEN 'Note: F5 or SHIFT+F5 accepted
-			idemrun:
+            idemrun:
             iderunmode = 0 'standard run
 			idemrunspecial:
             IDECompilationRequested = -1

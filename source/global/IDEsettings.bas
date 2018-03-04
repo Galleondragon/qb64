@@ -426,12 +426,12 @@ IF LoadedIDESettings = 0 THEN
 	Include_GDB_Debugging_Info = idedebuginfo
 
 
-	GOTO SkipCheckConfigFileExists
+    GOTO SkipCheckConfigFileExists
     CheckConfigFileExists:
     IF _FILEEXISTS(ConfigFile$) = 0 THEN
         'There's no config file in the folder.  Let's make one for future use.
         IF ConfigFile$ = "internal/config.txt" THEN 'It's the main file which we use for default/global settings
-			WriteConfigSetting "'[CONFIG VERSION]", "ConfigVersion", "1"
+            WriteConfigSetting "'[CONFIG VERSION]", "ConfigVersion", "1"
             IF INSTR(_OS$, "WIN") THEN WriteConfigSetting "'[GENERAL SETTINGS]", "AllowIndependentSettings", "FALSE"
             WriteConfigSetting "'[GENERAL SETTINGS]", "BackupSize", "100 'in MB"
             WriteConfigSetting "'[GENERAL SETTINGS]", "DebugInfo", "FALSE 'INTERNAL VARIABLE USE ONLY!! DO NOT MANUALLY CHANGE!"
