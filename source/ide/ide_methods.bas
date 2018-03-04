@@ -1212,7 +1212,7 @@ FUNCTION ide2 (ignore)
             'begin new compilation
             IF IDEBuildModeChanged = 0 THEN
                 ideautorun = 0
-            END If
+            END IF
             IDEBuildModeChanged = 0
 
             idecompiling = 1
@@ -1421,77 +1421,77 @@ FUNCTION ide2 (ignore)
                     GOTO specialchar
                 END IF
             END IF
-        END If
+        END IF
 
-        If KB = KEY_F5 And KCTRL Then 'run detached
-idemdetached:
+        IF KB = KEY_F5 AND KCTRL THEN 'run detached
+			idemdetached:
             iderunmode = 1
-            GoTo idemrunspecial
-        End If
+            GOTO idemrunspecial
+        END IF
 
-        If KB = KEY_F11 Then 'make exe only
-idemexe:
+        IF KB = KEY_F11 THEN 'make exe only
+			idemexe:
             iderunmode = 2
-            GoTo idemrunspecial
-        End If
+            GOTO idemrunspecial
+        END IF
 
-        If KB = KEY_F5 Then 'Note: F5 or SHIFT+F5 accepted
-idemrun:
+        IF KB = KEY_F5 THEN 'Note: F5 or SHIFT+F5 accepted
+			idemrun:
             iderunmode = 0 'standard run
-idemrunspecial:
+			idemrunspecial:
             IDECompilationRequested = -1
             'run program
-            If ready <> 0 And idechangemade = 0 Then
+            IF ready <> 0 AND idechangemade = 0 THEN
 
                 LOCATE , , 0
                 COLOR 7, 1: LOCATE idewy - 3, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 2, 2: PRINT SPACE$(idewx - 2);: LOCATE idewy - 1, 2: PRINT SPACE$(idewx - 2); 'clear status window
 
-                If idecompiled Then
+                IF idecompiled THEN
 
-                    If iderunmode = 2 Then
+                    IF iderunmode = 2 THEN
                         LOCATE idewy - 3, 2
 
-                        If os$ = "LNX" Then
+                        IF os$ = "LNX" THEN
                             PRINT "Already created executable file!";
-                        Else
+                        ELSE
                             PRINT "Already created .EXE file!";
-                        End If
+                        END IF
 
-                        GoTo specialchar
-                    End If
+                        GOTO specialchar
+                    END IF
 
                     dummy = DarkenFGBG(1)
-                    BkpIdeSystem = IdeSystem : IdeSystem = 2 :  GOSUB UpdateTitleOfMainWindow: IdeSystem = BkpIdeSystem
+                    BkpIdeSystem = IdeSystem: IdeSystem = 2: GOSUB UpdateTitleOfMainWindow: IdeSystem = BkpIdeSystem
                     COLOR 1, 7: LOCATE idewy - 4, (idewx - 8) / 2: PRINT " Status "
                     COLOR 15, 1
                     LOCATE idewy - 3, 2: PRINT "Starting program...";
-                Else
+                ELSE
                     dummy = DarkenFGBG(1)
-                    BkpIdeSystem = IdeSystem : IdeSystem = 2 :  GOSUB UpdateTitleOfMainWindow: IdeSystem = BkpIdeSystem
+                    BkpIdeSystem = IdeSystem: IdeSystem = 2: GOSUB UpdateTitleOfMainWindow: IdeSystem = BkpIdeSystem
                     COLOR 1, 7: LOCATE idewy - 4, (idewx - 8) / 2: PRINT " Status "
                     COLOR 15, 1
-                    If os$ = "LNX" Then
+                    IF os$ = "LNX" THEN
                         LOCATE idewy - 3, 2: PRINT "Creating executable file...";
-                    Else
+                    ELSE
                         LOCATE idewy - 3, 2: PRINT "Creating .EXE file...";
-                    End If
+                    END IF
 
-                End If
+                END IF
                 PCOPY 3, 0
 
                 'send run request
                 'prepare name
-                If ideprogname$ = "" Then
+                IF ideprogname$ = "" THEN
                     f$ = "untitled" + tempfolderindexstr$
-                Else
+                ELSE
                     f$ = ideprogname$
                     f$ = RemoveFileExtension$(f$)
-                End If
-                ide2 = 9 : idereturn$ = f$
-                Exit Function
-            End If
+                END IF
+                ide2 = 9: idereturn$ = f$
+                EXIT FUNCTION
+            END IF
             'not ready!
-            If failed = 1 Then GoTo specialchar
+            IF failed = 1 THEN GOTO specialchar
             'assume still compiling ...
             ideautorun = 1
 
@@ -1502,12 +1502,12 @@ idemrunspecial:
             LOCATE idewy - 3, 2: PRINT "Checking program... (editing program will cancel request)";
 
             'must move the cursor back to its correct location
-            ideshowtext()
+            ideshowtext
             LOCATE , , 1
             PCOPY 3, 0
 
-            GoTo specialchar
-        End If
+            GOTO specialchar
+        END IF
 
         LOCATE , , 0
         LOCATE , , , IDENormalCursorStart, IDENormalCursorEnd
@@ -4465,16 +4465,16 @@ idemrunspecial:
                 IF ideselect THEN GOTO IdeBlockDecreaseIndent
                 PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
                 GOTO ideloop
-            END If
+            END IF
 
-                    If menu$(m, s) = "#Language..." Then
-                        PCOPY 2, 0
+            IF menu$(m, s) = "#Language..." THEN
+                PCOPY 2, 0
                 retval = idelanguagebox
-                        PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous : idewait4alt
-                        GoTo ideloop
-                    End If
+                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+                GOTO ideloop
+            END IF
 
-                    If menu$(m, s) = "#Display..." THEN
+            IF menu$(m, s) = "#Display..." THEN
                 PCOPY 2, 0
                 IF idehelp = 0 THEN
                     retval = idedisplaybox
@@ -5167,30 +5167,27 @@ idemrunspecial:
 
             menu$(m, i) = "Select #All  Ctrl+A": i = i + 1
 
-            IF menu$(m, s) = "#Start  F5" Then
-                        PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous() :
-                        idewait4alt()
-                        GoTo idemrun
-            END If
-
-                    If menu$(m, s) = "Modify #COMMAND$..." Then
-                        PCOPY 2, 0
-                retval = idemodifycommandbox
-                        'retval is ignored
-                        PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous : idewait4alt
-                        GoTo ideloop
-                    End If
-
-                    If menu$(m, s) = "Start (#Detached)  Ctrl+F5" Then
-                        PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous() :
-                        idewait4alt()
-                        GoTo idemdetached
+            IF menu$(m, s) = "#Start  F5" THEN
+                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+                GOTO idemrun
             END IF
 
-            IF menu$(m, s) = "Make E#XE Only  F11" OR menu$(m, s) = "Make E#xecutable Only  F11" Then
-                        PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous() :
-                        idewait4alt()
-                        GoTo idemexe
+            IF menu$(m, s) = "Modify #COMMAND$..." THEN
+                PCOPY 2, 0
+                retval = idemodifycommandbox
+                'retval is ignored
+                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+                GOTO ideloop
+            END IF
+
+            IF menu$(m, s) = "Start (#Detached)  Ctrl+F5" THEN
+                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+                GOTO idemdetached
+            END IF
+
+            IF menu$(m, s) = "Make E#XE Only  F11" OR menu$(m, s) = "Make E#xecutable Only  F11" THEN
+                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
+                GOTO idemexe
             END IF
 
             IF menu$(m, s) = "E#xit" THEN
@@ -11145,21 +11142,21 @@ SUB idemessagebox (titlestr$, messagestr$)
         mousedown = 0
         mouseup = 0
     LOOP
-END Sub
+END SUB
 
 
 
-Function ideyesnobox$(titlestr$, messagestr$) 'returns "Y" or "N"
+FUNCTION ideyesnobox$ (titlestr$, messagestr$) 'returns "Y" or "N"
     '-------- generic dialog box header --------
     PCOPY 3, 0
     PCOPY 0, 2
     PCOPY 0, 1
     SCREEN , , 1, 0
     focus = 1
-    Dim p As idedbptype
-    Dim o(1 To 100) As idedbotype
-    Dim oo As idedbotype
-    Dim sep As String * 1
+    DIM p AS idedbptype
+    DIM o(1 TO 100) AS idedbotype
+    DIM oo AS idedbotype
+    DIM sep AS STRING * 1
     sep = CHR$(0)
     '-------- end of generic dialog box header --------
 
@@ -11167,7 +11164,7 @@ Function ideyesnobox$(titlestr$, messagestr$) 'returns "Y" or "N"
     i = 0
     w = LEN(messagestr$) + 2
     w2 = LEN(titlestr$) + 4
-    If w < w2 Then w = w2
+    IF w < w2 THEN w = w2
     idepar p, w, 4, titlestr$
 
     i = i + 1
@@ -11178,23 +11175,23 @@ Function ideyesnobox$(titlestr$, messagestr$) 'returns "Y" or "N"
     '-------- end of init --------
 
     '-------- generic init --------
-    For i = 1 To 100 : o(i).par = p : Next 'set parent info of objects
+    FOR i = 1 TO 100: o(i).par = p: NEXT 'set parent info of objects
     '-------- end of generic init --------
 
-    Do 'main loop
+    DO 'main loop
 
         '-------- generic display dialog box & objects --------
         idedrawpar p
-        f = 1 : cx = 0 : cy = 0
-        For i = 1 To 100
-            If o(i).typ Then
+        f = 1: cx = 0: cy = 0
+        FOR i = 1 TO 100
+            IF o(i).typ THEN
                 'prepare object
                 o(i).foc = focus - f 'focus offset
-                o(i).cx = 0 : o(i).cy = 0
+                o(i).cx = 0: o(i).cy = 0
                 idedrawobj o(i), f 'display object
-                If o(i).cx Then cx = o(i).cx : cy = o(i).cy
-            End If
-        Next i
+                IF o(i).cx THEN cx = o(i).cx: cy = o(i).cy
+            END IF
+        NEXT i
         lastfocus = f - 1
         '-------- end of generic display dialog box & objects --------
 
@@ -11205,71 +11202,71 @@ Function ideyesnobox$(titlestr$, messagestr$) 'returns "Y" or "N"
         'update visual page and cursor position
         PCOPY 1, 0
 
-        If cx Then SCREEN , , 0, 0: LOCATE cy, cx, 1: SCREEN , , 1, 0
+        IF cx THEN SCREEN , , 0, 0: LOCATE cy, cx, 1: SCREEN , , 1, 0
 
         '-------- read input --------
         change = 0
-        Do
+        DO
             GetInput
-            If mWHEEL Then change = 1
-            If KB Then change = 1
-            If mCLICK Then mousedown = 1 : change = 1
-            If mRELEASE Then mouseup = 1 : change = 1
-            If mB Then change = 1
-            alt = KALT : If alt <> oldalt Then change = 1
+            IF mWHEEL THEN change = 1
+            IF KB THEN change = 1
+            IF mCLICK THEN mousedown = 1: change = 1
+            IF mRELEASE THEN mouseup = 1: change = 1
+            IF mB THEN change = 1
+            alt = KALT: IF alt <> oldalt THEN change = 1
             oldalt = alt
             _LIMIT 100
-        Loop Until change
-        If alt And Not KCTRL Then idehl = 1 Else idehl = 0
+        LOOP UNTIL change
+        IF alt AND NOT KCTRL THEN idehl = 1 ELSE idehl = 0
         'convert "alt+letter" scancode to letter's ASCII character
         altletter$ = ""
-        If alt And Not KCTRL Then
-            If LEN(K$) = 1 Then
+        IF alt AND NOT KCTRL THEN
+            IF LEN(K$) = 1 THEN
                 k = ASC(UCASE$(K$))
-                If k >= 65 And k <= 90 Then altletter$ = CHR$(k)
-            End If
-        End If
+                IF k >= 65 AND k <= 90 THEN altletter$ = CHR$(k)
+            END IF
+        END IF
         SCREEN , , 0, 0: LOCATE , , 0: SCREEN , , 1, 0
         '-------- end of read input --------
 
-        If UCASE$(K$) = "Y" Then altletter$ = "Y"
-        If UCASE$(K$) = "N" Then altletter$ = "N"
+        IF UCASE$(K$) = "Y" THEN altletter$ = "Y"
+        IF UCASE$(K$) = "N" THEN altletter$ = "N"
 
         '-------- generic input response --------
         info = 0
-        If K$ = "" Then K$ = CHR$(255)
-        If KSHIFT = 0 And K$ = CHR$(9) Then focus = focus + 1
-        If (KSHIFT And K$ = CHR$(9)) Or (INSTR(_OS$, "MAC") And K$ = CHR$(25)) Then focus = focus - 1 : K$ = ""
-        If focus < 1 Then focus = lastfocus
-        If focus > lastfocus Then focus = 1
+        IF K$ = "" THEN K$ = CHR$(255)
+        IF KSHIFT = 0 AND K$ = CHR$(9) THEN focus = focus + 1
+        IF (KSHIFT AND K$ = CHR$(9)) OR (INSTR(_OS$, "MAC") AND K$ = CHR$(25)) THEN focus = focus - 1: K$ = ""
+        IF focus < 1 THEN focus = lastfocus
+        IF focus > lastfocus THEN focus = 1
         f = 1
-        For i = 1 To 100
+        FOR i = 1 TO 100
             t = o(i).typ
-            If t Then
+            IF t THEN
                 focusoffset = focus - f
                 ideobjupdate o(i), focus, f, focusoffset, K$, altletter$, mB, mousedown, mouseup, mX, mY, info, mWHEEL
-            End If
-        Next
+            END IF
+        NEXT
         '-------- end of generic input response --------
 
-        If K$ = CHR$(27) Then
+        IF K$ = CHR$(27) THEN
             ideyesnobox$ = "N"
-            Exit Function
-        End If
+            EXIT FUNCTION
+        END IF
 
-        If info Then
-            If info = 1 Then ideyesnobox$ = "Y" Else ideyesnobox$ = "N"
-            Exit Function
-        End If
+        IF info THEN
+            IF info = 1 THEN ideyesnobox$ = "Y" ELSE ideyesnobox$ = "N"
+            EXIT FUNCTION
+        END IF
 
         'end of custom controls
         mousedown = 0
         mouseup = 0
-    Loop
+    LOOP
 
-End Function 'yes/no box
+END FUNCTION 'yes/no box
 
-Function idedisplaybox
+FUNCTION idedisplaybox
 
     '-------- generic dialog box header --------
     PCOPY 0, 2

@@ -422,17 +422,17 @@ IF LoadedIDESettings = 0 THEN
     IF result = 0 OR idedebuginfo <> 1 THEN
         WriteConfigSetting "'[GENERAL SETTINGS]", "DebugInfo", "FALSE 'INTERNAL VARIABLE USE ONLY!! DO NOT MANUALLY CHANGE!"
         idedebuginfo = 0
-    END If
-Include_GDB_Debugging_Info = idedebuginfo
+    END IF
+	Include_GDB_Debugging_Info = idedebuginfo
 
 
-GoTo SkipCheckConfigFileExists
+	GOTO SkipCheckConfigFileExists
     CheckConfigFileExists:
     IF _FILEEXISTS(ConfigFile$) = 0 THEN
         'There's no config file in the folder.  Let's make one for future use.
-        IF ConfigFile$ = "internal/config.txt" Then 'It's the main file which we use for default/global settings
-WriteConfigSetting "'[CONFIG VERSION]", "ConfigVersion", "1"
-            If INSTR(_OS$, "WIN") THEN WriteConfigSetting "'[GENERAL SETTINGS]", "AllowIndependentSettings", "FALSE"
+        IF ConfigFile$ = "internal/config.txt" THEN 'It's the main file which we use for default/global settings
+			WriteConfigSetting "'[CONFIG VERSION]", "ConfigVersion", "1"
+            IF INSTR(_OS$, "WIN") THEN WriteConfigSetting "'[GENERAL SETTINGS]", "AllowIndependentSettings", "FALSE"
             WriteConfigSetting "'[GENERAL SETTINGS]", "BackupSize", "100 'in MB"
             WriteConfigSetting "'[GENERAL SETTINGS]", "DebugInfo", "FALSE 'INTERNAL VARIABLE USE ONLY!! DO NOT MANUALLY CHANGE!"
             WriteConfigSetting "'[IDE COLOR SETTINGS]", "SchemeID", "1"
