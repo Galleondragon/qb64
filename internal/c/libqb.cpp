@@ -19,9 +19,7 @@
 #include <objc/objc-runtime.h>
 
 #include <mach-o/dyld.h> //required for _NSGetExecutablePath
-
 #endif
-
 
 int32 disableEvents=0;
 
@@ -166,7 +164,6 @@ void setbits(uint32 bsize,uint8 *base,ptrszint i,int64 val){
   *bptr64=(*bptr64&( ( (bmask<<(i&7)) ^-1)  )) | ((val&bmask)<<(i&7));
 }
 
-
 #ifdef QB64_UNIX
 #include <pthread.h>
 #include <libgen.h> //required for dirname()
@@ -188,8 +185,6 @@ void x11_lock(){
 void x11_unlock(){
   x11_locked=0;
 }
-
-
 
 /*
 Logging for QB64 developers (when an alert() just isn't enough)
@@ -221,7 +216,6 @@ void log_event(int32 x){
   log_file << &str[0];
 }
 
-
 #include "libqb/printer.h"
 
 void alert(int32 x);
@@ -246,8 +240,6 @@ extern "C" void QB64_Window_Handle(void *handle){
   //...
 }
 
-
-
 //forward references
 void set_view(int32 new_mode);
 void set_render_source(int32 new_handle);
@@ -270,9 +262,6 @@ float environment_2d__screen_x_scale=1.0f;
 float environment_2d__screen_y_scale=1.0f;
 int32 environment_2d__screen_smooth=0;//1(LINEAR) or 0(NEAREST)
 int32 environment_2d__letterbox=0;//1=vertical black stripes required, 2=horizontal black stripes required
-
-
-
 
 int32 qloud_next_input_index=1;
 
@@ -307,7 +296,6 @@ int32 ScreenResize=0;
 extern "C" int QB64_Resizable(){
   return ScreenResize;
 }
-
 
 int32 sub_gl_called=0;
 
@@ -387,10 +375,6 @@ static const uint8 image_qbicon32[]={
   ,168,0,0,96,252,0,0,96,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,176,252,0,0,176
   ,167,0,0,32,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,251,0,0,64
 };
-
-
-
-
 
 static int32 display_x=640;
 static int32 display_y=400;
@@ -515,8 +499,6 @@ struct list{
 
 //fwd refs
 void *list_get(list *L, ptrszint i);
-
-
 
 list *list_new(ptrszint structure_size){
   list *L;
@@ -829,28 +811,6 @@ hardware_img_struct *get_hardware_img(int32 handle){
 int32 get_hardware_img_index(int32 handle){
   return handle-HARDWARE_IMG_HANDLE_OFFSET;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 static uint16 codepage437_to_unicode16[] = {
@@ -1207,7 +1167,6 @@ typedef enum {
 #define KMOD_META   (KMOD_LMETA|KMOD_RMETA)
 
 
-
 extern int32 cloud_app;
 int32 cloud_chdir_complete=0;
 int32 cloud_port[8];
@@ -1275,7 +1234,6 @@ void free_mem_lock(mem_lock *lock){
   if (mem_lock_freed_n==mem_lock_freed_max){mem_lock_freed_max*=2; mem_lock_freed=(ptrszint*)realloc(mem_lock_freed,sizeof(ptrszint)*mem_lock_freed_max);}
   mem_lock_freed[mem_lock_freed_n++]=(ptrszint)lock;
 }
-
 
 
 /*
@@ -1372,8 +1330,6 @@ extern void setDeviceEventWheelValue(device_struct *device, int32 eventIndex, in
 extern void setupDevice(device_struct *device);
 extern int32 createDeviceEvent(device_struct *device);
 extern void commitDeviceEvent(device_struct *device);
-
-
 
 extern ontimer_struct *ontimer;
 extern onkey_struct *onkey;
@@ -1488,28 +1444,12 @@ int32 convert_unicode(int32 src_fmt,void *src_buf,int32 src_size,int32 dest_fmt,
   return dest_size;
 }
 
-
-
-
-
 #ifdef QB64_WINDOWS
 void showvalue(__int64);
 #endif
 void sub_beep();
 
-
-
-
-
-
-
-
-
-
-
 int32 func__loadfont(qbs *filename,int32 size,qbs *requirements,int32 passed);
-
-
 
 int32 lastfont=48;
 int32 *font=(int32*)calloc(4*(48+1),1);//NULL=unused index
@@ -1525,24 +1465,12 @@ int32 keyhit_nextfree=0;
 int32 keyhit_next=0;
 //note: if full, the oldest message is discarded to make way for the new message
 
-
-
-
 void update_shift_state();
-
-
-
 
 uint32 bindkey=0;
 
 void scancodedown(uint8 scancode);
 void scancodeup(uint8 scancode);
-
-
-
-
-
-
 
 /*
   QB64 Mapping of audio control keyboard keys:
@@ -2106,7 +2034,6 @@ static const int32 scancode_lookup[]={
   /* * PrtSc */  000 ,      0x37,      0x2A,         0,      0x10,         0,      0x2A,      0x2A,         0,         0,
 };
 
-
 void keydown(uint32 x);
 void keyup(uint32 x);
 
@@ -2370,7 +2297,6 @@ int MessageBox2(int ignore,char* message,char* title,int type){
 }
 
 
-
 void alert(int32 x){
   static char str[100];
   memset(&str[0],0,100);
@@ -2381,9 +2307,6 @@ void alert(int32 x){
 void alert(char *x){
   MessageBox(0,x, "Alert", MB_OK );
 }
-
-
-
 
 
 //vc->project->properties->configuration properties->general->configuration type->application(.exe)
@@ -2406,7 +2329,6 @@ void *MAIN_LOOP_LINUX(void *);
 
 void GLUT_MAINLOOP_THREAD(void *);
 void GLUT_DISPLAY_REQUEST();
-
 
 extern qbs* WHATISMYIP();
 
@@ -2718,8 +2640,6 @@ void convert_text_to_utf16(int32 fonthandle,void *buf,int32 size){
   }
 }
 
-
-
 qbs *unknown_opcode_mess;
 
 extern uint32 ercl;
@@ -2790,9 +2710,6 @@ int32 sub_screen_keep_page0=0;
 
 int32 key_repeat_on=0;
 
-
-
-
 uint32 palette_256[256];
 uint32 palette_64[64];
 
@@ -2858,7 +2775,6 @@ void init_blend(){
   ablend127=ablend+(127<<8);
   ablend128=ablend+(128<<8);
 }
-
 
 uint32 display_page_index=0;
 uint32 write_page_index=0;
@@ -2960,8 +2876,6 @@ void restorepalette(img_struct* im){
 }//restorepalette
 
 
-
-
 void pset(int32 x,int32 y,uint32 col){
   static uint8 *cp;
   static uint32 *o32;
@@ -3005,7 +2919,6 @@ void pset(int32 x,int32 y,uint32 col){
     };
   }
 }
-
 
 
 /*
@@ -3350,8 +3263,6 @@ void flush_old_hardware_commands(){
       if (first_hardware_command==0) first_hardware_command=hgch;
     }
 
-
-
     old_command=old_hgc->next_command;
     next_hardware_command_to_remove=old_command;
     old_hgc=(hardware_graphics_command_struct*)list_get(hardware_graphics_command_handles,old_command);
@@ -3360,7 +3271,6 @@ void flush_old_hardware_commands(){
     goto remove_next_hgc;
 
   cant_remove:;
-
 
   }//next_hardware_command_to_remove&&last_hardware_command_rendered
 }//flush_old_hardware_commands
@@ -3437,8 +3347,6 @@ hardware_img_struct* src_himg=NULL;
     }//source is hardware image
   }//src passed
 
-
-
   if (passed&8){//src
     //validate
     if (src>=0){
@@ -3473,15 +3381,10 @@ hardware_img_struct* src_himg=NULL;
   if ((sbpp==4)&&(dbpp==1)){error(5); return;}
   if (s==d){error(5); return;}//cannot put source onto itself!
 
-
  resolve_coordinates:
-
-
 
   //quick references
   sw=s->width; sh=s->height; dw=d->width; dh=d->height;
-
-
 
   //change coordinates according to step
   if (passed&2){f_dx1=d->x+f_dx1; f_dy1=d->y+f_dy1;}
@@ -4521,7 +4424,6 @@ int32 selectfont(int32 f,img_struct *im){
   return 1;//success
 }
 
-
 int32 nmodes=0;
 int32 anymode=0;
 
@@ -4529,10 +4431,7 @@ float x_scale=1,y_scale=1;
 int32 x_offset=0,y_offset=0;
 int32 x_limit=0,y_limit=0;
 
-
-
 int32 x_monitor=0,y_monitor=0;
-
 
 int32 conversion_required=0;
 uint32 *conversion_layer=(uint32*)malloc(8);
@@ -4546,14 +4445,11 @@ int32 sndqueue_first=0;
 int32 sndqueue_wait=-1;
 int32 sndqueue_played=0;
 
-
 void call_int(int32 i);
 
 uint32 frame=0;
 
-
 extern uint8 cmem[1114099];//16*65535+65535+3 (enough for highest referencable dword in conv memory)
-
 
 int32 mouse_hideshow_called=0;
 
@@ -4585,10 +4481,6 @@ struct mouse_message_queue_struct{
 list *mouse_message_queue_handles=NULL;
 int32 mouse_message_queue_first; //the first queue to populate from input source
 int32 mouse_message_queue_default;//the default queue (for int33h and default _MOUSEINPUT operations)
-
-
-
-
 
 
 //x86 Virtual CMEM emulation
@@ -5300,16 +5192,12 @@ void cpu_call(){
 }
 
 
-
 int32 screen_last_valid=0;
 uint8 *screen_last=(uint8*)malloc(1);
 uint32 screen_last_size=1;
 
-
 uint64 asciicode_value=0;
 int32 asciicode_reading=0;
-
-
 
 int32 lock_display=0;
 int32 lock_display_required=0;
@@ -5361,9 +5249,6 @@ extern uint64 *nothingvalue;
 uint32 qb64_firsttimervalue;//based on time of day
 uint32 clock_firsttimervalue;//based on program launch time
 
-
-
-
 uint8 wait_needed=1;
 
 int32 full_screen=0;//0,1(stretched/closest),2(1:1)
@@ -5373,9 +5258,6 @@ int32 full_screen_set=-1;//0(windowed),1(stretched/closest),2(1:1)
 
 int32 vertical_retrace_in_progress=0;
 int32 vertical_retrace_happened=0;
-
-
-
 
 
 static const char *arrow[] = {
@@ -5429,7 +5311,6 @@ uint8 program_wait=0;
 
 extern uint8 suspend_program;
 extern uint8 stop_program;
-
 
 int32 global_counter=0;
 extern double last_line;
@@ -5563,7 +5444,6 @@ void fix_error(){
 }
 
 
-
 void error(int32 error_number){
 
   //critical errors:
@@ -5624,7 +5504,6 @@ void end(){
   while(!stop_program) Sleep(16);
   while(1) Sleep(16);
 }
-
 
 
 //MEM_STATIC memory manager
@@ -5819,13 +5698,9 @@ void more_return_points(){
 }
 
 
-
-
-
 uint8 keyon[65536];
 
 qbs* singlespace;
-
 
 qbs *qbs_malloc=(qbs*)calloc(sizeof(qbs)*65536,1);//~1MEG
 uint32 qbs_malloc_next=0;//the next idex in qbs_malloc to use
@@ -5896,7 +5771,6 @@ extern uint32 qbs_tmp_list_nexti;
 uint8 *qbs_data=(uint8*)malloc(1048576);
 uint32 qbs_data_size=1048576;
 uint32 qbs_sp=0;
-
 
 void field_free(qbs* str);
 
@@ -5993,8 +5867,6 @@ void qbs_tmp_concat_list(){
   }
   return;
 }
-
-
 
 
 void qbs_concat(uint32 bytesrequired){
@@ -6117,11 +5989,6 @@ qbs *qbs_new_txt_len(const char *txt,int32 len){
   newstr->readonly=1;
   return newstr;
 }
-
-
-
-
-
 
 
 //note: qbs_new_fixed detects if string is in DBLOCK
@@ -7107,17 +6974,6 @@ int32 qbg_color_assign[256];//for modes with quasi palettes!
 uint32 pal_mode10[2][9];
 
 
-
-
-
-
-
-
-
-
-
-
-
 uint8 charset8x8[256][8][8];
 uint8 charset8x16[256][16][8];
 
@@ -7358,8 +7214,6 @@ void qbg_palette(uint32 attribute,uint32 col,int32 passed){
 }
 
 
-
-
 void qbg_sub_color(uint32 col1,uint32 col2,uint32 bordercolor,int32 passed){
   if (new_error) return;
   if (!passed){
@@ -7529,7 +7383,6 @@ void validatepage(int32 n){
   }
   return;
 }//validate_page
-
 
 
 void qbg_screen(int32 mode,int32 color_switch,int32 active_page,int32 visual_page,int32 refresh,int32 passed){
@@ -8787,10 +8640,6 @@ void fast_boxfill(int32 x1,int32 y1,int32 x2,int32 y2,uint32 col){
 }
 
 
-
-
-
-
 //copied from qb32_line with the following modifications
 //i. pre-WINDOW'd & VIEWPORT'd int32 co-ordinates
 //ii. all references to style & lineclip_skippixels commented
@@ -8851,26 +8700,6 @@ void fast_line(int32 x1,int32 y1,int32 x2,int32 y2,uint32 col){
   }//lineclip_draw
   return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -8997,36 +8826,6 @@ void sub_line(float x1,float y1,float x2,float y2,uint32 col,int32 bf,uint32 sty
   }
 
 }//sub_line
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -9446,7 +9245,6 @@ void sub_paint32x(float x,float y,uint32 fillcol,uint32 bordercol,int32 passed){
 }
 
 
-
 //8-bit (default entry point)
 void sub_paint(float x,float y,uint32 fillcol,uint32 bordercol,qbs *backgroundstr,int32 passed){
   if (new_error) return;
@@ -9603,10 +9401,6 @@ void sub_paint(float x,float y,uint32 fillcol,uint32 bordercol,qbs *backgroundst
   goto nextpass;
 
 }
-
-
-
-
 
 
 void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,int32 passed){
@@ -9789,8 +9583,6 @@ void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,
   qbg_active_page_offset[offset]=fillcol;
 
 
-
-
   //create first node
   a_x[0]=ix; a_y[0]=iy;
   a_t[0]=15;
@@ -9886,20 +9678,10 @@ void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,
 }
 
 
-
-
-
-
-
-
-
-
 void sub_circle(double x,double y,double r,uint32 col,double start,double end,double aspect,int32 passed){
   //                                                &2         &4           &8         &16
   //[{STEP}](?,?),?[,[?][,[?][,[?][,?]]]]
   if (new_error) return;
-
-
 
   //data
   static double pi= 3.1415926535897932,pi2=6.2831853071795865;
@@ -10086,8 +9868,6 @@ uint32 point(int32 x,int32 y){//does not clip!
 }
 
 
-
-
 double func_point(float x,float y,int32 passed){
   static int32 x2,y2,i;
 
@@ -10142,11 +9922,6 @@ double func_point(float x,float y,int32 passed){
   }
   return -1;
 }
-
-
-
-
-
 
 
 
@@ -10375,9 +10150,6 @@ void printchr(int32 character){
   return;
 
 }//printchr
-
-
-
 
 
 int32 chrwidth(uint32 character){
@@ -10646,8 +10418,6 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
     if (lprint) lprint_buffered=1;
     entered_new_line=0;//beginning a new line was the last action (so don't add a new one)
 
-
-
     //###special characters
 
     if (no_control_characters||no_control_characters2) goto skip_control_characters;
@@ -10848,10 +10618,7 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
     /*
       tabbing1:
 
-
       write_page->cursor_x++;
-
-
 
       //hold cursor?
       if (write_page->cursor_x>qbg_width_in_characters){//past last x position
@@ -10863,9 +10630,6 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
       }
       }
       }
-
-
-
 
       qbs_print_skipchar:;
 
@@ -10879,8 +10643,6 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
 
       write_page->cursor_y++;
       write_page->cursor_x=1;
-
-
 
       if (write_page->cursor_y>qbg_bottom_row){
       //move screen space within view print up 1 row
@@ -10906,13 +10668,8 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
       memset(qbg_active_page_offset+(qbg_bottom_row-1)*qbg_bytes_per_pixel*qbg_width*qbg_character_height,0,qbg_bytes_per_pixel*qbg_width*qbg_character_height);
       }
 
-
-
-
       write_page->cursor_y=qbg_bottom_row;
       }
-
-
 
       }
     */
@@ -11433,13 +11190,6 @@ void qbg_sub_locate(int32 row,int32 column,int32 cursor,int32 start,int32 stop,i
 }
 
 
-
-
-
-
-
-
-
 //input helper functions:
 uint64 hexoct2uint64_value;
 int32 hexoct2uint64(qbs* h){
@@ -11583,8 +11333,6 @@ void qbs_input(int32 numvariables,uint8 newline){
     //bit referenced?
 
   }//i
-
-
 
 
  qbs_input_next:
@@ -12060,7 +11808,6 @@ void qbs_input(int32 numvariables,uint8 newline){
       //OTHER SOURCE: \B11.7976931348623157 D+308 to \B12.2250738585072014E-308
 
 
-
       if (neg_power) value=-value;
       //special case->single 0 after point
       if ((zeros_after_point==1)&&(digits_after_point==1)){
@@ -12128,21 +11875,15 @@ void qbs_input(int32 numvariables,uint8 newline){
 
     }
 
-
   }//ISFLOAT
 
   //undefined/uncheckable types fall through as valid!
  typechecked:;
   if (!valid) goto backspace;
 
-
-
   qbs_set(inpstr2,inpstr);
 
-
   //input a key
-
-
 
  qbs_input_invalidinput:
 
@@ -12532,10 +12273,6 @@ long double func_val(qbs *s){
 }
 
 
-
-
-
-
 int32 unsupported_port_accessed=0;
 
 int32 H3C7_palette_register_read_index=0;
@@ -12807,9 +12544,6 @@ void sub__limit(double fps){
 }
 
 
-
-
-
 int32 generic_put(int32 i,int32 offset,uint8 *cp,int32 bytes){
   //note: generic_put & generic_get have been made largely redundant by gfs_read & gfs_write
   //      offset is a byte-offset from base 0 (-1=current pos)
@@ -12862,7 +12596,6 @@ int32 generic_get(int32 i,int32 offset,uint8 *cp,int32 bytes){
   }
   return 0;
 }
-
 
 
 void sub_open(qbs *name,int32 type,int32 access,int32 sharing,int32 i,int64 record_length,int32 passed){
@@ -13012,11 +12745,9 @@ void sub_close(int32 i2,int32 passed){
   //special handles
 
 
-
   for (i=1;i<=special_handles->indexes;i++){
     sub_close(-i-1,1);
   }
-
 
   for (i=1;i<=gfs_fileno_n;i++){
     if (gfs_fileno_valid(i)==1) gfs_close(gfs_fileno[i]);
@@ -13446,8 +13177,6 @@ int32 n_uint64(){
   //return value
   n_uint64_value=uvalue;
 
-
-
   return 1;
 }
 
@@ -13589,25 +13318,6 @@ int32 n_inputnumberfromdata(uint8 *data,ptrszint *data_offset,ptrszint data_size
   if (n_digits==0) {n_exp=0; n_neg=0;}//clarify number
   return 0;//success
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 int32 n_inputnumberfromfile(int32 fileno){
@@ -13878,9 +13588,6 @@ uint64 func_file_input_uint64(int32 fileno){
   error(6);//overflow
   return 0;
 }
-
-
-
 
 void sub_read_string(uint8 *data,ptrszint *data_offset,ptrszint data_size,qbs *deststr){
   if (new_error) return;
@@ -14520,10 +14227,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
 }//put2
 
 
-
-
-
-
 void sub_graphics_get(float x1f,float y1f,float x2f,float y2f,void *element,uint32 mask,int32 passed){
   //"[{STEP}](?,?)-[{STEP}](?,?),?[,?]"
   //   &1            &2            &4
@@ -14683,7 +14386,6 @@ void sub_graphics_get(float x1f,float y1f,float x2f,float y2f,void *element,uint
   }//32
 
 }//sub_graphics_get
-
 
 
 void sub_graphics_put(float x1f,float y1f,void *element,int32 option,uint32 mask,int32 passed){
@@ -14897,23 +14599,6 @@ void sub_graphics_put(float x1f,float y1f,void *element,int32 option,uint32 mask
     return;
   }//32
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   /*
     static byte_element_struct *ele;
     ele=(byte_element_struct*)element;
@@ -15038,15 +14723,8 @@ void sub_graphics_put(float x1f,float y1f,void *element,int32 option,uint32 mask
     if ((option==5)||(option==0)){
     write_page->offset[py*write_page->width+px]^=c;
     }
-
-
-
-
-
-
     }
     maskpixel:;
-
 
     }//x
 
@@ -15061,12 +14739,10 @@ void sub_graphics_put(float x1f,float y1f,void *element,int32 option,uint32 mask
     // if (sx&3) cp++;
     //}
 
-
     }//y
   */
 
 }
-
 
 
 void sub_date(qbs* date){
@@ -15108,13 +14784,6 @@ qbs *func_date(){
   str->chr[i]=x+48;
   return str;
 }
-
-
-
-
-
-
-
 
 void sub_time(qbs* str){
   if (new_error) return;
@@ -15164,8 +14833,6 @@ int32 func_pos(int32 ignore){
   return write_page->cursor_x;
 }
 
-
-
 double func_log(double value){
   if (value<=0){error(5);return 0;}
   return log(value);
@@ -15192,8 +14859,6 @@ long double func_exp_float(long double value){
   }
   error(6); return 0;
 }
-
-
 
 int32 sleep_break=0;
 
@@ -15470,8 +15135,6 @@ int32 func_inp(int32 port){
 
   }
 
-
-
   unsupported_port_accessed=1;
   return 0;//unknown port!
 }
@@ -15673,8 +15336,6 @@ float func_pmap(float val,int32 option){
   error(5);
   return 0;
 }
-
-
 
 uint32 func_screen(int32 y,int32 x,int32 returncol,int32 passed){
 
@@ -16147,9 +15808,6 @@ double func_sqr(double value){
 }
 
 
-
-
-
 #ifdef QB64_BACKSLASH_FILESYSTEM
 #include "parts\\audio\\out\\src.c"
 #else
@@ -16163,13 +15821,6 @@ double func_sqr(double value){
 #include "parts/audio/conversion/src.c"
 #include "parts/audio/decode/src.c"
 #endif
-
-
-
-
-
-
-
 
 
 qbs *func_command_str=NULL;
@@ -16231,10 +15882,6 @@ int32 cmd_ok(){
   return cmd_available;
 }
 #endif
-
-
-
-
 
 
 int32 cmd_command(qbs *str2){
@@ -16564,9 +16211,6 @@ int64 func_shell(qbs *str){
 }//func SHELL(...
 
 
-
-
-
 int64 func__shellhide(qbs *str){ //func _SHELLHIDE(...
   if (new_error) return 1;
   if (cloud_app){error(262); return 1;}
@@ -16759,39 +16403,6 @@ int64 func__shellhide(qbs *str){ //func _SHELLHIDE(...
 
   return return_code;
 }//func _SHELLHIDE(...
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void sub_shell(qbs *str,int32 passed){
@@ -17060,18 +16671,6 @@ void sub_shell(qbs *str,int32 passed){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 void sub_shell2(qbs *str,int32 passed){ //HIDE
   if (new_error) return;
   if (cloud_app){error(262); return;}
@@ -17261,18 +16860,6 @@ void sub_shell2(qbs *str,int32 passed){ //HIDE
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 void sub_shell3(qbs *str,int32 passed){//_DONTWAIT
   //shell3 launches 'str' but does not wait for it to complete
   if (new_error) return;
@@ -17443,29 +17030,6 @@ void sub_shell3(qbs *str,int32 passed){//_DONTWAIT
 }//SHELL _DONTWAIT
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void sub_shell4(qbs *str,int32 passed){//_DONTWAIT & _HIDE
   //if passed&2 set a string was given
   if (!(passed&2)){error(5); return;}//should not hide a shell waiting for input
@@ -17629,26 +17193,6 @@ void sub_shell4(qbs *str,int32 passed){//_DONTWAIT & _HIDE
  shell_complete:;
 
 }//_DONTWAIT & _HIDE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void sub_kill(qbs *str){
@@ -19162,8 +18706,6 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     fontflags[i]=options;
     return i;
   }
-
-
 
 
   void sub__font(int32 f,int32 i,int32 passed){
@@ -21236,13 +20778,6 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
   }
 
 
-
-
-
-
-
-
-
   void *tcp_client_open(uint8 *host,int64 port){
 
     tcp_init();
@@ -21810,12 +21345,6 @@ int32 func__exit(){
 }
 
 
-
-
-
-
-
-
 #if defined(QB64_LINUX)
 
 //X11 clipboard interface for Linux
@@ -21940,22 +21469,6 @@ if (x11selectionowner!=None){
 }
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
  qbs *internal_clipboard=NULL;//used only if clipboard services unavailable
@@ -26051,33 +25564,6 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   void sub__memcopy(void *sblk,ptrszint soff,ptrszint bytes,void *dblk,ptrszint doff){
     //checking A
     if ( ((mem_block*)(sblk))->lock_offset==NULL || ((mem_block*)(dblk))->lock_offset==NULL ){
@@ -26274,12 +25760,6 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
   }
 
   void GLUT_KEYBOARD_FUNC(unsigned char key,int x, int y){
-
-
-
-
-
-
     //glutPostRedisplay();
 
     //qbs_print(qbs_str(key),0);
@@ -26722,9 +26202,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
 #endif
 
 
-
-
-
     onkey[1].keycode=59<<8;//F1-F10
     onkey[2].keycode=60<<8;
     onkey[3].keycode=61<<8;
@@ -26752,11 +26229,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
     ontimer[0].active=0;
 
 
-
-
-
-
-
     {
       /* For bounds check on numeric ENVIRON$ */
       char **p = envp;
@@ -26776,11 +26248,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
     img[x].valid=0;
     x=newimg();//reserve index 1
     img[x].valid=0;
-
-
-
-
-
 
 
 
@@ -26823,11 +26290,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
     segreg[5]=&cpu.gs;
 
 #ifdef QB64_WINDOWS
-
-
-
-
-
     /*
 
       HANDLE WINAPI GetStdHandle(
@@ -26860,8 +26322,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
       // );
       */
 
-
-
 #endif
 
     for (i=0;i<32;i++) sub_file_print_spaces[i]=32;
@@ -26876,14 +26336,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
     mem_static_limit=mem_static+mem_static_size;
 
     memset(&cmem[0],0,sizeof(cmem));
-
-
-
-
-
-
-
-
 
 
     memset(&keyon[0],0,sizeof(keyon));
@@ -27088,10 +26540,6 @@ qbs_set(rootDir,func__cwd());
     memcpy(img[-image_qbicon32_handle].offset32,&image_qbicon32[0],image_qbicon32_w*image_qbicon32_h*4);
 
 
-
-
-
-
 //setup default _DEVICE(s)
 i=0;
 
@@ -27143,16 +26591,6 @@ QB64_GAMEPAD_INIT();
       pthread_create(&thread_handle,NULL,&TIMERTHREAD_LINUX,NULL);
     }
 #endif
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -27666,13 +27104,6 @@ QB64_GAMEPAD_INIT();
   }
 
 
-
-
-
-
-
-
-
   //used to preserve the previous frame's content for comparison/reuse purposes
   uint8 *pixeldata=(uint8*)malloc(1);
   int32 pixeldatasize=1;
@@ -27711,9 +27142,6 @@ QB64_GAMEPAD_INIT();
     if (cloud_app){ //more converters handle the RGBA data format than BGRA which is dumped
       BGRA_to_RGBA=1;
     }
-
-
-
 
     if (lock_display==1){lock_display=2; Sleep(0);}
 
@@ -28159,27 +27587,6 @@ QB64_GAMEPAD_INIT();
       }//text
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       if (display_page->bits_per_pixel==32){
 
     //note: as software->hardware should be avoided at all costs, pixeldata is
@@ -28276,18 +27683,6 @@ QB64_GAMEPAD_INIT();
       }//32
 
 
-
-
-
-
-
-
-
-
-
-
-
-
       //assume <=256 colors using palette
 
       if (display_page->compatible_mode==10){//update SCREEN 10 palette
@@ -28360,12 +27755,6 @@ QB64_GAMEPAD_INIT();
       if (BGRA_to_RGBA) swap_paldata_BGRA_with_RGBA();
 
       goto screen_refreshed;
-
-
-
-
-
-
 
 
     screen_refreshed:
@@ -28451,9 +27840,6 @@ QB64_GAMEPAD_INIT();
   }
 
 
-
-
-
   /*
     int message_loop(
     SDL_Event event,
@@ -28477,9 +27863,6 @@ QB64_GAMEPAD_INIT();
     SDL_UpdateRect(screen, 0, 0, 0, 0);
     break;
     case SDL_KEYDOWN:
-
-
-
 
 
     if (event.key.keysym.sym == QBVK_F1) {
@@ -29362,20 +28745,6 @@ QB64_GAMEPAD_INIT();
         }//core devices required
 
 }//WM_KEYUP
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     }
     if (*qb64_os_event_info==OS_EVENT_POST_PROCESSING){

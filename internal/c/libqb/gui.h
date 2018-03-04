@@ -35,23 +35,7 @@ int32 new_hardware_img(int32 x, int32 y, uint32 *pixels, int32 flags){
   return handle;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #else //end stubs
-
-
 
 int32 force_NPO2_fix=0;//This should only be set to 1 for debugging QB64
 
@@ -284,6 +268,5 @@ if (hardware_img->depthbuffer_handle==0){
   set_render_source(INVALID_HARDWARE_HANDLE);
 }
 }
-
 
 #endif
