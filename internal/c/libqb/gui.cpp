@@ -18,7 +18,7 @@
     displayorder_hardware1=0;
     displayorder_glrender=0;
     static int32 i,method;
-    for (i=1;i<=4;i++){ 
+    for (i=1;i<=4;i++){
       if (i==1) method=method1;
       if (i==2) method=method2;
       if (i==3) method=method3;
@@ -42,13 +42,7 @@
 #ifndef QB64_GUI //begin stubs
 
 
-
-
 #else //end stubs
-
-
-
-
 
   void GLUT_RESHAPE_FUNC(int width, int height){
     resize_event_x=width; resize_event_y=height;
@@ -63,8 +57,6 @@
   }
 
 
-
-
   //displaycall is the window of time to update our display
 
 
@@ -73,17 +65,8 @@
 #endif
 
 
-
-
-
-
-
-
-
 #define GL_BGR 0x80E0
 #define GL_BGRA 0x80E1
-
-
 
   /* reference
      struct hardware_img_struct{
@@ -97,8 +80,7 @@
   */
 
 
-
-  void free_hardware_img(int32 handle, int32 caller_id){    
+  void free_hardware_img(int32 handle, int32 caller_id){
 
     hardware_img_struct* hardware_img;
     hardware_img=(hardware_img_struct*)list_get(hardware_img_handles,handle);
@@ -116,7 +98,7 @@
       glDeleteFramebuffersEXT(1, &depthbuffer_handle);
     }
     GLuint texture=(GLuint)hardware_img->texture_handle;
-    glDeleteTextures(1, &texture); 
+    glDeleteTextures(1, &texture);
 
 //test reasset of hardware+img
 //hardware_img=(hardware_img_struct*)list_get(hardware_img_handles,handle);
@@ -148,8 +130,6 @@
   */
 
 
-
-
   void prepare_environment_2d(){//called prior to rendering 2D content
 
     //precalculate critical dimensions, offsets & ratios
@@ -175,7 +155,7 @@
     can_scale=1;
     if (resize_auto==2) environment_2d__screen_smooth=1;
     //note: screen will fix its aspect ratio automatically, so there is no need to enforce squarepixels
-      } 
+      }
     }
 
     if (environment_2d__screen_width==environment__window_width &&
@@ -247,7 +227,7 @@
       environment_2d__screen_scaled_height=environment_2d__screen_y2-environment_2d__screen_y1+1;
       environment_2d__screen_x_scale=(float)environment_2d__screen_scaled_width/(float)environment_2d__screen_width;
       environment_2d__screen_y_scale=(float)environment_2d__screen_scaled_height/(float)environment_2d__screen_height;
-    } 
+    }
 
   }//prepare_environment_2d
 
@@ -292,45 +272,6 @@
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
 float *hardware_buffer_vertices=(float*)malloc(sizeof(float)*1);
 int32 hardware_buffer_vertices_max=1;
 int32 hardware_buffer_vertices_count=0;
@@ -338,7 +279,7 @@ int32 hardware_buffer_vertices_count=0;
 float *hardware_buffer_texcoords=(float*)malloc(sizeof(float)*1);
 int32 hardware_buffer_texcoords_max=1;
 int32 hardware_buffer_texcoords_count=0;
- 
+
 void hardware_buffer_flush(){
  if (hardware_buffer_vertices_count){
   //ref: http://stackoverflow.com/questions/5009014/draw-square-with-opengl-es-for-ios
@@ -357,8 +298,6 @@ void hardware_buffer_flush(){
 }
 
 
-
-
 void set_smooth(int32 new_mode_shrunk,int32 new_mode_stretched){
 static int32 current_mode_shrunk;
 current_mode_shrunk=render_state.source->smooth_shrunk;
@@ -369,7 +308,7 @@ hardware_buffer_flush();
 if (new_mode_shrunk==SMOOTH_MODE__DONT_SMOOTH){
 	if (render_state.source->PO2_fix==PO2_FIX__MIPMAPPED){
 		glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	}else{		
+	}else{
 		glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//Use _MAPTRIANGLE's _SMOOTHSHRUNK to apply linear filtering here
 	}
 }
@@ -442,7 +381,7 @@ if (new_mode==DEPTHBUFFER_MODE__OFF){
 }
 if (new_mode==DEPTHBUFFER_MODE__ON){
 	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);	
+	glDepthMask(GL_TRUE);
 	glAlphaFunc(GL_GREATER, 0.001);
      	glEnable(GL_ALPHA_TEST);
 }
@@ -463,7 +402,7 @@ if (new_mode==CULL_MODE__NONE){
 	glDisable(GL_CULL_FACE);
 }
 if (new_mode==CULL_MODE__CLOCKWISE_ONLY){
-	glFrontFace(GL_CW);	
+	glFrontFace(GL_CW);
 	if (current_mode!=CULL_MODE__ANTICLOCKWISE_ONLY) glEnable(GL_CULL_FACE);
 }
 if (new_mode==CULL_MODE__ANTICLOCKWISE_ONLY){
@@ -493,7 +432,7 @@ if (new_mode==VIEW_MODE__RESET){
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glAlphaFunc(GL_ALWAYS, 0);
 	if (framebufferobjects_supported) glBindFramebufferEXT(GL_FRAMEBUFFER, 0);
-	glBindTexture (GL_TEXTURE_2D, 0);	
+	glBindTexture (GL_TEXTURE_2D, 0);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glColor4f(1.f, 1.f, 1.f, 1.f);
 	glMatrixMode(GL_PROJECTION);
@@ -506,11 +445,11 @@ if (new_mode==VIEW_MODE__RESET){
         set_cull_mode(CULL_MODE__UNKNOWN);
 	set_render_source(INVALID_HARDWARE_HANDLE);
 	set_render_dest(INVALID_HARDWARE_HANDLE);
-	new_mode=VIEW_MODE__UNKNOWN;//resets are performed before unknown operations are executed	
+	new_mode=VIEW_MODE__UNKNOWN;//resets are performed before unknown operations are executed
 }
 if (new_mode==VIEW_MODE__2D){
 	if (current_mode!=VIEW_MODE__3D){
-		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);		
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	        glDisable(GL_COLOR_MATERIAL);
 	        glDisable(GL_LIGHTING);
 		set_alpha(ALPHA_MODE__BLEND);
@@ -519,8 +458,6 @@ if (new_mode==VIEW_MODE__2D){
 	        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glCullFace(GL_BACK);
 	}
-
-
 
 
 	if (render_state.dest_handle==0){
@@ -580,7 +517,7 @@ if (new_mode==VIEW_MODE__3D){
 		}else{
 			fov=90.0f*((float)environment__window_height/(float)environment_2d__screen_scaled_height);
 		}
-		gluPerspective(fov, (GLfloat)dst_w / (GLfloat)dst_h, 0.1, 10000.0); // Set the Field of view angle (in degrees), the aspect ratio of our window, and the new and far planes  
+		gluPerspective(fov, (GLfloat)dst_w / (GLfloat)dst_h, 0.1, 10000.0); // Set the Field of view angle (in degrees), the aspect ratio of our window, and the new and far planes
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 	}else{
@@ -604,7 +541,7 @@ if (new_mode==VIEW_MODE__3D){
 		}else{
 			fov=90.0f;
 		}
-		gluPerspective(fov, (GLfloat)dst_w / (GLfloat)dst_h, 0.1, 10000.0); // Set the Field of view angle (in degrees), the aspect ratio of our window, and the new and far planes  
+		gluPerspective(fov, (GLfloat)dst_w / (GLfloat)dst_h, 0.1, 10000.0); // Set the Field of view angle (in degrees), the aspect ratio of our window, and the new and far planes
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		//alert("3D rendering onto FBO not supported yet");
@@ -665,13 +602,13 @@ if (new_handle==0){
 	if (hardware_img->texture_handle==0) hardware_img_buffer_to_texture(new_handle);
 	//does it have a dest context/FBO? if not create one
 	if (hardware_img->dest_context_handle==0){
-		
+
 		static GLuint framebuffer_handle;
 		framebuffer_handle=0;
 		glGenFramebuffersEXT(1, &framebuffer_handle);
 		glBindFramebufferEXT(GL_FRAMEBUFFER, framebuffer_handle);
 		hardware_img->dest_context_handle=framebuffer_handle;
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, hardware_img->texture_handle, 0);   
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, hardware_img->texture_handle, 0);
 
                 //glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
                 //glClear(GL_COLOR_BUFFER_BIT);
@@ -686,31 +623,6 @@ if (new_handle==0){
 }
 render_state.dest_handle=new_handle;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   void hardware_img_put(int32 dst_x1,int32 dst_y1,int32 dst_x2,int32 dst_y2,
@@ -735,10 +647,7 @@ render_state.dest_handle=new_handle;
 
     set_render_dest(dst_img);
 
-
     set_view(VIEW_MODE__2D);
-
-
 
     if (dst_img){
       //static hardware_img_struct* dst_hardware_img;
@@ -760,7 +669,6 @@ render_state.dest_handle=new_handle;
     src_hardware_img=(hardware_img_struct*)list_get(hardware_img_handles,src_img);
     src_h=src_hardware_img->h;
     src_w=src_hardware_img->w;
-
 
 
     if (smooth){
@@ -786,7 +694,7 @@ render_state.dest_handle=new_handle;
 if (src_hardware_img->source_state.PO2_fix){
 	src_w=src_hardware_img->PO2_w;
 	src_h=src_hardware_img->PO2_h;
-} 
+}
 
     //calc source texture co-ordinates
     static float x1f,y1f,x2f,y2f;
@@ -814,7 +722,7 @@ if (src_hardware_img->source_state.PO2_fix){
         hardware_buffer_texcoords_max=hardware_buffer_texcoords_max*2+12;
 	hardware_buffer_texcoords=(float*)realloc(hardware_buffer_texcoords,hardware_buffer_texcoords_max*sizeof(float));
     }
-  
+
     //clockwise
     hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_x1; hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_y1;
     hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_x2; hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_y1;
@@ -834,9 +742,6 @@ if (src_hardware_img->source_state.PO2_fix){
     //hardware_buffer_flush(); //uncomment for debugging only
 
   }
-
-
-
 
 
   void hardware_img_tri2d(float dst_x1,float dst_y1,float dst_x2,float dst_y2,float dst_x3,float dst_y3,
@@ -1066,7 +971,7 @@ qbr_float_to_long(
 if (src_hardware_img->source_state.PO2_fix){
 	src_w=src_hardware_img->PO2_w;
 	src_h=src_hardware_img->PO2_h;
-} 
+}
 
     //calc source texture co-ordinates
     static float x1f,y1f,x2f,y2f,x3f,y3f;
@@ -1089,7 +994,6 @@ if (src_hardware_img->source_state.PO2_fix){
     }
 
 
-    
     //clockwise
     hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_x1; hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_y1;
     hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_x2; hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_y2;
@@ -1130,7 +1034,7 @@ void clear_depthbuffer(int32 dst_img){
       static hardware_img_struct* dst_hardware_img;
       dst_hardware_img=(hardware_img_struct*)list_get(hardware_img_handles,dst_img);
       hardware_img_requires_depthbuffer(dst_hardware_img);
-    }else{ //dest is 0      
+    }else{ //dest is 0
     }
 
     set_render_source(src_img);
@@ -1172,13 +1076,13 @@ void clear_depthbuffer(int32 dst_img){
 		if (cull_mode==CULL_MODE__ANTICLOCKWISE_ONLY) cull_mode=CULL_MODE__CLOCKWISE_ONLY;
 	}
     }
-    
+
     set_cull_mode(cull_mode);
 
 if (src_hardware_img->source_state.PO2_fix){
 	src_w=src_hardware_img->PO2_w;
 	src_h=src_hardware_img->PO2_h;
-} 
+}
 
     //calc source texture co-ordinates
     static float x1f,y1f,x2f,y2f,x3f,y3f;
@@ -1198,7 +1102,7 @@ if (src_hardware_img->source_state.PO2_fix){
         hardware_buffer_texcoords_max=hardware_buffer_texcoords_max*2+6;
 	hardware_buffer_texcoords=(float*)realloc(hardware_buffer_texcoords,hardware_buffer_texcoords_max*sizeof(float));
     }
-    
+
     hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_x1; hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_y1; hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_z1;
     hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_x2; hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_y2; hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_z2;
     hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_x3; hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_y3; hardware_buffer_vertices[hardware_buffer_vertices_count++]=dst_z3;
@@ -1208,57 +1112,6 @@ if (src_hardware_img->source_state.PO2_fix){
     //hardware_buffer_flush(); //uncomment for debugging only
 
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   static int32 software_screen_hardware_frame=0;
 
@@ -1298,7 +1151,7 @@ if (src_hardware_img->source_state.PO2_fix){
       in_GLUT_DISPLAY_REQUEST=0;
       return;//no frames exist yet, so screen size cannot be determined, therefore no action possible
     }
-    if (i!=last_i){ 
+    if (i!=last_i){
       for (i2=0; i2<=2;i2++){
     if (display_frame[i2].order<display_frame[i].order&&(display_frame[i2].state==DISPLAY_FRAME_STATE__DISPLAYING||display_frame[i2].state==DISPLAY_FRAME_STATE__READY)) display_frame[i2].state=DISPLAY_FRAME_STATE__EMPTY;
       }
@@ -1318,7 +1171,7 @@ if (src_hardware_img->source_state.PO2_fix){
       if (i==last_i){
     if (full_screen_set==-1){//no pending full-screen changes
       if (os_resize_event==0){//no resize events
-#ifndef DEPENDENCY_GL //we aren't using SUB _GL 
+#ifndef DEPENDENCY_GL //we aren't using SUB _GL
         in_GLUT_DISPLAY_REQUEST=0;
         return;
 #endif
@@ -1345,19 +1198,7 @@ if (src_hardware_img->source_state.PO2_fix){
     environment_2d__screen_height=display_frame[i].h;
 
 
-
-
-
-
-
-
-
-
-
     os_resize_event=0;//turn off flag which forces a render to take place even if no content has changed
-
-
-
 
 
     if ((full_screen==0)&&(full_screen_set==-1)){//not in (or attempting to enter) full screen
@@ -1370,8 +1211,6 @@ if (src_hardware_img->source_state.PO2_fix){
 
       resize_auto_ideal_aspect=(float)display_frame[i].w/(float)display_frame[i].h;
       resize_snapback_x=display_required_x; resize_snapback_y=display_required_y;
-
-
 
       if (resize_auto){
     //maintain aspect ratio
@@ -1402,12 +1241,10 @@ if (src_hardware_img->source_state.PO2_fix){
       glutReshapeWindow(x,y);
       glutPostRedisplay();
 
-      
 
-      goto auto_resized; 
+      goto auto_resized;
     }
       }//resize_auto
-
 
 
       if ((display_required_x!=display_x)||(display_required_y!=display_y)){
@@ -1419,14 +1256,13 @@ if (src_hardware_img->source_state.PO2_fix){
       }
 
 
-
     auto_resized:;
 
     }//not in (or attempting to enter) full screen
 
     //Pseudo-Fullscreen
     if (!resize_pending){//avoid switching to fullscreen before resize operations take effect
-      if (full_screen_set!=-1){//full screen mode change requested 
+      if (full_screen_set!=-1){//full screen mode change requested
     if (full_screen_set==0){
       if (full_screen!=0){
         //exit full screen
@@ -1447,10 +1283,6 @@ if (src_hardware_img->source_state.PO2_fix){
     }//size pending check
 
 
-
-
-
-
     //This code is deprecated but kept for reference purposes
     // 1) It was found to be unstable
     // 2) Switching modes means a high chance of losing pre-loaded OpenGL hardware textures/surfaces
@@ -1458,7 +1290,7 @@ if (src_hardware_img->source_state.PO2_fix){
       static int32 glut_window;
       //fullscreen
       if (!resize_pending){//avoid switching to fullscreen before resize operations take effect
-      if (full_screen_set!=-1){//full screen mode change requested 
+      if (full_screen_set!=-1){//full screen mode change requested
       if (full_screen_set==0){
       //exit full screen
       glutLeaveGameMode();
@@ -1498,7 +1330,7 @@ if (src_hardware_img->source_state.PO2_fix){
       game_mode_string_i+=sprintf(&game_mode_string[game_mode_string_i], "%d", 32);
       glutGameModeString(game_mode_string);
       if(glutGameModeGet(GLUT_GAME_MODE_POSSIBLE)){
-      //full screen using desktop dimensions  
+      //full screen using desktop dimensions
       if (full_screen==0) glut_window=glutGetWindow();
       glutEnterGameMode();
       fullscreen_width=w; fullscreen_height=h;
@@ -1506,7 +1338,7 @@ if (src_hardware_img->source_state.PO2_fix){
       screen_scale=full_screen_set;
       full_screen=full_screen_set;
       full_screen_set=-1;
-      return; 
+      return;
       }else{
       //cannot enter full screen
       full_screen=0;
@@ -1519,11 +1351,6 @@ if (src_hardware_img->source_state.PO2_fix){
     */
 
 
-
-
-
-
-
     //set window environment variables
     environment__window_width=display_x;
     environment__window_height=display_y;
@@ -1531,74 +1358,7 @@ if (src_hardware_img->source_state.PO2_fix){
     prepare_environment_2d();
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     //need a few variables here
-
-
 
 
     static int32 first_hardware_layer_rendered;
@@ -1642,9 +1402,9 @@ if (src_hardware_img->source_state.PO2_fix){
         free_hardware_img(software_screen_hardware_frame, 847001);
       }
       if (i!=last_i||software_screen_hardware_frame==0){
-        software_screen_hardware_frame=new_hardware_img(display_frame[i].w, display_frame[i].h,display_frame[i].bgra,NULL); 
+        software_screen_hardware_frame=new_hardware_img(display_frame[i].w, display_frame[i].h,display_frame[i].bgra,NULL);
       }
-      
+
       static hardware_img_struct* f1;
       f1=(hardware_img_struct*)list_get(hardware_img_handles,software_screen_hardware_frame);
       if (software_screen_hardware_frame==0){
@@ -1653,11 +1413,11 @@ if (src_hardware_img->source_state.PO2_fix){
       if (f1==NULL) alert("Invalid software_screen_hardware_frame!");
 
       static int32 use_alpha;
-      use_alpha=0; if (level>1) use_alpha=1; 
+      use_alpha=0; if (level>1) use_alpha=1;
 
 
 
-      //put the software screen      
+      //put the software screen
       hardware_img_put(0,0,environment_2d__screen_width-1,environment_2d__screen_height-1,
                software_screen_hardware_frame, 0,
                0,0,f1->w-1,f1->h-1,
@@ -1784,7 +1544,7 @@ if (src_hardware_img->source_state.PO2_fix){
           if ((hgc->dst_img>0&&first_hardware_layer_rendered==0)||hgc->dst_img==dst){
             hardware_img_put(hgc->dst_x1,hgc->dst_y1,hgc->dst_x2,hgc->dst_y2,
                      hgc->src_img, hgc->dst_img,
-                     hgc->src_x1,hgc->src_y1,hgc->src_x2,hgc->src_y2, 
+                     hgc->src_x1,hgc->src_y1,hgc->src_x2,hgc->src_y2,
                      hgc->use_alpha,hgc->smooth);
           }
         }
@@ -1913,9 +1673,6 @@ if (src_hardware_img->source_state.PO2_fix){
   }//GLUT_DISPLAY_REQUEST
 
 
-
-
-
   void GLUT_MouseButton_Up(int button,int x,int y){
 #ifdef QB64_GLUT
     int32 i;
@@ -1941,7 +1698,7 @@ if (src_hardware_img->source_state.PO2_fix){
     button--;
     static device_struct *d;
     d=&devices[2];//mouse
-    
+
     int32 eventIndex=createDeviceEvent(d);
     setDeviceEventButtonValue(d,eventIndex,button,0);
     commitDeviceEvent(d);
@@ -2076,7 +1833,7 @@ if (src_hardware_img->source_state.PO2_fix){
     fy*=2.0;//0 to 2
     fy-=1.0;//-1 to 1
     setDeviceEventAxisValue(d,eventIndex,0,fx);
-    setDeviceEventAxisValue(d,eventIndex,1,fy);    
+    setDeviceEventAxisValue(d,eventIndex,1,fy);
     commitDeviceEvent(d);
 
       }else{
@@ -2089,7 +1846,7 @@ if (src_hardware_img->source_state.PO2_fix){
     fx=xrel;
     fy=yrel;
     setDeviceEventWheelValue(d,eventIndex,0,fx);
-    setDeviceEventWheelValue(d,eventIndex,1,fy);    
+    setDeviceEventWheelValue(d,eventIndex,1,fy);
     commitDeviceEvent(d);
 
     eventIndex=createDeviceEvent(d);
@@ -2119,14 +1876,6 @@ if (src_hardware_img->source_state.PO2_fix){
     if (direction<0){GLUT_MouseButton_Down(5,x,y); GLUT_MouseButton_Up(5,x,y);}
 #endif
   }
-
-
-
-
-
-
-
-
 
 
 #endif

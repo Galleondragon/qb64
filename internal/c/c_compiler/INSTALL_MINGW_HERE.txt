@@ -1,6 +1,6 @@
 Only Windows users need these files.
 
-This is a copy of the "Mingw-w32 (i686) ToolChain" from "http://www.drangon.org/mingw/"
+This is a copy of the "Mingw-w32 (i686) ToolChain" from "http://web.archive.org/web/20160304102145/http://www.drangon.org/mingw/"
 
 After extraction, the 7 (or so) folders should be manually placed directly into this folder named
 "internal\c\c_compiler\"

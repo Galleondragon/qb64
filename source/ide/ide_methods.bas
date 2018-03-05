@@ -681,29 +681,24 @@ FUNCTION ide2 (ignore)
                 showexecreated = 0
                 LOCATE idewy - 3, 2
 
-                IF MakeAndroid THEN
-                    PRINT "Project [programs\android\" + file$ + "] created";
+                IF os$ = "LNX" THEN
+                    PRINT "Executable file created";
                 ELSE
-                    IF os$ = "LNX" THEN
-                        PRINT "Executable file created";
-                    ELSE
-                        PRINT ".EXE file created";
-                    END IF
-
-                    IF SaveExeWithSource THEN
-                        LOCATE idewy - 2, 2
-                        PRINT "Location: ";
-                        COLOR 11, 1
-                        IF path.exe$ = "" THEN path.exe$ = getfilepath$(COMMAND$(0))
-                        IF RIGHT$(path.exe$, 1) <> pathsep$ THEN path.exe$ = path.exe$ + pathsep$
-                        IF POS(0) + LEN(path.exe$) > idewx THEN
-                            PRINT "..."; RIGHT$(path.exe$, idewx - 15);
-                        ELSE
-                            PRINT path.exe$;
-                        END IF
-                    END IF
+                    PRINT ".EXE file created";
                 END IF
 
+                IF SaveExeWithSource THEN
+                    LOCATE idewy - 2, 2
+                    PRINT "Location: ";
+                    COLOR 11, 1
+                    IF path.exe$ = "" THEN path.exe$ = getfilepath$(COMMAND$(0))
+                    IF RIGHT$(path.exe$, 1) <> pathsep$ THEN path.exe$ = path.exe$ + pathsep$
+                    IF POS(0) + LEN(path.exe$) > idewx THEN
+                        PRINT "..."; RIGHT$(path.exe$, idewx - 15);
+                    ELSE
+                        PRINT path.exe$;
+                    END IF
+                END IF
             END IF
         END IF
 
@@ -1220,11 +1215,6 @@ FUNCTION ide2 (ignore)
             END IF
             IDEBuildModeChanged = 0
 
-            IF MakeAndroid THEN
-                'Cleanup excess files in temp folder
-                SHELL _HIDE "cmd /c del /q " + tmpdir$ + "ret*.txt " + tmpdir$ + "data*.txt " + tmpdir$ + "free*.txt"
-            END IF
-
             idecompiling = 1
             ide2 = 2
             idecompiledline$ = idegetline(1)
@@ -1434,24 +1424,21 @@ FUNCTION ide2 (ignore)
         END IF
 
         IF KB = KEY_F5 AND KCTRL THEN 'run detached
-            UseAndroid 0
-            idemdetached:
+	    idemdetached:
             iderunmode = 1
             GOTO idemrunspecial
         END IF
 
         IF KB = KEY_F11 THEN 'make exe only
-            UseAndroid 0
             idemexe:
             iderunmode = 2
             GOTO idemrunspecial
         END IF
 
         IF KB = KEY_F5 THEN 'Note: F5 or SHIFT+F5 accepted
-            UseAndroid 0
             idemrun:
             iderunmode = 0 'standard run
-            idemrunspecial:
+			idemrunspecial:
             IDECompilationRequested = -1
             'run program
             IF ready <> 0 AND idechangemade = 0 THEN
@@ -4487,14 +4474,6 @@ FUNCTION ide2 (ignore)
                 GOTO ideloop
             END IF
 
-            IF menu$(m, s) = "#Google Android..." THEN
-                PCOPY 2, 0
-                retval = ideandroidbox
-                'retval is ignored
-                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                GOTO ideloop
-            END IF
-
             IF menu$(m, s) = "#Display..." THEN
                 PCOPY 2, 0
                 IF idehelp = 0 THEN
@@ -5190,7 +5169,6 @@ FUNCTION ide2 (ignore)
 
             IF menu$(m, s) = "#Start  F5" THEN
                 PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                UseAndroid 0
                 GOTO idemrun
             END IF
 
@@ -5202,21 +5180,13 @@ FUNCTION ide2 (ignore)
                 GOTO ideloop
             END IF
 
-            IF menu$(m, s) = "Make #Android Project" THEN
-                PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                UseAndroid 1
-                GOTO idemrun
-            END IF
-
             IF menu$(m, s) = "Start (#Detached)  Ctrl+F5" THEN
                 PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                UseAndroid 0
                 GOTO idemdetached
             END IF
 
             IF menu$(m, s) = "Make E#XE Only  F11" OR menu$(m, s) = "Make E#xecutable Only  F11" THEN
                 PCOPY 3, 0: SCREEN , , 3, 0: idewait4mous: idewait4alt
-                UseAndroid 0
                 GOTO idemexe
             END IF
 
@@ -11295,190 +11265,6 @@ FUNCTION ideyesnobox$ (titlestr$, messagestr$) 'returns "Y" or "N"
     LOOP
 
 END FUNCTION 'yes/no box
-
-
-
-FUNCTION ideandroidbox
-
-    '-------- generic dialog box header --------
-    PCOPY 0, 2
-    PCOPY 0, 1
-    SCREEN , , 1, 0
-    focus = 1
-    DIM p AS idedbptype
-    DIM o(1 TO 100) AS idedbotype
-    DIM oo AS idedbotype
-    DIM sep AS STRING * 1
-    sep = CHR$(0)
-    '-------- end of generic dialog box header --------
-
-    '-------- init --------
-    i = 0
-
-    idepar p, 75, 15 - 4 - 4, "Google Android Options"
-
-    i = i + 1
-    o(i).typ = 4 'check box
-    o(i).y = 2
-    o(i).nam = idenewtxt("Enable #Run Menu Commands")
-    o(i).sel = IdeAndroidMenu
-
-    'a2$ = IdeAndroidStartScript
-    'IF a2$ = "" THEN a2$ = "programs\android\start_android.bat"
-    'i = i + 1
-    'o(i).typ = 1
-    'o(i).y = 7
-    'o(i).nam = idenewtxt(CHR$(34) + "Start Android Project" + CHR$(34) + " Script")
-    'o(i).txt = idenewtxt(a2$)
-    'o(i).v1 = LEN(a2$)
-
-
-    'a2$ = IdeAndroidMakeScript
-    'IF a2$ = "" THEN a2$ = "programs\android\make_android.bat"
-    'i = i + 1
-    'o(i).typ = 1
-    'o(i).y = 11 - 4
-    'o(i).nam = idenewtxt(CHR$(34) + "Make Android Project Only" + CHR$(34) + " Script")
-    'o(i).txt = idenewtxt(a2$)
-    'o(i).v1 = LEN(a2$)
-
-    i = i + 1
-    o(i).typ = 3
-    o(i).y = 15 - 4 - 4
-    o(i).txt = idenewtxt("OK" + sep + "#Cancel")
-    o(i).dft = 1
-    '-------- end of init --------
-
-    '-------- generic init --------
-    FOR i = 1 TO 100: o(i).par = p: NEXT 'set parent info of objects
-    '-------- end of generic init --------
-
-    DO 'main loop
-
-
-        '-------- generic display dialog box & objects --------
-        idedrawpar p
-        f = 1: cx = 0: cy = 0
-        FOR i = 1 TO 100
-            IF o(i).typ THEN
-
-                'prepare object
-                o(i).foc = focus - f 'focus offset
-                o(i).cx = 0: o(i).cy = 0
-                idedrawobj o(i), f 'display object
-                IF o(i).cx THEN cx = o(i).cx: cy = o(i).cy
-            END IF
-        NEXT i
-        lastfocus = f - 1
-        '-------- end of generic display dialog box & objects --------
-
-        '-------- custom display changes --------
-        COLOR 2, 7: LOCATE p.y + 3, p.x + 4: PRINT "Projects are created at:";
-        COLOR 2, 7: LOCATE p.y + 4, p.x + 6: PRINT "qb64\programs\android\";
-        COLOR 0, 7
-        PRINT "bas_file_name_without_extension";
-        COLOR 2, 7: PRINT "\";
-        'COLOR 2, 7: LOCATE p.y + 9, p.x + 4: PRINT "Script file is launched from within project's folder";
-        'COLOR 2, 7: LOCATE p.y + 13 - 4, p.x + 4: PRINT "Script file is launched from within project's folder";
-
-        '-------- end of custom display changes --------
-
-        'update visual page and cursor position
-        PCOPY 1, 0
-        IF cx THEN SCREEN , , 0, 0: LOCATE cy, cx, 1: SCREEN , , 1, 0
-
-        '-------- read input --------
-        change = 0
-        DO
-            GetInput
-            IF mWHEEL THEN change = 1
-            IF KB THEN change = 1
-            IF mCLICK THEN mousedown = 1: change = 1
-            IF mRELEASE THEN mouseup = 1: change = 1
-            IF mB THEN change = 1
-            alt = KALT: IF alt <> oldalt THEN change = 1
-            oldalt = alt
-            _LIMIT 100
-        LOOP UNTIL change
-        IF alt AND NOT KCTRL THEN idehl = 1 ELSE idehl = 0
-        'convert "alt+letter" scancode to letter's ASCII character
-        altletter$ = ""
-        IF alt AND NOT KCTRL THEN
-            IF LEN(K$) = 1 THEN
-                k = ASC(UCASE$(K$))
-                IF k >= 65 AND k <= 90 THEN altletter$ = CHR$(k)
-            END IF
-        END IF
-        SCREEN , , 0, 0: LOCATE , , 0: SCREEN , , 1, 0
-        '-------- end of read input --------
-
-        '-------- generic input response --------
-        info = 0
-        IF K$ = "" THEN K$ = CHR$(255)
-        IF KSHIFT = 0 AND K$ = CHR$(9) THEN focus = focus + 1
-        IF (KSHIFT AND K$ = CHR$(9)) OR (INSTR(_OS$, "MAC") AND K$ = CHR$(25)) THEN focus = focus - 1: K$ = ""
-        IF focus < 1 THEN focus = lastfocus
-        IF focus > lastfocus THEN focus = 1
-        f = 1
-        FOR i = 1 TO 100
-            t = o(i).typ
-            IF t THEN
-                focusoffset = focus - f
-                ideobjupdate o(i), focus, f, focusoffset, K$, altletter$, mB, mousedown, mouseup, mX, mY, info, mWHEEL
-            END IF
-        NEXT
-        '-------- end of generic input response --------
-
-        'specific post controls
-
-        a$ = idetxt(o(2).txt)
-        IF LEN(a$) > 256 THEN a$ = LEFT$(a$, 256)
-        idetxt(o(2).txt) = a$
-        a$ = idetxt(o(3).txt)
-        IF LEN(a$) > 256 THEN a$ = LEFT$(a$, 256)
-        idetxt(o(3).txt) = a$
-
-        IF K$ = CHR$(27) OR (focus = 3 AND info <> 0) THEN EXIT FUNCTION
-        IF K$ = CHR$(13) OR (focus = 2 AND info <> 0) THEN
-            v% = o(1).sel
-            IF v% < IdeAndroidMenu THEN
-                menusize(5) = menusize(5) - 2
-            END IF
-            IF v% > IdeAndroidMenu THEN
-                menusize(5) = menusize(5) + 2
-            END IF
-            IF v% THEN
-                WriteConfigSetting "'[ANDROID MENU]", "IDE_AndroidMenu", "TRUE"
-            ELSE
-                WriteConfigSetting "'[ANDROID MENU]", "IDE_AndroidMenu", "FALSE"
-            END IF
-
-            'v$ = ""
-            'IF LEN(v$) > 256 THEN v$ = LEFT$(v$, 256)
-            'IF LEN(v$) < 256 THEN v$ = v$ + SPACE$(256 - LEN(v$))
-            'v3$ = idetxt(o(3 - 1).txt)
-            'IF LEN(v3$) > 256 THEN v3$ = LEFT$(v3$, 256)
-            'IF LEN(v3$) < 256 THEN v3$ = v3$ + SPACE$(256 - LEN(v3$))
-            '    WriteConfigSetting "'[ANDROID MENU]", "IDE_AndroidMakeScript$",  v3$
-            '    WriteConfigSetting "'[ANDROID MENU]", "IDE_AndroidStartScript$", v$
-
-            IdeAndroidMenu = o(1).sel
-            'IdeAndroidStartScript = "" 'idetxt(o(2).txt)
-            'IdeAndroidMakeScript = idetxt(o(3 - 1).txt)
-
-            EXIT FUNCTION
-        END IF
-
-        'end of custom controls
-
-        mousedown = 0
-        mouseup = 0
-    LOOP
-END FUNCTION
-
-
-
-
 
 FUNCTION idedisplaybox
 

@@ -19,9 +19,7 @@
 #include <objc/objc-runtime.h>
 
 #include <mach-o/dyld.h> //required for _NSGetExecutablePath
-
 #endif
-
 
 int32 disableEvents=0;
 
@@ -103,7 +101,7 @@ int64 qbr(long double f){
   if (f>9223372036854775807) {temp=1;f=f-9223372036854775808u;} //if it's too large for a signed int64, make it an unsigned int64 and return that value if possible.
   __asm__ (
            "fldt %1;"
-           "fistpll %0;"              
+           "fistpll %0;"
            :"=m" (i)
            :"m" (f)
            );
@@ -114,7 +112,7 @@ uint64 qbr_longdouble_to_uint64(long double f){
   uint64 i;
   __asm__ (
            "fldt %1;"
-           "fistpll %0;"              
+           "fistpll %0;"
            :"=m" (i)
            :"m" (f)
            );
@@ -124,7 +122,7 @@ int32 qbr_float_to_long(float f){
   int32 i;
   __asm__ (
            "flds %1;"
-           "fistpl %0;"              
+           "fistpl %0;"
            :"=m" (i)
            :"m" (f)
            );
@@ -134,7 +132,7 @@ int32 qbr_double_to_long(double f){
   int32 i;
   __asm__ (
            "fldl %1;"
-           "fistpl %0;"              
+           "fistpl %0;"
            :"=m" (i)
            :"m" (f)
            );
@@ -166,7 +164,6 @@ void setbits(uint32 bsize,uint8 *base,ptrszint i,int64 val){
   *bptr64=(*bptr64&( ( (bmask<<(i&7)) ^-1)  )) | ((val&bmask)<<(i&7));
 }
 
-
 #ifdef QB64_UNIX
 #include <pthread.h>
 #include <libgen.h> //required for dirname()
@@ -189,8 +186,6 @@ void x11_unlock(){
   x11_locked=0;
 }
 
-
-
 /*
 Logging for QB64 developers (when an alert() just isn't enough)
         1) Temporarily set allow_logging=1
@@ -206,12 +201,12 @@ int32 log_file_opened=0;
 void open_log_file(){
   if (log_file_opened==0){
     log_file.open("log.txt", std::ios_base::out|std::ios_base::trunc);
-    log_file_opened=1;    
+    log_file_opened=1;
   }
 }
 void log_event(char *x){
   open_log_file();
-  log_file << x;  
+  log_file << x;
 }
 void log_event(int32 x){
   open_log_file();
@@ -220,7 +215,6 @@ void log_event(int32 x){
   sprintf(str, "%d", x);
   log_file << &str[0];
 }
-
 
 #include "libqb/printer.h"
 
@@ -241,12 +235,10 @@ HWND window_handle=NULL;
 extern "C" void QB64_Window_Handle(void *handle){
   generic_window_handle=handle;
 #ifdef QB64_WINDOWS
-  window_handle=(HWND)handle; 
+  window_handle=(HWND)handle;
 #endif
   //...
 }
-
-
 
 //forward references
 void set_view(int32 new_mode);
@@ -270,9 +262,6 @@ float environment_2d__screen_x_scale=1.0f;
 float environment_2d__screen_y_scale=1.0f;
 int32 environment_2d__screen_smooth=0;//1(LINEAR) or 0(NEAREST)
 int32 environment_2d__letterbox=0;//1=vertical black stripes required, 2=horizontal black stripes required
-
-
-
 
 int32 qloud_next_input_index=1;
 
@@ -307,7 +296,6 @@ int32 ScreenResize=0;
 extern "C" int QB64_Resizable(){
   return ScreenResize;
 }
-
 
 int32 sub_gl_called=0;
 
@@ -387,10 +375,6 @@ static const uint8 image_qbicon32[]={
   ,168,0,0,96,252,0,0,96,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,192,252,0,0,192,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,255,252,0,0,255,168,0,0,176,252,0,0,176
   ,167,0,0,32,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,96,168,0,0,96,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,168,0,0,176,252,0,0,176,251,0,0,64
 };
-
-
-
-
 
 static int32 display_x=640;
 static int32 display_y=400;
@@ -516,8 +500,6 @@ struct list{
 //fwd refs
 void *list_get(list *L, ptrszint i);
 
-
-
 list *list_new(ptrszint structure_size){
   list *L;
   L=(list*)calloc(1,sizeof(list));
@@ -527,7 +509,7 @@ list *list_new(ptrszint structure_size){
   L->structure_freed=(ptrszint*)malloc(sizeof(ptrszint*));
   L->index=(ptrszint*)malloc(sizeof(ptrszint*));
   L->user_structure_size=structure_size;
-  L->internal_structure_size=structure_size+sizeof(ptrszint);  
+  L->internal_structure_size=structure_size+sizeof(ptrszint);
   return L;
 }
 
@@ -538,7 +520,7 @@ list *list_new_threadsafe(ptrszint structure_size){
   return L;
 }
 
-ptrszint list_add(list *L){  
+ptrszint list_add(list *L){
   lock_mutex(L->lock_add);
   ptrszint i;
   if(L->structures_freed){//retrieve index from freed list if possible
@@ -561,8 +543,8 @@ ptrszint list_add(list *L){
       L->structures=0;
       L->structure_base[++L->structure_bases]=(ptrszint)L->structure;
     }
-    i=++L->indexes;    
-    *(ptrszint*)(L->structure+(L->internal_structure_size*(++L->structures))+L->user_structure_size)=i;      
+    i=++L->indexes;
+    *(ptrszint*)(L->structure+(L->internal_structure_size*(++L->structures))+L->user_structure_size)=i;
     //allocate new index
     if (L->indexes>L->indexes_last){
       if (L->index_cleanup!=NULL) free(L->index_cleanup);
@@ -575,7 +557,7 @@ ptrszint list_add(list *L){
       L->indexes_last=new_indexes_last;
     }else{
       L->index[i]=(ptrszint)( L->structure + (L->internal_structure_size*L->structures) );
-    }  
+    }
   }
   unlock_mutex(L->lock_add);
   return i;
@@ -592,9 +574,9 @@ ptrszint list_remove(list *L,ptrszint i){//returns -1 on success, 0 on failure
   if (!*(ptrszint*)(structure+L->user_structure_size)){
     unlock_mutex(L->lock_remove);
     return 0;
-  }  
+  }
   //expand buffer?
-  if ((L->structures_freed+1)>L->structures_freed_last){        
+  if ((L->structures_freed+1)>L->structures_freed_last){
     ptrszint new_structures_freed_last;
     new_structures_freed_last=(L->structures_freed_last*2)+1;
     ptrszint *temp=(ptrszint*)malloc(sizeof(ptrszint)*(new_structures_freed_last+1));
@@ -604,7 +586,7 @@ ptrszint list_remove(list *L,ptrszint i){//returns -1 on success, 0 on failure
     L->structure_freed=temp;
     L->structures_freed_last=new_structures_freed_last;
   }
-  L->structure_freed[L->structures_freed+1]=i;  
+  L->structure_freed[L->structures_freed+1]=i;
   *(ptrszint*)(structure+L->user_structure_size)=0;
   L->structures_freed++;
   unlock_mutex(L->lock_remove);
@@ -694,7 +676,7 @@ struct RENDER_STATE_SOURCE{ //texture states
 struct RENDER_STATE_GLOBAL{ //settings not bound to specific source/target
         RENDER_STATE_DEST *dest;
         RENDER_STATE_SOURCE *source;
-        int32 dest_handle;        
+        int32 dest_handle;
         int32 source_handle;
         int32 view_mode;
         int32 use_alpha;
@@ -750,7 +732,7 @@ struct hardware_img_struct{
   int32 depthbuffer_mode;//changed by _DEPTHBUFFER
   int32 valid;
   RENDER_STATE_SOURCE source_state;
-  RENDER_STATE_DEST dest_state;  
+  RENDER_STATE_DEST dest_state;
   int32 PO2_w;//if PO2_FIX__EXPANDED/MIPMAPPED, these are the texture size
   int32 PO2_h;
 };
@@ -771,7 +753,7 @@ struct hardware_graphics_command_struct{
     int32 src_img; //MUST be a hardware handle
   };
   union{
-    int32 dst_img; //MUST be a hardware handle or 0 for the default 2D rendering context  
+    int32 dst_img; //MUST be a hardware handle or 0 for the default 2D rendering context
     int32 target;
   };
   float src_x1;
@@ -831,28 +813,6 @@ int32 get_hardware_img_index(int32 handle){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 static uint16 codepage437_to_unicode16[] = {
   0x0020,0x263A,0x263B,0x2665,0x2666,0x2663,0x2660,0x2022,0x25D8,0x25CB,0x25D9,0x2642,0x2640,0x266A,0x266B,0x263C,
   0x25BA,0x25C4,0x2195,0x203C,0x00B6,0x00A7,0x25AC,0x21A8,0x2191,0x2193,0x2192,0x2190,0x221F,0x2194,0x25B2,0x25BC,
@@ -896,8 +856,8 @@ int64 orwl_gettime(void) {
         struct timespec t;
         double diff = (mach_absolute_time() - orwl_timestart) * orwl_timebase;
         t.tv_sec = diff * ORWL_NANO;
-        t.tv_nsec = diff - (t.tv_sec * ORWL_GIGA);                
-    return t.tv_sec * 1000 + t.tv_nsec / 1000000;                
+        t.tv_nsec = diff - (t.tv_sec * ORWL_GIGA);
+    return t.tv_sec * 1000 + t.tv_nsec / 1000000;
 }
 #endif
 
@@ -913,7 +873,7 @@ int64 GetTicks(){
 }
 #else
 int64 GetTicks(){
-        return ( ( ((int64)clock()) * ((int64)1000) ) / ((int64)CLOCKS_PER_SEC) );        
+        return ( ( ((int64)clock()) * ((int64)1000) ) / ((int64)CLOCKS_PER_SEC) );
 }
 #endif
 
@@ -1207,7 +1167,6 @@ typedef enum {
 #define KMOD_META   (KMOD_LMETA|KMOD_RMETA)
 
 
-
 extern int32 cloud_app;
 int32 cloud_chdir_complete=0;
 int32 cloud_port[8];
@@ -1277,7 +1236,6 @@ void free_mem_lock(mem_lock *lock){
 }
 
 
-
 /*
   int32 allocated_bytes=0;
   void *malloc2(int x){
@@ -1301,7 +1259,7 @@ int64 device_event_index=0;
 int32 device_mouse_relative=0;
 
 int32 lock_mainloop=0;//0=unlocked, 1=lock requested, 2=locked
- 
+
 int32 lpos=1;
 int32 width_lprint=80;
 
@@ -1372,8 +1330,6 @@ extern void setDeviceEventWheelValue(device_struct *device, int32 eventIndex, in
 extern void setupDevice(device_struct *device);
 extern int32 createDeviceEvent(device_struct *device);
 extern void commitDeviceEvent(device_struct *device);
-
-
 
 extern ontimer_struct *ontimer;
 extern onkey_struct *onkey;
@@ -1488,28 +1444,12 @@ int32 convert_unicode(int32 src_fmt,void *src_buf,int32 src_size,int32 dest_fmt,
   return dest_size;
 }
 
-
-
-
-
 #ifdef QB64_WINDOWS
 void showvalue(__int64);
 #endif
 void sub_beep();
 
-
-
-
-
-
-
-
-
-
-
 int32 func__loadfont(qbs *filename,int32 size,qbs *requirements,int32 passed);
-
-
 
 int32 lastfont=48;
 int32 *font=(int32*)calloc(4*(48+1),1);//NULL=unused index
@@ -1525,24 +1465,12 @@ int32 keyhit_nextfree=0;
 int32 keyhit_next=0;
 //note: if full, the oldest message is discarded to make way for the new message
 
-
-
-
 void update_shift_state();
-
-
-
 
 uint32 bindkey=0;
 
 void scancodedown(uint8 scancode);
 void scancodeup(uint8 scancode);
-
-
-
-
-
-
 
 /*
   QB64 Mapping of audio control keyboard keys:
@@ -2106,7 +2034,6 @@ static const int32 scancode_lookup[]={
   /* * PrtSc */  000 ,      0x37,      0x2A,         0,      0x10,         0,      0x2A,      0x2A,         0,         0,
 };
 
-
 void keydown(uint32 x);
 void keyup(uint32 x);
 
@@ -2256,12 +2183,12 @@ int MessageBox(int ignore,char* message, char* header, int type )
   CFStringRef message_ref  = CFStringCreateWithCString( NULL, message, kCFStringEncodingASCII );
   CFOptionFlags result;
   if (type&MB_SYSTEMMODAL) type-=MB_SYSTEMMODAL;
-  if (type==MB_YESNO){ 
+  if (type==MB_YESNO){
     CFUserNotificationDisplayAlert(
                    0, // no timeout
                    kCFUserNotificationNoteAlertLevel,
                    NULL,
-                   NULL, 
+                   NULL,
                    NULL,
                    header_ref,
                    message_ref,
@@ -2277,12 +2204,12 @@ int MessageBox(int ignore,char* message, char* header, int type )
     else
       return IDYES;
   }
-  if (type==MB_OK){ 
+  if (type==MB_OK){
     CFUserNotificationDisplayAlert(
                    0, // no timeout
                    kCFUserNotificationNoteAlertLevel,
                    NULL,
-                   NULL, 
+                   NULL,
                    NULL,
                    header_ref,
                    message_ref,
@@ -2370,7 +2297,6 @@ int MessageBox2(int ignore,char* message,char* title,int type){
 }
 
 
-
 void alert(int32 x){
   static char str[100];
   memset(&str[0],0,100);
@@ -2381,9 +2307,6 @@ void alert(int32 x){
 void alert(char *x){
   MessageBox(0,x, "Alert", MB_OK );
 }
-
-
-
 
 
 //vc->project->properties->configuration properties->general->configuration type->application(.exe)
@@ -2406,7 +2329,6 @@ void *MAIN_LOOP_LINUX(void *);
 
 void GLUT_MAINLOOP_THREAD(void *);
 void GLUT_DISPLAY_REQUEST();
-
 
 extern qbs* WHATISMYIP();
 
@@ -2718,8 +2640,6 @@ void convert_text_to_utf16(int32 fonthandle,void *buf,int32 size){
   }
 }
 
-
-
 qbs *unknown_opcode_mess;
 
 extern uint32 ercl;
@@ -2790,9 +2710,6 @@ int32 sub_screen_keep_page0=0;
 
 int32 key_repeat_on=0;
 
-
-
-
 uint32 palette_256[256];
 uint32 palette_64[64];
 
@@ -2858,7 +2775,6 @@ void init_blend(){
   ablend127=ablend+(127<<8);
   ablend128=ablend+(128<<8);
 }
-
 
 uint32 display_page_index=0;
 uint32 write_page_index=0;
@@ -2960,8 +2876,6 @@ void restorepalette(img_struct* im){
 }//restorepalette
 
 
-
-
 void pset(int32 x,int32 y,uint32 col){
   static uint8 *cp;
   static uint32 *o32;
@@ -2987,7 +2901,7 @@ void pset(int32 x,int32 y,uint32 col){
       o32=write_page->offset32+(y*write_page->width+x);
       *o32=(((*o32&0xFEFEFE)+(col&0xFEFEFE))>>1)+(ablend128[*o32>>24]<<24);
       return;
-      break; 
+      break;
     case 0x7F000000://~50% alpha (optomized)
       o32=write_page->offset32+(y*write_page->width+x);
       *o32=(((*o32&0xFEFEFE)+(col&0xFEFEFE))>>1)+(ablend127[*o32>>24]<<24);
@@ -3005,7 +2919,6 @@ void pset(int32 x,int32 y,uint32 col){
     };
   }
 }
-
 
 
 /*
@@ -3091,7 +3004,7 @@ void imgrevert(int32 i){
     im->color=3;
     break;
   case 2:
-    im->bits_per_pixel=1; 
+    im->bits_per_pixel=1;
     im->font=8;//it gets stretched from 8 to 16 later
     im->color=1;
     break;
@@ -3197,7 +3110,7 @@ int32 imgframe(uint8 *o,int32 x,int32 y,int32 bpp){
     im->color=3;
     break;
   case 2:
-    im->bits_per_pixel=1; 
+    im->bits_per_pixel=1;
     im->font=8;//it gets stretched from 8 to 16 later
     im->color=1;
     break;
@@ -3313,7 +3226,7 @@ void flush_old_hardware_commands(){
   if (next_hardware_command_to_remove&&last_hardware_command_rendered){
 
     last_rendered_hgc=(hardware_graphics_command_struct*)list_get(hardware_graphics_command_handles,last_hardware_command_rendered);
- 
+
     old_command=next_hardware_command_to_remove;
     old_hgc=(hardware_graphics_command_struct*)list_get(hardware_graphics_command_handles,old_command);
 
@@ -3326,7 +3239,7 @@ void flush_old_hardware_commands(){
 
     command_to_remove=old_command;
 
-    if (old_hgc->command==HARDWARE_GRAPHICS_COMMAND__FREEIMAGE_REQUEST){    
+    if (old_hgc->command==HARDWARE_GRAPHICS_COMMAND__FREEIMAGE_REQUEST){
       static hardware_img_struct *himg;
       himg=(hardware_img_struct*)list_get(hardware_img_handles,old_hgc->src_img);
       //alert("HARDWARE_GRAPHICS_COMMAND__FREEIMAGE_REQUEST");
@@ -3347,10 +3260,8 @@ void flush_old_hardware_commands(){
     hgc2->next_command=hgch;
       }
       last_hardware_command_added=hgch;
-      if (first_hardware_command==0) first_hardware_command=hgch;    
+      if (first_hardware_command==0) first_hardware_command=hgch;
     }
-
-    
 
     old_command=old_hgc->next_command;
     next_hardware_command_to_remove=old_command;
@@ -3361,14 +3272,13 @@ void flush_old_hardware_commands(){
 
   cant_remove:;
 
-
   }//next_hardware_command_to_remove&&last_hardware_command_rendered
 }//flush_old_hardware_commands
 
 
 void sub__putimage(double f_dx1,double f_dy1,double f_dx2,double f_dy2,int32 src,int32 dst,double f_sx1,double f_sy1,double f_sx2,double f_sy2,int32 passed){
 
-  /* 
+  /*
      Format & passed bits: (needs updating)
      [[{STEP}](?,?)[-[{STEP}](?,?)]][,[?][,[?][,[[{STEP}](?,?)[-[{STEP}](?,?)]][,{_SMOOTH}]]]]
      2?     1              4?       8                                 512      128
@@ -3409,7 +3319,7 @@ hardware_img_struct* src_himg=NULL;
       s_emu.alpha_disabled=src_himg->alpha_disabled;
       s=&s_emu;
 
-      //check dst      
+      //check dst
       if (dst<0){
     dst_himg=(hardware_img_struct*)list_get(hardware_img_handles,dst-HARDWARE_IMG_HANDLE_OFFSET);
     if (dst_himg==NULL){error(258); return;}
@@ -3436,8 +3346,6 @@ hardware_img_struct* src_himg=NULL;
 
     }//source is hardware image
   }//src passed
-
-
 
   if (passed&8){//src
     //validate
@@ -3473,15 +3381,10 @@ hardware_img_struct* src_himg=NULL;
   if ((sbpp==4)&&(dbpp==1)){error(5); return;}
   if (s==d){error(5); return;}//cannot put source onto itself!
 
-
  resolve_coordinates:
-
-
 
   //quick references
   sw=s->width; sh=s->height; dw=d->width; dh=d->height;
-
-
 
   //change coordinates according to step
   if (passed&2){f_dx1=d->x+f_dx1; f_dy1=d->y+f_dy1;}
@@ -3494,7 +3397,7 @@ hardware_img_struct* src_himg=NULL;
   //Basically I'm just trying to update the x/y point that we last plot to on our screen so we can pick it back up and use it again...
   if (passed&4){
           //we entered both dest numbers.  Our last point plotted should be f_dx2/f_dy2
-          d->x=f_dx2; 
+          d->x=f_dx2;
           d->y=f_dy2;
   }
   else{
@@ -3502,18 +3405,18 @@ hardware_img_struct* src_himg=NULL;
                   //we only sent it the first dest value.  We want to put our rectangle on a portion of the screen starting at this point
                   if (passed&512) {
                           //we have all the source values.  We want to put that rectangle over to dest starting at that point
-                          d->x=f_dx1+abs(f_sx2-f_sx1); 
+                          d->x=f_dx1+abs(f_sx2-f_sx1);
                       d->y=f_dy1+abs(f_sy2-f_sy1);
               }
               else{
                           //we want to go from f_sx1,F_sx2 to the edge of the screen and put it over to dest starting at that point
-                      d->x=f_dx1+abs(sw-f_sx1); 
+                      d->x=f_dx1+abs(sw-f_sx1);
                       d->y=f_dy1+abs(sh-f_sy1);
               }
           }
           else{
                   //we never sent the first source value.  We want to put the image over the whole screen.
-                  d->x=dw; 
+                  d->x=dw;
                   d->y=dh;
           }
   }
@@ -3633,12 +3536,12 @@ hardware_img_struct* src_himg=NULL;
     //create new command handle & structure
     int32 hgch=list_add(hardware_graphics_command_handles);
     hardware_graphics_command_struct* hgc=(hardware_graphics_command_struct*)list_get(hardware_graphics_command_handles,hgch);
- 
+
     hgc->remove=0;
- 
+
     //set command values
     hgc->command=HARDWARE_GRAPHICS_COMMAND__PUTIMAGE;
- 
+
     hgc->src_img=src;
     hgc->src_x1=sx1;
     hgc->src_y1=sy1;
@@ -3656,7 +3559,7 @@ hardware_img_struct* src_himg=NULL;
 
     hgc->use_alpha=1;
     if (s->alpha_disabled) hgc->use_alpha=0;
-    //only consider dest alpha setting if it is a hardware image    
+    //only consider dest alpha setting if it is a hardware image
     if (dst_himg){
         if (d->alpha_disabled) hgc->use_alpha=0;
     }
@@ -3887,7 +3790,7 @@ hardware_img_struct* src_himg=NULL;
     break;
       case 0x80000000:
     *doff32=(((*doff32&0xFEFEFE)+(col&0xFEFEFE))>>1)+(ablend128[*doff32>>24]<<24);
-    break; 
+    break;
       case 0x7F000000:
     *doff32=(((*doff32&0xFEFEFE)+(col&0xFEFEFE))>>1)+(ablend127[*doff32>>24]<<24);
     break;
@@ -4215,7 +4118,7 @@ hardware_img_struct* src_himg=NULL;
     break;
       case 0x80000000:
     *doff32++=(((*doff32&0xFEFEFE)+(col&0xFEFEFE))>>1)+(ablend128[*doff32>>24]<<24);
-    break; 
+    break;
       case 0x7F000000:
     *doff32++=(((*doff32&0xFEFEFE)+(col&0xFEFEFE))>>1)+(ablend127[*doff32>>24]<<24);
     break;
@@ -4370,7 +4273,7 @@ hardware_img_struct* src_himg=NULL;
     break;
       case 0x80000000:
     *doff32++=(((*doff32&0xFEFEFE)+(col&0xFEFEFE))>>1)+(ablend128[*doff32>>24]<<24);
-    break; 
+    break;
       case 0x7F000000:
     *doff32++=(((*doff32&0xFEFEFE)+(col&0xFEFEFE))>>1)+(ablend127[*doff32>>24]<<24);
     break;
@@ -4521,7 +4424,6 @@ int32 selectfont(int32 f,img_struct *im){
   return 1;//success
 }
 
-
 int32 nmodes=0;
 int32 anymode=0;
 
@@ -4529,10 +4431,7 @@ float x_scale=1,y_scale=1;
 int32 x_offset=0,y_offset=0;
 int32 x_limit=0,y_limit=0;
 
-
-
 int32 x_monitor=0,y_monitor=0;
-
 
 int32 conversion_required=0;
 uint32 *conversion_layer=(uint32*)malloc(8);
@@ -4546,14 +4445,11 @@ int32 sndqueue_first=0;
 int32 sndqueue_wait=-1;
 int32 sndqueue_played=0;
 
-
 void call_int(int32 i);
 
 uint32 frame=0;
 
-
 extern uint8 cmem[1114099];//16*65535+65535+3 (enough for highest referencable dword in conv memory)
-
 
 int32 mouse_hideshow_called=0;
 
@@ -4585,10 +4481,6 @@ struct mouse_message_queue_struct{
 list *mouse_message_queue_handles=NULL;
 int32 mouse_message_queue_first; //the first queue to populate from input source
 int32 mouse_message_queue_default;//the default queue (for int33h and default _MOUSEINPUT operations)
-
-
-
-
 
 
 //x86 Virtual CMEM emulation
@@ -4862,7 +4754,7 @@ uint8 *rm8(){
     }
     break;
   case 2:
-    if (a32){ 
+    if (a32){
       switch(i&7){
       case 0: return seg+((uint16)(cpu.eax+*(uint32*)((ip+=4)-4))); break;
       case 1: return seg+((uint16)(cpu.ecx+*(uint32*)((ip+=4)-4))); break;
@@ -4894,7 +4786,7 @@ uint16 *rm16(){
   i=*ip;
   switch(i>>6){
   case 3:
-    ip++; 
+    ip++;
     return reg16[i&7];
     break;
   case 0:
@@ -4904,7 +4796,7 @@ uint16 *rm16(){
       case 0: return (uint16*)(seg+cpu.ax); break;
       case 1: return (uint16*)(seg+cpu.cx); break;
       case 2: return (uint16*)(seg+cpu.dx); break;
-      case 3: return (uint16*)(seg+cpu.bx); break;   
+      case 3: return (uint16*)(seg+cpu.bx); break;
       case 4: return (uint16*)(seg+(uint16)sib_mod0()); break;
       case 5: return (uint16*)(seg+(*(uint16*)((ip+=4)-4))); break;
       case 6: return (uint16*)(seg+cpu.si); break;
@@ -4925,7 +4817,7 @@ uint16 *rm16(){
     break;
   case 1:
     ip++;
-    if (a32){ 
+    if (a32){
       switch(i&7){
       case 0: return (uint16*)(seg+((uint16)(cpu.eax+*(int8*)ip++))); break;
       case 1: return (uint16*)(seg+((uint16)(cpu.ecx+*(int8*)ip++))); break;
@@ -4951,7 +4843,7 @@ uint16 *rm16(){
     break;
   case 2:
     ip++;
-    if (a32){ 
+    if (a32){
       switch(i&7){
       case 0: return (uint16*)(seg+((uint16)(cpu.eax+*(uint32*)((ip+=4)-4)))); break;
       case 1: return (uint16*)(seg+((uint16)(cpu.ecx+*(uint32*)((ip+=4)-4)))); break;
@@ -4983,7 +4875,7 @@ uint32 *rm32(){
   i=*ip;
   switch(i>>6){
   case 3:
-    ip++; 
+    ip++;
     return reg32[i&7];
     break;
   case 0:
@@ -5014,7 +4906,7 @@ uint32 *rm32(){
     break;
   case 1:
     ip++;
-    if (a32){ 
+    if (a32){
       switch(i&7){
       case 0: return (uint32*)(seg+((uint16)(cpu.eax+*(int8*)ip++))); break;
       case 1: return (uint32*)(seg+((uint16)(cpu.ecx+*(int8*)ip++))); break;
@@ -5040,7 +4932,7 @@ uint32 *rm32(){
     break;
   case 2:
     ip++;
-    if (a32){ 
+    if (a32){
       switch(i&7){
       case 0: return (uint32*)(seg+((uint16)(cpu.eax+*(uint32*)((ip+=4)-4)))); break;
       case 1: return (uint32*)(seg+((uint16)(cpu.ecx+*(uint32*)((ip+=4)-4)))); break;
@@ -5300,16 +5192,12 @@ void cpu_call(){
 }
 
 
-
 int32 screen_last_valid=0;
 uint8 *screen_last=(uint8*)malloc(1);
 uint32 screen_last_size=1;
 
-
 uint64 asciicode_value=0;
 int32 asciicode_reading=0;
-
-
 
 int32 lock_display=0;
 int32 lock_display_required=0;
@@ -5361,9 +5249,6 @@ extern uint64 *nothingvalue;
 uint32 qb64_firsttimervalue;//based on time of day
 uint32 clock_firsttimervalue;//based on program launch time
 
-
-
-
 uint8 wait_needed=1;
 
 int32 full_screen=0;//0,1(stretched/closest),2(1:1)
@@ -5373,9 +5258,6 @@ int32 full_screen_set=-1;//0(windowed),1(stretched/closest),2(1:1)
 
 int32 vertical_retrace_in_progress=0;
 int32 vertical_retrace_happened=0;
-
-
-
 
 
 static const char *arrow[] = {
@@ -5429,7 +5311,6 @@ uint8 program_wait=0;
 
 extern uint8 suspend_program;
 extern uint8 stop_program;
-
 
 int32 global_counter=0;
 extern double last_line;
@@ -5563,7 +5444,6 @@ void fix_error(){
 }
 
 
-
 void error(int32 error_number){
 
   //critical errors:
@@ -5624,7 +5504,6 @@ void end(){
   while(!stop_program) Sleep(16);
   while(1) Sleep(16);
 }
-
 
 
 //MEM_STATIC memory manager
@@ -5819,13 +5698,9 @@ void more_return_points(){
 }
 
 
-
-
-
 uint8 keyon[65536];
 
 qbs* singlespace;
-
 
 qbs *qbs_malloc=(qbs*)calloc(sizeof(qbs)*65536,1);//~1MEG
 uint32 qbs_malloc_next=0;//the next idex in qbs_malloc to use
@@ -5897,7 +5772,6 @@ uint8 *qbs_data=(uint8*)malloc(1048576);
 uint32 qbs_data_size=1048576;
 uint32 qbs_sp=0;
 
-
 void field_free(qbs* str);
 
 void qbs_free(qbs *str){
@@ -5941,8 +5815,8 @@ void qbs_cmem_concat_list(){
   qbs *tqbs;
   d=0;
   for (i=0;i<qbs_cmem_list_nexti;i++){
-    if (qbs_cmem_list[i]!=-1){ 
-      if (i!=d){  
+    if (qbs_cmem_list[i]!=-1){
+      if (i!=d){
     tqbs=(qbs*)qbs_cmem_list[i];
     tqbs->listi=d;
     qbs_cmem_list[d]=(ptrszint)tqbs;
@@ -5995,8 +5869,6 @@ void qbs_tmp_concat_list(){
 }
 
 
-
-
 void qbs_concat(uint32 bytesrequired){
   //this does not change indexing, only ->chr pointers and the location of their data
   static int32 i;
@@ -6010,7 +5882,7 @@ void qbs_concat(uint32 bytesrequired){
     tqbs=(qbs*)qbs_list[i];
     if ((tqbs->chr-dest)>32){
       if (tqbs->len) {memmove(dest,tqbs->chr,tqbs->len);}
-      tqbs->chr=dest;       
+      tqbs->chr=dest;
     }
     dest=tqbs->chr+tqbs->len;
     qbs_sp=dest-qbs_data;
@@ -6119,11 +5991,6 @@ qbs *qbs_new_txt_len(const char *txt,int32 len){
 }
 
 
-
-
-
-
-
 //note: qbs_new_fixed detects if string is in DBLOCK
 qbs *qbs_new_fixed(uint8 *offset,uint32 size,uint8 tmp){
   qbs *newstr;
@@ -6227,7 +6094,7 @@ qbs *qbs_set(qbs *deststr,qbs *srcstr){
     if (deststr->listi==(qbs_cmem_list_nexti-1)){//last index
       if (((ptrszint)deststr->chr+srcstr->len)<=(dblock+cmem_sp)){//space available
     memcpy(deststr->chr,srcstr->chr,srcstr->len);
-    deststr->len=srcstr->len;  
+    deststr->len=srcstr->len;
     qbs_cmem_sp=((ptrszint)deststr->chr)+(ptrszint)deststr->len-dblock;
     goto qbs_set_return;
       }
@@ -6303,7 +6170,7 @@ qbs *qbs_set(qbs *deststr,qbs *srcstr){
   if (i!=qbs_list_nexti) goto qbs_set_nextindex2;
   //all next indexes invalid!
 
-  qbs_list_nexti=deststr->listi+1;//adjust nexti 
+  qbs_list_nexti=deststr->listi+1;//adjust nexti
   if (((ptrszint)deststr->chr+srcstr->len)<=((ptrszint)qbs_data+qbs_data_size)){//space available
     memmove(deststr->chr,srcstr->chr,srcstr->len);//overlap possible due to sometimes aquiring srcstr's space
     deststr->len=srcstr->len;
@@ -6699,9 +6566,9 @@ int32 func__str_nc_compare(qbs *s1, qbs *s2) {
   int32 limit, l1, l2;
   int32 v1, v2;
   unsigned char *c1=s1->chr, *c2=s2->chr;
-  
+
   l1 = s1->len; l2 = s2->len;  //no need to get the length of these strings multiple times.
-  if (!l1) {   
+  if (!l1) {
     if (l2) return -1; else return 0;  //if one is a null string we known the answer already.
   }
   if (!l2) return 1;
@@ -6716,8 +6583,8 @@ int32 func__str_nc_compare(qbs *s1, qbs *s2) {
        c1++;
      c2++;
     }
-      
-    if (l1<l2) return -1; 
+
+    if (l1<l2) return -1;
   if (l2>l1) return 1;
   return 0;
 }
@@ -6725,15 +6592,15 @@ int32 func__str_nc_compare(qbs *s1, qbs *s2) {
 int32 func__str_compare(qbs *s1, qbs *s2) {
   int32 i, limit, l1, l2;
     l1 = s1->len; l2 = s2->len;  //no need to get the length of these strings multiple times.
-  if (!l1) {   
+  if (!l1) {
     if (l2) return -1; else return 0;  //if one is a null string we known the answer already.
   }
   if (!l2) return 1;
-  if (l1<=l2) limit = l1; else limit = l2; 
-    i=memcmp(s1->chr,s2->chr,limit); 
+  if (l1<=l2) limit = l1; else limit = l2;
+    i=memcmp(s1->chr,s2->chr,limit);
     if (i<0) return -1;
-    if (i>0) return 1; 
-    if (l1<l2) return -1; 
+    if (i>0) return 1;
+    if (l1<l2) return -1;
     if (l1>l2) return 1;
     return 0;
 }
@@ -7004,13 +6871,13 @@ int32 qbs_notequal(qbs *str1,qbs *str2){
 int32 qbs_greaterthan(qbs *str2,qbs *str1){
 //same process as for lessthan; we just reverse the string order
         int32 i, limit, l1, l2;
-    l1 = str1->len; l2 = str2->len;  
+    l1 = str1->len; l2 = str2->len;
         if (!l1) if (l2) return -1; else return 0;
-        if (l1<=l2) limit = l1; else limit = l2; 
-    i=memcmp(str1->chr,str2->chr,limit); 
+        if (l1<=l2) limit = l1; else limit = l2;
+    i=memcmp(str1->chr,str2->chr,limit);
         if (i<0) return -1;
-        if (i>0) return 0; 
-        if (l1<l2) return -1;   
+        if (i>0) return 0;
+        if (l1<l2) return -1;
     return 0;
 }
 int32 qbs_lessthan(qbs *str1,qbs *str2){
@@ -7023,31 +6890,31 @@ int32 qbs_lessthan(qbs *str1,qbs *str2){
         if (i>0) return 0; // if it's larger by this point, say so
         //if the number is the same at this point, compare length.
         //if the length of the first one is smaller, then the string is smaller. Otherwise the second one is the same string, or longer.
-        if (l1<l2) return -1;   
+        if (l1<l2) return -1;
     return 0;
 }
 int32 qbs_lessorequal(qbs *str1,qbs *str2){
   //same process as lessthan, but we check to see if the lengths are equal here also.
   int32 i, limit, l1, l2;
-    l1 = str1->len; l2 = str2->len; 
+    l1 = str1->len; l2 = str2->len;
         if (!l1) return -1;  //if the first string has no length then it HAS to be smaller or equal to the second
         if (l1<=l2) limit = l1; else limit = l2;
-    i=memcmp(str1->chr,str2->chr,limit); 
+    i=memcmp(str1->chr,str2->chr,limit);
         if (i<0) return -1;
-        if (i>0) return 0; 
-        if (l1<=l2) return -1;  
+        if (i>0) return 0;
+        if (l1<=l2) return -1;
     return 0;
 }
 int32 qbs_greaterorequal(qbs *str2,qbs *str1){
   //same process as for lessorequal; we just reverse the string order
   int32 i, limit, l1, l2;
-    l1 = str1->len; l2 = str2->len; 
+    l1 = str1->len; l2 = str2->len;
         if (!l1) return -1;
         if (l1<=l2) limit = l1; else limit = l2;
-    i=memcmp(str1->chr,str2->chr,limit); 
+    i=memcmp(str1->chr,str2->chr,limit);
         if (i<0) return -1;
-        if (i>0) return 0; 
-        if (l1<=l2) return -1;  
+        if (i>0) return 0;
+        if (l1<=l2) return -1;
     return 0;
 }
 
@@ -7105,17 +6972,6 @@ int32 qbg_visual_page;
 uint8 *qbg_visual_page_offset;
 int32 qbg_color_assign[256];//for modes with quasi palettes!
 uint32 pal_mode10[2][9];
-
-
-
-
-
-
-
-
-
-
-
 
 
 uint8 charset8x8[256][8][8];
@@ -7358,8 +7214,6 @@ void qbg_palette(uint32 attribute,uint32 col,int32 passed){
 }
 
 
-
-
 void qbg_sub_color(uint32 col1,uint32 col2,uint32 bordercolor,int32 passed){
   if (new_error) return;
   if (!passed){
@@ -7531,7 +7385,6 @@ void validatepage(int32 n){
 }//validate_page
 
 
-
 void qbg_screen(int32 mode,int32 color_switch,int32 active_page,int32 visual_page,int32 refresh,int32 passed){
   if (new_error) return;
 
@@ -7554,7 +7407,7 @@ void qbg_screen(int32 mode,int32 color_switch,int32 active_page,int32 visual_pag
     if (mode<0){//custom screen
       i3=-mode;
       if (i3>=nextimg){error(258); return;}//within valid range?
-      if (!img[i3].valid){error(258); return;}//valid? 
+      if (!img[i3].valid){error(258); return;}//valid?
       if (i3!=i2) i=1; //is mode changing?
     }else{
       if (mode==3) goto error;
@@ -7615,7 +7468,7 @@ void qbg_screen(int32 mode,int32 color_switch,int32 active_page,int32 visual_pag
     if (i&1){//mode change necessary
 
       //calculate previous width & height if possible
-      prev_width_in_characters=0; prev_height_in_characters=0; 
+      prev_width_in_characters=0; prev_height_in_characters=0;
       if (i=page[0]){//currently in a screen mode?
     im=&img[i];
     if (!im->compatible_mode){
@@ -8536,7 +8389,7 @@ void pset_and_clip(int32 x,int32 y,uint32 col){
     o32=write_page->offset32+(y*write_page->width+x);
     *o32=(((*o32&0xFEFEFE)+(col&0xFEFEFE))>>1)+(ablend128[*o32>>24]<<24);
     return;
-    break; 
+    break;
       case 0x7F000000://~50% alpha (optomized)
     o32=write_page->offset32+(y*write_page->width+x);
     *o32=(((*o32&0xFEFEFE)+(col&0xFEFEFE))>>1)+(ablend127[*o32>>24]<<24);
@@ -8787,10 +8640,6 @@ void fast_boxfill(int32 x1,int32 y1,int32 x2,int32 y2,uint32 col){
 }
 
 
-
-
-
-
 //copied from qb32_line with the following modifications
 //i. pre-WINDOW'd & VIEWPORT'd int32 co-ordinates
 //ii. all references to style & lineclip_skippixels commented
@@ -8851,26 +8700,6 @@ void fast_line(int32 x1,int32 y1,int32 x2,int32 y2,uint32 col){
   }//lineclip_draw
   return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -9000,36 +8829,6 @@ void sub_line(float x1,float y1,float x2,float y2,uint32 col,int32 bf,uint32 sty
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //3 paint routines exist for color (not textured) filling
 //i) 8-bit
 //ii) 32-bit no-alpha
@@ -9121,7 +8920,7 @@ void sub_paint32(float x,float y,uint32 fillcol,uint32 bordercol,int32 passed){
     break;
   case 0x80000000:
     *doff32=(((*doff32&0xFEFEFE)+(fillcol&0xFEFEFE))>>1)+(ablend128[*doff32>>24]<<24);
-    break; 
+    break;
   case 0x7F000000:
     *doff32=(((*doff32&0xFEFEFE)+(fillcol&0xFEFEFE))>>1)+(ablend127[*doff32>>24]<<24);
     break;
@@ -9161,7 +8960,7 @@ void sub_paint32(float x,float y,uint32 fillcol,uint32 bordercol,int32 passed){
           break;
         case 0x80000000:
           *doff32=(((*doff32&0xFEFEFE)+(fillcol&0xFEFEFE))>>1)+(ablend128[*doff32>>24]<<24);
-          break; 
+          break;
         case 0x7F000000:
           *doff32=(((*doff32&0xFEFEFE)+(fillcol&0xFEFEFE))>>1)+(ablend127[*doff32>>24]<<24);
           break;
@@ -9197,7 +8996,7 @@ void sub_paint32(float x,float y,uint32 fillcol,uint32 bordercol,int32 passed){
           break;
         case 0x80000000:
           *doff32=(((*doff32&0xFEFEFE)+(fillcol&0xFEFEFE))>>1)+(ablend128[*doff32>>24]<<24);
-          break; 
+          break;
         case 0x7F000000:
           *doff32=(((*doff32&0xFEFEFE)+(fillcol&0xFEFEFE))>>1)+(ablend127[*doff32>>24]<<24);
           break;
@@ -9233,7 +9032,7 @@ void sub_paint32(float x,float y,uint32 fillcol,uint32 bordercol,int32 passed){
           break;
         case 0x80000000:
           *doff32=(((*doff32&0xFEFEFE)+(fillcol&0xFEFEFE))>>1)+(ablend128[*doff32>>24]<<24);
-          break; 
+          break;
         case 0x7F000000:
           *doff32=(((*doff32&0xFEFEFE)+(fillcol&0xFEFEFE))>>1)+(ablend127[*doff32>>24]<<24);
           break;
@@ -9269,7 +9068,7 @@ void sub_paint32(float x,float y,uint32 fillcol,uint32 bordercol,int32 passed){
           break;
         case 0x80000000:
           *doff32=(((*doff32&0xFEFEFE)+(fillcol&0xFEFEFE))>>1)+(ablend128[*doff32>>24]<<24);
-          break; 
+          break;
         case 0x7F000000:
           *doff32=(((*doff32&0xFEFEFE)+(fillcol&0xFEFEFE))>>1)+(ablend127[*doff32>>24]<<24);
           break;
@@ -9446,7 +9245,6 @@ void sub_paint32x(float x,float y,uint32 fillcol,uint32 bordercol,int32 passed){
 }
 
 
-
 //8-bit (default entry point)
 void sub_paint(float x,float y,uint32 fillcol,uint32 bordercol,qbs *backgroundstr,int32 passed){
   if (new_error) return;
@@ -9603,10 +9401,6 @@ void sub_paint(float x,float y,uint32 fillcol,uint32 bordercol,qbs *backgroundst
   goto nextpass;
 
 }
-
-
-
-
 
 
 void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,int32 passed){
@@ -9789,8 +9583,6 @@ void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,
   qbg_active_page_offset[offset]=fillcol;
 
 
-
-
   //create first node
   a_x[0]=ix; a_y[0]=iy;
   a_t[0]=15;
@@ -9886,20 +9678,10 @@ void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,
 }
 
 
-
-
-
-
-
-
-
-
 void sub_circle(double x,double y,double r,uint32 col,double start,double end,double aspect,int32 passed){
   //                                                &2         &4           &8         &16
   //[{STEP}](?,?),?[,[?][,[?][,[?][,?]]]]
   if (new_error) return;
-
-
 
   //data
   static double pi= 3.1415926535897932,pi2=6.2831853071795865;
@@ -10086,8 +9868,6 @@ uint32 point(int32 x,int32 y){//does not clip!
 }
 
 
-
-
 double func_point(float x,float y,int32 passed){
   static int32 x2,y2,i;
 
@@ -10131,9 +9911,9 @@ double func_point(float x,float y,int32 passed){
   }else{
     x2=qbr_float_to_long(x); y2=qbr_float_to_long(y);
   }
-  if (x2>=read_page->view_x1){ 
+  if (x2>=read_page->view_x1){
     if (x2<=read_page->view_x2){
-      if (y2>=read_page->view_y1){ 
+      if (y2>=read_page->view_y1){
     if (y2<=read_page->view_y2){
       return point(x2,y2);
     }
@@ -10142,11 +9922,6 @@ double func_point(float x,float y,int32 passed){
   }
   return -1;
 }
-
-
-
-
-
 
 
 
@@ -10302,7 +10077,7 @@ void printchr(int32 character){
       static float cw;//color weight multiplier, avoids seeing black when transitioning from RGBA(?,?,?,255) to RGBA(0,0,0,0)
       if (alpha1) cw=alpha2/alpha1; else cw=100000;
       static float d;
- 
+
       for (y2=0;y2<h;y2++){
     cp=rt_data+y2*w;
     for (x2=0;x2<w;x2++){
@@ -10375,9 +10150,6 @@ void printchr(int32 character){
   return;
 
 }//printchr
-
-
-
 
 
 int32 chrwidth(uint32 character){
@@ -10514,7 +10286,7 @@ void tab(){
     return;
   }
 
-  x=fontwidth[write_page->font]; 
+  x=fontwidth[write_page->font];
   if (!x){
 
     //variable width
@@ -10646,8 +10418,6 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
     if (lprint) lprint_buffered=1;
     entered_new_line=0;//beginning a new line was the last action (so don't add a new one)
 
-
-
     //###special characters
 
     if (no_control_characters||no_control_characters2) goto skip_control_characters;
@@ -10667,7 +10437,7 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
       }else{
         if (write_page->cursor_x>=write_page->width) goto skip;
       }
-    } 
+    }
       }
       write_page->cursor_x++;
       if (write_page->text){
@@ -10678,7 +10448,7 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
     }else{
       if (write_page->cursor_x>write_page->width){write_page->cursor_y++; write_page->cursor_x=1;}
     }
-      } 
+      }
       goto skip;
     }
 
@@ -10702,7 +10472,7 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
       }else{
         write_page->cursor_x=write_page->width;
       }
-    } 
+    }
       }
       goto skip;
     }
@@ -10848,10 +10618,7 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
     /*
       tabbing1:
 
-
       write_page->cursor_x++;
-
-
 
       //hold cursor?
       if (write_page->cursor_x>qbg_width_in_characters){//past last x position
@@ -10863,9 +10630,6 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
       }
       }
       }
-
-
-
 
       qbs_print_skipchar:;
 
@@ -10879,8 +10643,6 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
 
       write_page->cursor_y++;
       write_page->cursor_x=1;
-
-
 
       if (write_page->cursor_y>qbg_bottom_row){
       //move screen space within view print up 1 row
@@ -10906,13 +10668,8 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
       memset(qbg_active_page_offset+(qbg_bottom_row-1)*qbg_bytes_per_pixel*qbg_width*qbg_character_height,0,qbg_bytes_per_pixel*qbg_width*qbg_character_height);
       }
 
-
-
-
       write_page->cursor_y=qbg_bottom_row;
       }
-
-
 
       }
     */
@@ -10940,7 +10697,7 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
 
 }
 
-template <typename T> static T qbs_cleanup(uint32 base,T passvalue){ 
+template <typename T> static T qbs_cleanup(uint32 base,T passvalue){
       while (qbs_tmp_list_nexti>base) { qbs_tmp_list_nexti--; if(qbs_tmp_list[qbs_tmp_list_nexti]!=-1)qbs_free((qbs*)qbs_tmp_list[qbs_tmp_list_nexti]); }//clear any temp. strings created
             return passvalue;
 }
@@ -11213,7 +10970,7 @@ void sub_cls(int32 method,uint32 use_color,int32 passed){
       memset(write_page->offset,use_color,write_page->width*write_page->height);
     }
       }else{//32-bit
-    i=write_page->alpha_disabled; write_page->alpha_disabled=1;  
+    i=write_page->alpha_disabled; write_page->alpha_disabled=1;
     if (write_page->clipping_or_scaling){
       qb32_boxfill(write_page->window_x1,write_page->window_y1,write_page->window_x2,write_page->window_y2,use_color);
     }else{//fast method (no clipping/scaling)
@@ -11245,8 +11002,8 @@ void sub_cls(int32 method,uint32 use_color,int32 passed){
     }else{
       if (write_page->bytes_per_pixel==1){
     memset(write_page->offset,use_color,write_page->width*write_page->height);
-      }else{ 
-    i=write_page->alpha_disabled; write_page->alpha_disabled=1;  
+      }else{
+    i=write_page->alpha_disabled; write_page->alpha_disabled=1;
     fast_boxfill(0,0,write_page->width-1,write_page->height-1,use_color);
     write_page->alpha_disabled=i;
       }
@@ -11274,7 +11031,7 @@ void sub_cls(int32 method,uint32 use_color,int32 passed){
     memset(write_page->offset,use_color,write_page->width*write_page->height);
       }
     }else{//32-bit
-      i=write_page->alpha_disabled; write_page->alpha_disabled=1;  
+      i=write_page->alpha_disabled; write_page->alpha_disabled=1;
       if (write_page->clipping_or_scaling){
     qb32_boxfill(write_page->window_x1,write_page->window_y1,write_page->window_x2,write_page->window_y2,use_color);
       }else{//fast method (no clipping/scaling)
@@ -11308,7 +11065,7 @@ void sub_cls(int32 method,uint32 use_color,int32 passed){
       if (write_page->bytes_per_pixel==1){//8-bit
     memset(&write_page->offset[write_page->width*fontheight[write_page->font]*(write_page->top_row-1)],use_color,write_page->width*fontheight[write_page->font]*(write_page->bottom_row-write_page->top_row+1));
       }else{//32-bit
-    i=write_page->alpha_disabled; write_page->alpha_disabled=1;  
+    i=write_page->alpha_disabled; write_page->alpha_disabled=1;
     fast_boxfill(0,fontheight[write_page->font]*(write_page->top_row-1),write_page->width-1,fontheight[write_page->font]*write_page->bottom_row-1,use_color);
     write_page->alpha_disabled=i;
       }
@@ -11431,13 +11188,6 @@ void qbg_sub_locate(int32 row,int32 column,int32 cursor,int32 start,int32 stop,i
   error(5);
   return;
 }
-
-
-
-
-
-
-
 
 
 //input helper functions:
@@ -11585,8 +11335,6 @@ void qbs_input(int32 numvariables,uint8 newline){
   }//i
 
 
-
-
  qbs_input_next:
 
   int32 argn,firstchr,toomany;
@@ -11704,7 +11452,7 @@ void qbs_input(int32 numvariables,uint8 newline){
     }
 
     //max currently contains the largest UNSIGNED value possible, adjust as necessary
-    if (qbs_input_variabletypes[argn]&ISUNSIGNED){ 
+    if (qbs_input_variabletypes[argn]&ISUNSIGNED){
       max_neg=0;
     }else{
       max>>=1;
@@ -11712,7 +11460,7 @@ void qbs_input(int32 numvariables,uint8 newline){
     }
     //check for - sign
     i2=0;
-    if ((qbs_input_variabletypes[argn]&ISUNSIGNED)==0){ 
+    if ((qbs_input_variabletypes[argn]&ISUNSIGNED)==0){
       if (cp[i2]==45){//"-"
         if (l==1) {completewith=48; goto typechecked_integer;}
         i2++; neg=1;
@@ -11729,7 +11477,7 @@ void qbs_input(int32 numvariables,uint8 newline){
       i3=cp[i]-48;
       if ((i3>=0)&&(i3<=9)){
         value+=multiple*i3;
-        if (qbs_input_variabletypes[argn]&ISUNSIGNED){ 
+        if (qbs_input_variabletypes[argn]&ISUNSIGNED){
           if (value>max){valid=0; goto typechecked;}
         }else{
           if (neg){
@@ -11782,7 +11530,7 @@ void qbs_input(int32 numvariables,uint8 newline){
 
     //check for - sign
     i2=0;
-    if ((qbs_input_variabletypes[argn]&ISUNSIGNED)==0){ 
+    if ((qbs_input_variabletypes[argn]&ISUNSIGNED)==0){
       if (cp[i2]==45){//"-"
         if (l==1) {completewith=48; *(int64*)qbs_input_variableoffsets[argn]=0; goto typechecked;}
         i2++; neg=1;
@@ -12060,7 +11808,6 @@ void qbs_input(int32 numvariables,uint8 newline){
       //OTHER SOURCE: \B11.7976931348623157 D+308 to \B12.2250738585072014E-308
 
 
-
       if (neg_power) value=-value;
       //special case->single 0 after point
       if ((zeros_after_point==1)&&(digits_after_point==1)){
@@ -12128,21 +11875,15 @@ void qbs_input(int32 numvariables,uint8 newline){
 
     }
 
-
   }//ISFLOAT
 
   //undefined/uncheckable types fall through as valid!
  typechecked:;
   if (!valid) goto backspace;
 
-
-
   qbs_set(inpstr2,inpstr);
 
-
   //input a key
-
-
 
  qbs_input_invalidinput:
 
@@ -12188,13 +11929,13 @@ void qbs_input(int32 numvariables,uint8 newline){
       chr=fgetc(stdin);
       if (chr!=EOF){
     if (chr=='\n') chr=13;
-    qbs_set(key,qbs_new_txt(" "));  
-    key->chr[0]=chr;  
+    qbs_set(key,qbs_new_txt(" "));
+    key->chr[0]=chr;
       }else{Sleep(10);}
     }else{
       Sleep(10);
       qbs_set(key,qbs_inkey());
-      
+
       disableEvents=1;//we don't want the ON TIMER bound version of VKUPDATE to fire during a call to itself!
       SUB_VKUPDATE();
       disableEvents=0;
@@ -12387,7 +12128,7 @@ long double func_val(qbs *s){
           num_significant_digits++;
           value=value*10+c-48;
         }
-      }      
+      }
       else if (step==2){//after decimal point
         if ((num_significant_digits==0)&&(c==48)) most_significant_digit_position--;
         if ((num_significant_digits)||(c>48)){
@@ -12395,7 +12136,7 @@ long double func_val(qbs *s){
           num_significant_digits++;
         }
       }
-      
+
       else if (step>=3){//exponent
         step=4;
         if ((num_exponent_digits)||(c>48)){
@@ -12411,7 +12152,7 @@ long double func_val(qbs *s){
       if (step>1) goto finish;
       step=2; goto checked;
       break;
-      
+
     case 'D':
     case 'E':
     case 'd':
@@ -12424,7 +12165,7 @@ long double func_val(qbs *s){
     goto finish;//invalid character
     break;
     }
-    
+
   checked:
   whitespace:;
   }
@@ -12437,7 +12178,7 @@ long double func_val(qbs *s){
   if (exponent_value==0 && num_significant_digits==most_significant_digit_position && num_significant_digits < 19){
     return negate ? -value : value;
   }
-  
+
   //normalise number (change 123.456E2 to 1.23456E4, or 123.456 to 1.23456E2)
   exponent_value=exponent_value+most_significant_digit_position-1;
 
@@ -12446,7 +12187,7 @@ long double func_val(qbs *s){
   //we are now building a floating point number in ascii characters
   if (negate) {built_number[i]=45; i++;}//-
   if (num_significant_digits){
-    //build nomalised mantissa 
+    //build nomalised mantissa
     for (i2=0;i2<num_significant_digits;i2++){
       if (i2==1){
         built_number[i]=46;
@@ -12469,7 +12210,7 @@ long double func_val(qbs *s){
 
 #ifdef QB64_MINGW
   __mingw_sscanf((char*)&built_number[0],"%Lf",&return_value);
-#else 
+#else
   sscanf((char*)&built_number[0],"%Lf",&return_value);
 #endif
   return return_value;
@@ -12486,7 +12227,7 @@ long double func_val(qbs *s){
     c-=48;
     hex_value<<=3;
     hex_value|=c;
-    if (hex_digits||c) hex_digits++; 
+    if (hex_digits||c) hex_digits++;
     if (hex_digits>=22){
       if ((hex_digits>22)||(s->chr[i-21]>49)){error(6); return 0;}
     }
@@ -12503,9 +12244,9 @@ long double func_val(qbs *s){
           c-=48;
           hex_value<<=1;
           hex_value|=c;
-          if (hex_digits||c) hex_digits++; 
+          if (hex_digits||c) hex_digits++;
           if (hex_digits>64){error(6); return 0;}
-      }else 
+      }else
               break;
       }//i
       return hex_value;
@@ -12530,10 +12271,6 @@ long double func_val(qbs *s){
   }
   return 0;//& followied by unknown
 }
-
-
-
-
 
 
 int32 unsupported_port_accessed=0;
@@ -12594,7 +12331,7 @@ void sub_out(int32 port,int32 data){
 	  H3C0_blink_enable = data&(1<<3);
 	  goto done;
   }
-  
+
   if (port==0x3C7){//&H3C7, set palette register read index
     H3C7_palette_register_read_index=data;
     H3C9_read_next=0;
@@ -12686,7 +12423,7 @@ float func_rnd(float n,int32 passed){
       rnd_seed=(m&0xFFFFFF)+((m&0xFF000000)>>24);
     }
     rnd_seed=(rnd_seed*16598013+12820163)&0xFFFFFF;
-  }     
+  }
   return (double)rnd_seed/0x1000000;
 }
 
@@ -12784,7 +12521,7 @@ void sub__limit(double fps){
 
   if (elapsed==ms){
     prev=prev+ms;
-    return; 
+    return;
   }
 
   if (elapsed<ms){
@@ -12795,7 +12532,7 @@ void sub__limit(double fps){
       Sleep(9);
       evnt(0);//check for new events
     }else{
-      Sleep(wait);  
+      Sleep(wait);
     }
     //recalculate time
     goto recalculate;
@@ -12805,9 +12542,6 @@ void sub__limit(double fps){
   //minor overshoot up to 32ms is recovered, otherwise time is re-seeded
   if (elapsed<=(ms+32.0)) prev=prev+ms; else prev=now;
 }
-
-
-
 
 
 int32 generic_put(int32 i,int32 offset,uint8 *cp,int32 bytes){
@@ -12862,7 +12596,6 @@ int32 generic_get(int32 i,int32 offset,uint8 *cp,int32 bytes){
   }
   return 0;
 }
-
 
 
 void sub_open(qbs *name,int32 type,int32 access,int32 sharing,int32 i,int64 record_length,int32 passed){
@@ -12940,7 +12673,7 @@ void sub_open(qbs *name,int32 type,int32 access,int32 sharing,int32 i,int64 reco
     static int64 x64;
     x64=gfs_lof(x);
     if (x64){
-      //read first byte 
+      //read first byte
       static uint8 c;
       static int32 e;
       if (e=gfs_read(x,-1,&c,1)){
@@ -13003,7 +12736,7 @@ void sub_close(int32 i2,int32 passed){
       return;
     }//special handle
 
-        
+
     if (gfs_fileno_valid(i2)==1) gfs_close(gfs_fileno[i2]);
     return;
 
@@ -13012,11 +12745,9 @@ void sub_close(int32 i2,int32 passed){
   //special handles
 
 
-
   for (i=1;i<=special_handles->indexes;i++){
     sub_close(-i-1,1);
   }
-
 
   for (i=1;i<=gfs_fileno_n;i++){
     if (gfs_fileno_valid(i)==1) gfs_close(gfs_fileno[i]);
@@ -13142,7 +12873,7 @@ void sub_file_print(int32 i,qbs *str,int32 extraspace,int32 tab,int32 newline){
 
   //add extra spaces as needed
   static int32 nspaces;
-  static int16 cr_lf=13+10*256; 
+  static int16 cr_lf=13+10*256;
   nspaces=0;
   if (extraspace){
     nspaces++;
@@ -13191,7 +12922,7 @@ const char *range_int64_max[]={"9223372036854775807"};//19 digits
 const char *range_int64_neg_max[]={"9223372036854775808"};//19 digits
 const char *range_uint64_max[]={"18446744073709551615"};//20 digits
 const char *range_float_max[]=    {"17976931348623157"};//17 digits
-                          
+
 //universal number representation
 uint16 n_digits;
 uint8 n_digit[256];
@@ -13423,9 +13154,9 @@ int32 n_uint64(){
   if (n_exp>19)return 0;//overflow
   if (n_exp==19){
     i2=n_digits; if (i2>20) i2=20;//only scan integeral digits
-    for (i=0;i<i2;i++){ 
+    for (i=0;i<i2;i++){
       if (n_digit[i]>max[i]) return 0;//overflow
-      if (n_digit[i]<max[i]) break; 
+      if (n_digit[i]<max[i]) break;
     }
   }
   //calculate integeral value
@@ -13445,8 +13176,6 @@ int32 n_uint64(){
   }
   //return value
   n_uint64_value=uvalue;
-
-
 
   return 1;
 }
@@ -13589,25 +13318,6 @@ int32 n_inputnumberfromdata(uint8 *data,ptrszint *data_offset,ptrszint data_size
   if (n_digits==0) {n_exp=0; n_neg=0;}//clarify number
   return 0;//success
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 int32 n_inputnumberfromfile(int32 fileno){
@@ -13879,9 +13589,6 @@ uint64 func_file_input_uint64(int32 fileno){
   return 0;
 }
 
-
-
-
 void sub_read_string(uint8 *data,ptrszint *data_offset,ptrszint data_size,qbs *deststr){
   if (new_error) return;
   static qbs *str,*character;
@@ -13947,7 +13654,7 @@ long double func_read_float(uint8 *data,ptrszint *data_offset,ptrszint data_size
   }
   if (i==3){//Syntax error
     *data_offset=old_data_offset;
-    error(2); 
+    error(2);
     return 0;
   }
 
@@ -13973,7 +13680,7 @@ long double func_read_float(uint8 *data,ptrszint *data_offset,ptrszint data_size
     }
     if ((value>maxval)||(value<minval)) goto overflow;
 
-    if (((typ&ISUNSIGNED)==0)&&n_hex){//signed hex/oct/...  
+    if (((typ&ISUNSIGNED)==0)&&n_hex){//signed hex/oct/...
       if (  ( ((int64)1) << ((typ&511)-1) )  &value){//if top bit is set, set all bits above it to form a negative value
     value=(maxval^((int64)-1))+value;
       }
@@ -13984,7 +13691,7 @@ long double func_read_float(uint8 *data,ptrszint *data_offset,ptrszint data_size
 
  overflow:
   *data_offset=old_data_offset;
-  error(6); 
+  error(6);
   return 0;
 }
 
@@ -14009,13 +13716,13 @@ int64 func_read_int64(uint8 *data,ptrszint *data_offset,ptrszint data_size){
   }
   if (i==3){//Syntax error
     *data_offset=old_data_offset;
-    error(2); 
+    error(2);
     return 0;
   }
   if (n_int64()) return n_int64_value;
  overflow:
   *data_offset=old_data_offset;
-  error(6); 
+  error(6);
   return 0;
 }
 
@@ -14040,13 +13747,13 @@ uint64 func_read_uint64(uint8 *data,ptrszint *data_offset,ptrszint data_size){
   }
   if (i==3){//Syntax error
     *data_offset=old_data_offset;
-    error(2); 
+    error(2);
     return 0;
   }
   if (n_uint64()) return n_uint64_value;
  overflow:
   *data_offset=old_data_offset;
-  error(6); 
+  error(6);
   return 0;
 }
 
@@ -14078,7 +13785,7 @@ long double func_file_input_float(int32 fileno,int32 typ){
     }
     if ((value>maxval)||(value<minval)){error(6); return 0;}
 
-    if (((typ&ISUNSIGNED)==0)&&n_hex){//signed hex/oct/...  
+    if (((typ&ISUNSIGNED)==0)&&n_hex){//signed hex/oct/...
       if (  ( ((int64)1) << ((typ&511)-1) )  &value){//if top bit is set, set all bits above it to form a negative value
     value=(maxval^((int64)-1))+value;
       }
@@ -14520,10 +14227,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
 }//put2
 
 
-
-
-
-
 void sub_graphics_get(float x1f,float y1f,float x2f,float y2f,void *element,uint32 mask,int32 passed){
   //"[{STEP}](?,?)-[{STEP}](?,?),?[,?]"
   //   &1            &2            &4
@@ -14683,7 +14386,6 @@ void sub_graphics_get(float x1f,float y1f,float x2f,float y2f,void *element,uint
   }//32
 
 }//sub_graphics_get
-
 
 
 void sub_graphics_put(float x1f,float y1f,void *element,int32 option,uint32 mask,int32 passed){
@@ -14897,23 +14599,6 @@ void sub_graphics_put(float x1f,float y1f,void *element,int32 option,uint32 mask
     return;
   }//32
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   /*
     static byte_element_struct *ele;
     ele=(byte_element_struct*)element;
@@ -15038,15 +14723,8 @@ void sub_graphics_put(float x1f,float y1f,void *element,int32 option,uint32 mask
     if ((option==5)||(option==0)){
     write_page->offset[py*write_page->width+px]^=c;
     }
-
-
-
-
-
-
     }
     maskpixel:;
-
 
     }//x
 
@@ -15061,12 +14739,10 @@ void sub_graphics_put(float x1f,float y1f,void *element,int32 option,uint32 mask
     // if (sx&3) cp++;
     //}
 
-
     }//y
   */
 
 }
-
 
 
 void sub_date(qbs* date){
@@ -15096,7 +14772,7 @@ qbs *func_date(){
   str->chr[2]=45; str->chr[5]=45;//-
   time(&qb64_tm_val); if (qb64_tm_val==-1){error(5); str->len=0; return str;}
   qb64_tm=localtime(&qb64_tm_val); if (qb64_tm==NULL){error(5); str->len=0; return str;}
-  x=qb64_tm->tm_mon; x++; 
+  x=qb64_tm->tm_mon; x++;
   i=0; str->chr[i]=x/10+48; str->chr[i+1]=x%10+48;
   x=qb64_tm->tm_mday;
   i=3; str->chr[i]=x/10+48; str->chr[i+1]=x%10+48;
@@ -15108,13 +14784,6 @@ qbs *func_date(){
   str->chr[i]=x+48;
   return str;
 }
-
-
-
-
-
-
-
 
 void sub_time(qbs* str){
   if (new_error) return;
@@ -15164,8 +14833,6 @@ int32 func_pos(int32 ignore){
   return write_page->cursor_x;
 }
 
-
-
 double func_log(double value){
   if (value<=0){error(5);return 0;}
   return log(value);
@@ -15192,8 +14859,6 @@ long double func_exp_float(long double value){
   }
   error(6); return 0;
 }
-
-
 
 int32 sleep_break=0;
 
@@ -15223,7 +14888,7 @@ void sub_sleep(int32 seconds,int32 passed){
     wait=ms-elapsed;
     if (!wait) wait=1;
     if (wait>=10){
-      Sleep(9);  
+      Sleep(9);
       //recalculate time
       goto recalculate;
     }else{
@@ -15470,8 +15135,6 @@ int32 func_inp(int32 port){
 
   }
 
-
-
   unsupported_port_accessed=1;
   return 0;//unknown port!
 }
@@ -15622,7 +15285,7 @@ qbs *func_spc(int32 spaces){
     spaces_left_on_line=write_page->width-write_page->cursor_x+1;
     spaces%=write_page->width;//MOD
   }else{
-    x=fontwidth[write_page->font]; 
+    x=fontwidth[write_page->font];
     if (x){
       x2=write_page->width/x;//characters per row
       spaces_left_on_line=x2-write_page->cursor_x+1;
@@ -15673,8 +15336,6 @@ float func_pmap(float val,int32 option){
   error(5);
   return 0;
 }
-
-
 
 uint32 func_screen(int32 y,int32 x,int32 returncol,int32 passed){
 
@@ -15915,7 +15576,7 @@ int64 func_loc(int32 i){
   i=gfs_fileno[i];//convert fileno to gfs index
   static gfs_file_struct *gfs;
   gfs=&gfs_file[i];
-  
+
   if (gfs->scrn){error(5); return 0;}
   if (gfs->com_port){
 #ifdef QB64_WINDOWS
@@ -16090,8 +15751,8 @@ void file_line_input_string_binary(int32 fileno, qbs *deststr) {
   qbs_set(deststr, qbs_new_txt_len("", 0));
     do {
       if (start_byte + filebuf_size > filelength) filebuf_size = filelength - start_byte + 1;
-      qbs_set(buffer,func_space(qbr(filebuf_size))); 
-          
+      qbs_set(buffer,func_space(qbr(filebuf_size)));
+
           sub_get2(fileno, start_byte, buffer, 1);
       int32 eol_pos = func_instr(0, buffer, eol, 0);
       if (eol_pos == 0) {
@@ -16147,9 +15808,6 @@ double func_sqr(double value){
 }
 
 
-
-
-
 #ifdef QB64_BACKSLASH_FILESYSTEM
 #include "parts\\audio\\out\\src.c"
 #else
@@ -16165,13 +15823,6 @@ double func_sqr(double value){
 #endif
 
 
-
-
-
-
-
-
-
 qbs *func_command_str=NULL;
 char **func_command_array = NULL;
 int32 func_command_count = 0;
@@ -16179,7 +15830,7 @@ int32 func_command_count = 0;
 qbs *func_command(int32 index, int32 passed){
   static qbs *tqbs;
   if (passed) { //Get specific parameter
-    //If out of bounds or error getting cmdline args (on Android, perhaps), return empty string.
+    //If out of bounds or error getting cmdline args, return empty string.
     if (index >= func_command_count || index < 0 || func_command_array==NULL) {tqbs = qbs_new(0, 1); return tqbs;}
     int len = strlen(func_command_array[index]);
     //Create new temp qbs and copy data into it.
@@ -16215,7 +15866,7 @@ int32 cmd_ok(){
              FALSE,          // Set handle inheritance to FALSE
              CREATE_NO_WINDOW, // No creation flags
              NULL,           // Use parent's environment block
-             NULL,           // Use parent's starting directory 
+             NULL,           // Use parent's starting directory
              &si,            // Pointer to STARTUPINFO structure
              &pi             // Pointer to PROCESS_INFORMATION structure
              )
@@ -16231,10 +15882,6 @@ int32 cmd_ok(){
   return cmd_available;
 }
 #endif
-
-
-
-
 
 
 int32 cmd_command(qbs *str2){
@@ -16473,14 +16120,14 @@ int64 func_shell(qbs *str){
         FALSE,          // Set handle inheritance to FALSE
         DETACHED_PROCESS, // No creation flags
         NULL,           // Use parent's environment block
-        NULL,           // Use parent's starting directory 
+        NULL,           // Use parent's starting directory
         &si,            // Pointer to STARTUPINFO structure
         &pi )           // Pointer to PROCESS_INFORMATION structure
     ){
     shell_call_in_progress=1;
     // Wait until child process exits.
     WaitForSingleObject( pi.hProcess, INFINITE );
-    // Close process and thread handles. 
+    // Close process and thread handles.
     CloseHandle( pi.hProcess );
     CloseHandle( pi.hThread );
     shell_call_in_progress=0;
@@ -16504,14 +16151,14 @@ int64 func_shell(qbs *str){
                FALSE,          // Set handle inheritance to FALSE
                CREATE_NEW_CONSOLE, // No creation flags
                NULL,           // Use parent's environment block
-               NULL,           // Use parent's starting directory 
+               NULL,           // Use parent's starting directory
                &si,            // Pointer to STARTUPINFO structure
                &pi )           // Pointer to PROCESS_INFORMATION structure
      ){
     shell_call_in_progress=1;
     // Wait until child process exits.
     WaitForSingleObject( pi.hProcess, INFINITE );
-    // Close process and thread handles. 
+    // Close process and thread handles.
     CloseHandle( pi.hProcess );
     CloseHandle( pi.hThread );
     shell_call_in_progress=0;
@@ -16562,9 +16209,6 @@ int64 func_shell(qbs *str){
 
   return return_code;
 }//func SHELL(...
-
-
-
 
 
 int64 func__shellhide(qbs *str){ //func _SHELLHIDE(...
@@ -16696,14 +16340,14 @@ int64 func__shellhide(qbs *str){ //func _SHELLHIDE(...
       FALSE,          // Set handle inheritance to FALSE
       CREATE_NO_WINDOW, // No creation flags
       NULL,           // Use parent's environment block
-      NULL,           // Use parent's starting directory 
+      NULL,           // Use parent's starting directory
       &si,            // Pointer to STARTUPINFO structure
       &pi )           // Pointer to PROCESS_INFORMATION structure
       ){
       shell_call_in_progress=1;
       // Wait until child process exits.
       WaitForSingleObject( pi.hProcess, INFINITE );
-      // Close process and thread handles. 
+      // Close process and thread handles.
       CloseHandle( pi.hProcess );
       CloseHandle( pi.hThread );
       shell_call_in_progress=0;
@@ -16728,14 +16372,14 @@ int64 func__shellhide(qbs *str){ //func _SHELLHIDE(...
              FALSE,          // Set handle inheritance to FALSE
              CREATE_NEW_CONSOLE, //note: cannot hide new console, but can preserve existing one
              NULL,           // Use parent's environment block
-             NULL,           // Use parent's starting directory 
+             NULL,           // Use parent's starting directory
              &si,            // Pointer to STARTUPINFO structure
              &pi )           // Pointer to PROCESS_INFORMATION structure
        ){
       shell_call_in_progress=1;
       // Wait until child process exits.
       WaitForSingleObject( pi.hProcess, INFINITE );
-      // Close process and thread handles. 
+      // Close process and thread handles.
       CloseHandle( pi.hProcess );
       CloseHandle( pi.hThread );
       shell_call_in_progress=0;
@@ -16759,39 +16403,6 @@ int64 func__shellhide(qbs *str){ //func _SHELLHIDE(...
 
   return return_code;
 }//func _SHELLHIDE(...
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void sub_shell(qbs *str,int32 passed){
@@ -16975,14 +16586,14 @@ void sub_shell(qbs *str,int32 passed){
         FALSE,          // Set handle inheritance to FALSE
         DETACHED_PROCESS, // No creation flags
         NULL,           // Use parent's environment block
-        NULL,           // Use parent's starting directory 
+        NULL,           // Use parent's starting directory
         &si,            // Pointer to STARTUPINFO structure
         &pi )           // Pointer to PROCESS_INFORMATION structure
     ){
     shell_call_in_progress=1;
     // Wait until child process exits.
     WaitForSingleObject( pi.hProcess, INFINITE );
-    // Close process and thread handles. 
+    // Close process and thread handles.
     CloseHandle( pi.hProcess );
     CloseHandle( pi.hThread );
     shell_call_in_progress=0;
@@ -17005,14 +16616,14 @@ void sub_shell(qbs *str,int32 passed){
                FALSE,          // Set handle inheritance to FALSE
                CREATE_NEW_CONSOLE, // No creation flags
                NULL,           // Use parent's environment block
-               NULL,           // Use parent's starting directory 
+               NULL,           // Use parent's starting directory
                &si,            // Pointer to STARTUPINFO structure
                &pi )           // Pointer to PROCESS_INFORMATION structure
      ){
     shell_call_in_progress=1;
     // Wait until child process exits.
     WaitForSingleObject( pi.hProcess, INFINITE );
-    // Close process and thread handles. 
+    // Close process and thread handles.
     CloseHandle( pi.hProcess );
     CloseHandle( pi.hThread );
     shell_call_in_progress=0;
@@ -17057,18 +16668,6 @@ void sub_shell(qbs *str,int32 passed){
     }while(!full_screen);
   }//full_screen_mode
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -17198,14 +16797,14 @@ void sub_shell2(qbs *str,int32 passed){ //HIDE
       FALSE,          // Set handle inheritance to FALSE
       CREATE_NO_WINDOW, // No creation flags
       NULL,           // Use parent's environment block
-      NULL,           // Use parent's starting directory 
+      NULL,           // Use parent's starting directory
       &si,            // Pointer to STARTUPINFO structure
       &pi )           // Pointer to PROCESS_INFORMATION structure
       ){
       shell_call_in_progress=1;
       // Wait until child process exits.
       WaitForSingleObject( pi.hProcess, INFINITE );
-      // Close process and thread handles. 
+      // Close process and thread handles.
       CloseHandle( pi.hProcess );
       CloseHandle( pi.hThread );
       shell_call_in_progress=0;
@@ -17229,14 +16828,14 @@ void sub_shell2(qbs *str,int32 passed){ //HIDE
              FALSE,          // Set handle inheritance to FALSE
              CREATE_NEW_CONSOLE, //note: cannot hide new console, but can preserve existing one
              NULL,           // Use parent's environment block
-             NULL,           // Use parent's starting directory 
+             NULL,           // Use parent's starting directory
              &si,            // Pointer to STARTUPINFO structure
              &pi )           // Pointer to PROCESS_INFORMATION structure
        ){
       shell_call_in_progress=1;
       // Wait until child process exits.
       WaitForSingleObject( pi.hProcess, INFINITE );
-      // Close process and thread handles. 
+      // Close process and thread handles.
       CloseHandle( pi.hProcess );
       CloseHandle( pi.hThread );
       shell_call_in_progress=0;
@@ -17258,18 +16857,6 @@ void sub_shell2(qbs *str,int32 passed){ //HIDE
 
  shell_complete:;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -17390,11 +16977,11 @@ void sub_shell3(qbs *str,int32 passed){//_DONTWAIT
       FALSE,          // Set handle inheritance to FALSE
       DETACHED_PROCESS, // No creation flags
       NULL,           // Use parent's environment block
-      NULL,           // Use parent's starting directory 
+      NULL,           // Use parent's starting directory
       &si,            // Pointer to STARTUPINFO structure
       &pi )           // Pointer to PROCESS_INFORMATION structure
       ){
-      //ref: The created process remains in the system until all threads within the process have terminated and all handles to the process and any of its threads have been closed through calls to CloseHandle. The handles for both the process and the main thread must be closed through calls to CloseHandle. If these handles are not needed, it is best to close them immediately after the process is created. 
+      //ref: The created process remains in the system until all threads within the process have terminated and all handles to the process and any of its threads have been closed through calls to CloseHandle. The handles for both the process and the main thread must be closed through calls to CloseHandle. If these handles are not needed, it is best to close them immediately after the process is created.
       CloseHandle( pi.hProcess );
       CloseHandle( pi.hThread );
       goto shell_complete;
@@ -17416,11 +17003,11 @@ void sub_shell3(qbs *str,int32 passed){//_DONTWAIT
              FALSE,          // Set handle inheritance to FALSE
              CREATE_NEW_CONSOLE, //note: cannot hide new console, but can preserve existing one
              NULL,           // Use parent's environment block
-             NULL,           // Use parent's starting directory 
+             NULL,           // Use parent's starting directory
              &si,            // Pointer to STARTUPINFO structure
              &pi )           // Pointer to PROCESS_INFORMATION structure
        ){
-      //ref: The created process remains in the system until all threads within the process have terminated and all handles to the process and any of its threads have been closed through calls to CloseHandle. The handles for both the process and the main thread must be closed through calls to CloseHandle. If these handles are not needed, it is best to close them immediately after the process is created. 
+      //ref: The created process remains in the system until all threads within the process have terminated and all handles to the process and any of its threads have been closed through calls to CloseHandle. The handles for both the process and the main thread must be closed through calls to CloseHandle. If these handles are not needed, it is best to close them immediately after the process is created.
       CloseHandle( pi.hProcess );
       CloseHandle( pi.hThread );
       goto shell_complete;
@@ -17441,29 +17028,6 @@ void sub_shell3(qbs *str,int32 passed){//_DONTWAIT
 
  shell_complete:;
 }//SHELL _DONTWAIT
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void sub_shell4(qbs *str,int32 passed){//_DONTWAIT & _HIDE
@@ -17577,11 +17141,11 @@ void sub_shell4(qbs *str,int32 passed){//_DONTWAIT & _HIDE
       FALSE,          // Set handle inheritance to FALSE
       DETACHED_PROCESS, // No creation flags
       NULL,           // Use parent's environment block
-      NULL,           // Use parent's starting directory 
+      NULL,           // Use parent's starting directory
       &si,            // Pointer to STARTUPINFO structure
       &pi )           // Pointer to PROCESS_INFORMATION structure
       ){
-      //ref: The created process remains in the system until all threads within the process have terminated and all handles to the process and any of its threads have been closed through calls to CloseHandle. The handles for both the process and the main thread must be closed through calls to CloseHandle. If these handles are not needed, it is best to close them immediately after the process is created. 
+      //ref: The created process remains in the system until all threads within the process have terminated and all handles to the process and any of its threads have been closed through calls to CloseHandle. The handles for both the process and the main thread must be closed through calls to CloseHandle. If these handles are not needed, it is best to close them immediately after the process is created.
       CloseHandle( pi.hProcess );
       CloseHandle( pi.hThread );
       goto shell_complete;
@@ -17603,11 +17167,11 @@ void sub_shell4(qbs *str,int32 passed){//_DONTWAIT & _HIDE
              FALSE,          // Set handle inheritance to FALSE
              CREATE_NEW_CONSOLE, //note: cannot hide new console, but can preserve existing one
              NULL,           // Use parent's environment block
-             NULL,           // Use parent's starting directory 
+             NULL,           // Use parent's starting directory
              &si,            // Pointer to STARTUPINFO structure
              &pi )           // Pointer to PROCESS_INFORMATION structure
        ){
-      //ref: The created process remains in the system until all threads within the process have terminated and all handles to the process and any of its threads have been closed through calls to CloseHandle. The handles for both the process and the main thread must be closed through calls to CloseHandle. If these handles are not needed, it is best to close them immediately after the process is created. 
+      //ref: The created process remains in the system until all threads within the process have terminated and all handles to the process and any of its threads have been closed through calls to CloseHandle. The handles for both the process and the main thread must be closed through calls to CloseHandle. If these handles are not needed, it is best to close them immediately after the process is created.
       CloseHandle( pi.hProcess );
       CloseHandle( pi.hThread );
       goto shell_complete;
@@ -17629,26 +17193,6 @@ void sub_shell4(qbs *str,int32 passed){//_DONTWAIT & _HIDE
  shell_complete:;
 
 }//_DONTWAIT & _HIDE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void sub_kill(qbs *str){
@@ -17686,7 +17230,7 @@ void sub_kill(qbs *str){
     }//not a directory
   }while(FindNextFile(hFind,&fd));
   FindClose(hFind);
-  if (!count){error(53); return;}//file not found 
+  if (!count){error(53); return;}//file not found
   return;
 #else
   if (remove(fixdir(strz))){
@@ -17789,13 +17333,11 @@ void sub_mkdir(qbs *str){
   }
 
   void sub__mousehide(){
-    #ifdef QB64_GUI    
+    #ifdef QB64_GUI
     if (!screen_hide){
-      while (!window_exists){Sleep(100);}      
+      while (!window_exists){Sleep(100);}
       #ifdef QB64_GLUT
-      #ifndef QB64_ANDROID
       glutSetCursor(GLUT_CURSOR_NONE);
-      #endif
       #endif
     }
     #endif
@@ -17847,7 +17389,7 @@ void sub_mkdir(qbs *str){
   float func__mousemovementy(int32 context, int32 passed){
     int32 handle;
     handle=mouse_message_queue_default;
-    if (passed) handle=context;    
+    if (passed) handle=context;
     mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,handle);
     if (queue==NULL){error(258); return 0;}
     return queue->queue[queue->current].movementy;
@@ -17881,7 +17423,7 @@ void sub_mkdir(qbs *str){
     //adjust for fullscreen position as necessary:
     x2*=x_scale; y2*=y_scale;
     x2+=x_offset; y2+=y_offset;
-    while (!window_exists){Sleep(100);} 
+    while (!window_exists){Sleep(100);}
     glutWarpPointer(x2, y2);
     return;
   error:
@@ -17896,7 +17438,7 @@ void sub_mkdir(qbs *str){
 
     int32 handle;
     handle=mouse_message_queue_default;
-    if (passed) handle=context;    
+    if (passed) handle=context;
     mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,handle);
     if (queue==NULL){error(258); return 0;}
     x=queue->queue[queue->current].x;
@@ -17940,7 +17482,7 @@ void sub_mkdir(qbs *str){
 
     int32 handle;
     handle=mouse_message_queue_default;
-    if (passed) handle=context;    
+    if (passed) handle=context;
     mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,handle);
     if (queue==NULL){error(258); return 0;}
     y=queue->queue[queue->current].y;
@@ -18001,7 +17543,7 @@ int32 func__mousepipeopen(){
 
 void sub__mouseinputpipe(int32 context){
     //pushes the current _MOUSEINPUT event to the lower pipe, effectively sharing the input with the lower pipe
-    
+
     mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,context);
     if (queue==NULL){error(258); return;}
 
@@ -18040,11 +17582,11 @@ void sub__mousepipeclose(int32 context){
 
 }
 
- 
+
   int32 func__mouseinput(int32 context, int32 passed){
     int32 handle;
     handle=mouse_message_queue_default;
-    if (passed) handle=context;    
+    if (passed) handle=context;
     mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,handle);
     if (queue==NULL){error(258); return 0;}
     if (queue->current==queue->last) return 0;
@@ -18065,7 +17607,7 @@ void sub__mousepipeclose(int32 context){
     }
     int32 handle;
     handle=mouse_message_queue_default;
-    if (passed) handle=context;    
+    if (passed) handle=context;
     mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,handle);
     if (queue==NULL){error(258); return 0;}
     if (queue->queue[queue->current].buttons&(1<<(i-1))) return -1;
@@ -18076,7 +17618,7 @@ void sub__mousepipeclose(int32 context){
     static uint32 x;
     int32 handle;
     handle=mouse_message_queue_default;
-    if (passed) handle=context;    
+    if (passed) handle=context;
     mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,handle);
     if (queue==NULL){error(258); return 0;}
     x=queue->queue[queue->current].buttons;
@@ -18117,16 +17659,16 @@ void sub__mousepipeclose(int32 context){
       if (cpu.ax==3){
     //return the current mouse status
     //buttons
-    
+
     int32 handle;
-    handle=mouse_message_queue_default;    
+    handle=mouse_message_queue_default;
     mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,handle);
 
     //buttons
     cpu.bx=queue->queue[queue->last].buttons&1;
     if (queue->queue[queue->last].buttons&4) cpu.bx+=2;
 
-    //x,y offsets    
+    //x,y offsets
     static float mx,my;
 
     //temp override current message index to the most recent event
@@ -18275,7 +17817,7 @@ void sub__mousepipeclose(int32 context){
     error(5); return;//The SCREEN's pages cannot be freed!
       }else{
 
-    static hardware_img_struct *himg;  
+    static hardware_img_struct *himg;
     if (himg=get_hardware_img(i)){
       flush_old_hardware_commands();
       //add command to free image
@@ -18297,7 +17839,7 @@ void sub__mousepipeclose(int32 context){
       }
       last_hardware_command_added=hgch;
       if (first_hardware_command==0) first_hardware_command=hgch;
-    
+
       return;
     }
 
@@ -18328,22 +17870,22 @@ void sub__mousepipeclose(int32 context){
 
   //Selecting images:
 
-  void sub__source(int32 i){ 
+  void sub__source(int32 i){
     if (new_error) return;
     if (i>=0){//validate i
       validatepage(i); i=page[i];
     }else{
-      i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;} 
+      i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;}
     }
     read_page_index=i; read_page=&img[i];
   }
 
-  void sub__dest(int32 i){ 
+  void sub__dest(int32 i){
     if (new_error) return;
     if (i>=0){//validate i
       validatepage(i); i=page[i];
     }else{
-      i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;} 
+      i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;}
     }
     write_page_index=i; write_page=&img[i];
   }
@@ -18368,12 +17910,12 @@ void sub__mousepipeclose(int32 context){
       if (i>=0){//validate i
     validatepage(i); i=page[i];
       }else{
-    static hardware_img_struct *himg;  
+    static hardware_img_struct *himg;
     if (himg=get_hardware_img(i)){
       himg->alpha_disabled=0;
       return;
     }
-    i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;} 
+    i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;}
       }
     }else{
       i=write_page_index;
@@ -18388,7 +17930,7 @@ void sub__mousepipeclose(int32 context){
       if (i>=0){//validate i
     validatepage(i); i=page[i];
       }else{
-    static hardware_img_struct *himg;  
+    static hardware_img_struct *himg;
     if (himg=get_hardware_img(i)){
       himg->alpha_disabled=1;
       return;
@@ -18397,7 +17939,7 @@ void sub__mousepipeclose(int32 context){
     if (i>=nextimg){error(258); return;}
     if (!img[i].valid){
       error(258); return;
-    } 
+    }
       }
     }else{
       i=write_page_index;
@@ -18420,7 +17962,7 @@ void sub__mousepipeclose(int32 context){
       if (i>=0){//validate i
     validatepage(i); i=page[i];
       }else{
-    i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;} 
+    i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;}
       }
     }else{
       i=write_page_index;
@@ -18475,7 +18017,7 @@ void sub__mousepipeclose(int32 context){
       if (i>=0){//validate i
     validatepage(i); i=page[i];
       }else{
-    i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;} 
+    i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;}
       }
     }else{
       i=write_page_index;
@@ -18536,7 +18078,7 @@ void sub__mousepipeclose(int32 context){
       if (i>=0){//validate i
     validatepage(i); i=page[i];
       }else{
-    static hardware_img_struct *himg;  
+    static hardware_img_struct *himg;
     if (himg=get_hardware_img(i)){
       return himg->w;
     }
@@ -18554,7 +18096,7 @@ void sub__mousepipeclose(int32 context){
       if (i>=0){//validate i
     validatepage(i); i=page[i];
       }else{
-    static hardware_img_struct *himg;  
+    static hardware_img_struct *himg;
     if (himg=get_hardware_img(i)){
       return himg->h;
     }
@@ -18742,7 +18284,7 @@ void sub__mousepipeclose(int32 context){
     x2=qbr_float_to_long(im->x)+im->view_offset_x; y2=qbr_float_to_long(im->y)+im->view_offset_y;
       }
     }else{
-      x2=qbr_float_to_long(im->x); y2=qbr_float_to_long(im->y); 
+      x2=qbr_float_to_long(im->x); y2=qbr_float_to_long(im->y);
     }
 
     if (!text->len) return;
@@ -18837,7 +18379,7 @@ void sub__mousepipeclose(int32 context){
     static float cw;//color weight multiplier, avoids seeing black when transitioning from RGBA(?,?,?,255) to RGBA(0,0,0,0)
     if (alpha1) cw=alpha2/alpha1; else cw=100000;
     static float d;
- 
+
     for (y2=0;y2<h;y2++){
       cp=rt_data+y2*w;
       for (x2=0;x2<w;x2++){
@@ -18930,13 +18472,13 @@ int32 func__printwidth(qbs* text, int32 screenhandle, int32 passed){
       screenhandle = page[screenhandle];
     }
     else {
-      screenhandle = -screenhandle; 
+      screenhandle = -screenhandle;
       if (screenhandle >= nextimg) {
-    error(258); 
+    error(258);
     return 0;
-      } 
+      }
       if (!img[screenhandle].valid) {
-    error(258); 
+    error(258);
     return 0;
       }
     }
@@ -19164,8 +18706,6 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     fontflags[i]=options;
     return i;
   }
-
-
 
 
   void sub__font(int32 f,int32 i,int32 passed){
@@ -19451,8 +18991,8 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
       if (img[i].bytes_per_pixel==4){
     return col>>24;
       }else{//==4
-    //error(5); return 0; 
-    if ((col<0)||(col>(img[i].mask))){error(5); return 0;} 
+    //error(5); return 0;
+    if ((col<0)||(col>(img[i].mask))){error(5); return 0;}
     if (img[i].transparent_color==col) return 0;
     return 255;
       }//==4
@@ -19460,8 +19000,8 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
       if (write_page->bytes_per_pixel==4){
     return col>>24;
       }else{//==4
-    //error(5); return 0; 
-    if ((col<0)||(col>(write_page->mask))){error(5); return 0;} 
+    //error(5); return 0;
+    if ((col<0)||(col>(write_page->mask))){error(5); return 0;}
     if (write_page->transparent_color==col) return 0;
     return 255;
       }//==4
@@ -19841,7 +19381,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
       //0.1  = -1
       //calc exponent of format's most significant position
       if (digits_before_point) z3=digits_before_point-1; else z3=-1;
-      z=z2-z3;//combine to calculate actual exponent which will be "printed" 
+      z=z2-z3;//combine to calculate actual exponent which will be "printed"
       z3=abs(z);
       z2=sprintf((char*)pu_buf,"%u",z3);//use pu_buf to convert exponent to a string
       if (z2>exponent_digits){cant_fit=1; exponent_digits=z2;}
@@ -19919,7 +19459,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
         pu_dig[z]++;
         if (pu_dig[z]>57) {pu_dig[z]=48; z--; goto puround2;}
         if (pu_dig[0]!=48){//was extra character position necessary?
-          pu_ndig++; //note: pu_dp does not require any changes  
+          pu_ndig++; //note: pu_dp does not require any changes
         }else{
           memmove(&pu_dig[0],&pu_dig[1],pu_ndig);
         }
@@ -19952,7 +19492,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
       //add - sign? (as sign space was not specified)
       if (extra_sign_space){*cp++=45; count++;}
       //add $?
-      if (dollar_sign){*cp++=36; count++;}//$ 
+      if (dollar_sign){*cp++=36; count++;}//$
       //leading 0?
       if (leading_zero){*cp++=48; count++;}//0
       //add digits left of decimal point
@@ -19983,18 +19523,18 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
         z=ii-1;
         //round up pu (by adding 1 from digit at character position z)
         //note: pu_dig is rebuilt one character to the right so highest digit can flow over into next character
-        rounded=1;  
+        rounded=1;
         memmove(&pu_dig[1],&pu_dig[0],pu_ndig); pu_dig[0]=48; z++;
-      puround1: 
+      puround1:
         pu_dig[z]++;
         if (pu_dig[z]>57) {pu_dig[z]=48; z--; goto puround1;}
         if (pu_dig[0]!=48){//was extra character position necessary?
-          pu_ndig++; //note: pu_dp does not require any changes  
+          pu_ndig++; //note: pu_dp does not require any changes
         }else{
-          memmove(&pu_dig[0],&pu_dig[1],pu_ndig);  
+          memmove(&pu_dig[0],&pu_dig[1],pu_ndig);
         }
         goto rounded_repass;
-      } 
+      }
     }
       }
     }//exponent_digits
@@ -20050,7 +19590,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
       for (z=0;z<string_size;z++){
         if (z<pu_str->len) qbs1->chr[0]=pu_str->chr[z]; else qbs1->chr[0]=32;
         qbs_set(dest,qbs_add(dest,qbs1));
-      }//z 
+      }//z
     }else{
       qbs_set(dest,qbs_add(dest,pu_str));
       s++;
@@ -20240,7 +19780,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     //len=sprintf((char*)&pu_buf,"% .255E",value);//256 character limit ([1].[255])
 #ifdef QB64_MINGW
     len=__mingw_sprintf((char*)&pu_buf,"% .255Lf",value);//256 character limit ([1].[255])
-#else 
+#else
     len=sprintf((char*)&pu_buf,"% .255Lf",value);//256 character limit ([1].[255])
 #endif
 
@@ -20455,10 +19995,10 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     bi.bV5RedMask   =  0x00FF0000;
     bi.bV5GreenMask =  0x0000FF00;
     bi.bV5BlueMask  =  0x000000FF;
-    bi.bV5AlphaMask =  0xFF000000; 
+    bi.bV5AlphaMask =  0xFF000000;
     hdc = GetDC(NULL);
     // Create the DIB section with an alpha channel.
-    hBitmap = CreateDIBSection(hdc, (BITMAPINFO *)&bi, DIB_RGB_COLORS, 
+    hBitmap = CreateDIBSection(hdc, (BITMAPINFO *)&bi, DIB_RGB_COLORS,
                    (void **)&lpBits, NULL, (DWORD)0);
     ReleaseDC(NULL,hdc);
 
@@ -20530,7 +20070,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     while (!window_exists){Sleep(100);}
       #ifdef QB64_WINDOWS
           while (!window_handle){Sleep(100);}
-      #endif  
+      #endif
       glutIconifyWindow();
     return;
   #endif
@@ -20558,7 +20098,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
           #ifdef QB64_WINDOWS
                 return -IsIconic(window_handle);
           #else
-            /*     
+            /*
              Linux code not compiling for now
              #include <X11/X.h>
              #include <X11/Xlib.h>
@@ -20768,7 +20308,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
       if (write_page->compatible_mode==8) r=4.0/((3.0/200.0)*640.0);
       if (write_page->compatible_mode==9) r=4.0/((3.0/350.0)*640.0);
       if (write_page->compatible_mode==10) r=4.0/((3.0/350.0)*640.0);
-      if (write_page->compatible_mode==11) r=4.0/((3.0/480.0)*640.0); 
+      if (write_page->compatible_mode==11) r=4.0/((3.0/480.0)*640.0);
       if (write_page->compatible_mode==12) r=4.0/((3.0/480.0)*640.0);
       if (write_page->compatible_mode==13) r=4.0/((3.0/200.0)*320.0);
       //Old method: r=4.0 /( (3.0/((double)write_page->height)) * ((double)write_page->width) ); //calculate aspect ratio of image
@@ -21060,7 +20600,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     if (cp&&(cloud_app==0)){
       bytes=strlen(cp);
       tqbs=qbs_new(bytes,1);
-      memcpy(tqbs->chr,cp,bytes); 
+      memcpy(tqbs->chr,cp,bytes);
     }else{
       tqbs=qbs_new(0,1);
     }
@@ -21221,11 +20761,11 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     freeaddrinfo(servinfo);
     if (p == NULL) return NULL; //indicates none of the entries succeeded
     fcntl(sockfd, F_SETFL, O_NONBLOCK); //make socket non-blocking
-    
+
     if (listen(sockfd, SOMAXCONN) == -1) {
       close(sockfd);
       return NULL;
-    }    
+    }
 
     tcp_connection *connection;
     connection=(tcp_connection*)calloc(sizeof(tcp_connection),1);
@@ -21236,13 +20776,6 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     return NULL;
 #endif
   }
-
-
-
-
-
-
-
 
 
   void *tcp_client_open(uint8 *host,int64 port){
@@ -21273,9 +20806,9 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     if (nret==SOCKET_ERROR){closesocket(theSocket); return NULL;}
     //Reference: http://msdn.microsoft.com/en-us/library/windows/desktop/ms738573%28v=vs.85%29.aspx
     // Set the socket I/O mode: In this case FIONBIO
-    // enables or disables the blocking mode for the 
+    // enables or disables the blocking mode for the
     // socket based on the numerical value of iMode.
-    // If iMode = 0, blocking is enabled; 
+    // If iMode = 0, blocking is enabled;
     // If iMode != 0, non-blocking mode is enabled.
     static u_long iMode;
     iMode=1;
@@ -21337,7 +20870,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     static SOCKET new_socket;
     new_socket = accept(host->socket,
             &sa,             // Optionally, address of a SOCKADDR_IN struct
-            &sa_size);       //             sizeof ( struct SOCKADDR_IN )                        
+            &sa_size);       //             sizeof ( struct SOCKADDR_IN )
     if (new_socket==INVALID_SOCKET) return NULL;
     static u_long iMode;
     iMode=1;
@@ -21355,7 +20888,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
     struct sockaddr remote_addr;
     socklen_t addr_size;
     int fd;
-    
+
     addr_size = sizeof(remote_addr);
     fd = accept(host->socket, &remote_addr, &addr_size);
     if (fd == -1) return NULL;
@@ -21481,7 +21014,7 @@ int32 func__loadfont(qbs *f,int32 size,qbs *requirements,int32 passed){
       stream->in_size+=bytes;
       if (stream->in_size==stream->in_limit) goto expand_and_retry;
     }
-#endif    
+#endif
   }
 
 
@@ -21812,12 +21345,6 @@ int32 func__exit(){
 }
 
 
-
-
-
-
-
-
 #if defined(QB64_LINUX)
 
 //X11 clipboard interface for Linux
@@ -21880,7 +21407,7 @@ x11_lock();
 XStoreBytes(X11_display,text,strlen(text)+1);
 XSetSelectionOwner(X11_display,clipboard,X11_window,CurrentTime);
 x11_unlock();
-return; 
+return;
 }
 
 char *x11clipboardpaste(){
@@ -21922,9 +21449,9 @@ if (x11selectionowner!=None){
    XFree(cp2);
    XDeleteProperty(X11_display,X11_window,clipboard);
    x11_unlock();
-   return cp;  
+   return cp;
   }
- }  
+ }
           x11_unlock();
           return NULL;
 
@@ -21932,32 +21459,16 @@ if (x11selectionowner!=None){
           x11_unlock();
           return NULL;
         }
-      }      
+      }
       Sleep(1);
       timeoutMs -= 1;
-    } while (timeoutMs > 0);    
+    } while (timeoutMs > 0);
 }//x11selectionowner!=None
     x11_unlock();
     return NULL;
 }
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
  qbs *internal_clipboard=NULL;//used only if clipboard services unavailable
@@ -21992,7 +21503,7 @@ if (x11selectionowner!=None){
      CFRelease(clipboard);
      return;
    }
-   CFDataRef data = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, text->chr, 
+   CFDataRef data = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, text->chr,
                                                 text->len, kCFAllocatorNull);
    if (data == NULL) {
      CFRelease(clipboard);
@@ -22033,7 +21544,7 @@ void sub__clipboardimage(int32 src) {
     }else{
         i=-i; if (i>=nextimg){error(258); return;} if (!img[i].valid){error(258); return;}
     }
-    
+
     if (img[i].text){error(5); return;}
     //end of validation
 
@@ -22055,9 +21566,9 @@ void sub__clipboardimage(int32 src) {
 
     hdc = GetDC(NULL);
     // Create the DIB section with an alpha channel.
-    hBitmap = CreateDIBSection(hdc, (BITMAPINFO *)&bi, DIB_RGB_COLORS, 
+    hBitmap = CreateDIBSection(hdc, (BITMAPINFO *)&bi, DIB_RGB_COLORS,
                    (void **)&lpBits, NULL, (DWORD)0);
-                   
+
     //Transfer the source image to a new 32-bit image to avoid incompatible formats)
     i2=func__newimage(w,h,32,1);
     sub__putimage(NULL,NULL,NULL,NULL,-i,i2,NULL,NULL,NULL,NULL,8+32);
@@ -22071,7 +21582,7 @@ void sub__clipboardimage(int32 src) {
       }}
 
     sub__freeimage(i2,1);
- 
+
     //Create copy of hBitmap to send to the clipboard
     HBITMAP bitmapCopy;
     HDC hdc2, hdc3;
@@ -22081,7 +21592,7 @@ void sub__clipboardimage(int32 src) {
     SelectObject(hdc2,bitmapCopy);
     SelectObject(hdc3,hBitmap);
     BitBlt(hdc2,0,0,w,h,hdc3,0,0,SRCCOPY);
-    
+
     ReleaseDC(NULL,hdc);
     ReleaseDC(NULL,hdc2);
     ReleaseDC(NULL,hdc3);
@@ -22102,39 +21613,39 @@ void sub__clipboardimage(int32 src) {
 #ifdef DEPENDENCY_SCREENIMAGE
 int32 func__clipboardimage(){
 #ifdef QB64_WINDOWS
-    
+
     if (new_error) return -1;
-    
+
     static HBITMAP bitmap;
     static BITMAP bitmapInfo;
     static HDC hdc;
     static int32 w, h;
 
     if ( OpenClipboard(NULL) )
-    {        
+    {
         if (IsClipboardFormatAvailable(CF_BITMAP) == 0) {
             CloseClipboard();
             return -1;
         }
-        
+
         bitmap = (HBITMAP)GetClipboardData(CF_BITMAP);
         CloseClipboard();
         GetObject(bitmap,sizeof( BITMAP ), &bitmapInfo);
         h = bitmapInfo.bmHeight;
-        w = bitmapInfo.bmWidth;         
+        w = bitmapInfo.bmWidth;
 
-        static BITMAPFILEHEADER   bmfHeader;  
+        static BITMAPFILEHEADER   bmfHeader;
         static BITMAPINFOHEADER   bi;
-        bi.biSize = sizeof(BITMAPINFOHEADER);    
-        bi.biWidth = w;    
+        bi.biSize = sizeof(BITMAPINFOHEADER);
+        bi.biWidth = w;
         bi.biHeight = -h;
-        bi.biPlanes = 1;    
-        bi.biBitCount = 32;    
-        bi.biCompression = BI_RGB;    
-        bi.biSizeImage = 0;  
-        bi.biXPelsPerMeter = 0;    
-        bi.biYPelsPerMeter = 0;    
-        bi.biClrUsed = 0;    
+        bi.biPlanes = 1;
+        bi.biBitCount = 32;
+        bi.biCompression = BI_RGB;
+        bi.biSizeImage = 0;
+        bi.biXPelsPerMeter = 0;
+        bi.biYPelsPerMeter = 0;
+        bi.biClrUsed = 0;
         bi.biClrImportant = 0;
 
         static int32 i,i2;
@@ -22143,7 +21654,7 @@ int32 func__clipboardimage(){
         sub__dest(i);
 
         hdc=GetDC(NULL);
-        
+
         GetDIBits(hdc,bitmap,0,h,write_page->offset,(BITMAPINFO*)&bi, DIB_RGB_COLORS);
         sub__setalpha(255,NULL,NULL,NULL,0); // required as some images come
                                              // with alpha 0 from the clipboard
@@ -22190,13 +21701,13 @@ return -1;
     static PasteboardRef inPasteboard = NULL;
     PasteboardCreate( kPasteboardClipboard, &inPasteboard );
     char* data;
-    data = "";   
+    data = "";
     syncFlags = PasteboardSynchronize( inPasteboard );
     err = badPasteboardSyncErr;
-   
+
     err = PasteboardGetItemCount( inPasteboard, &itemCount );
     if ( (err) != noErr ) goto CantGetPasteboardItemCount;
-   
+
     for( int itemIndex = 1; itemIndex <= itemCount; itemIndex++ ) {
       PasteboardItemID  itemID;
       CFDataRef  flavorData;
@@ -22204,7 +21715,7 @@ return -1;
       err = PasteboardGetItemIdentifier( inPasteboard, itemIndex, &itemID );
       if ( (err) != noErr ) goto CantGetPasteboardItemIdentifier;
 
-      err = PasteboardCopyItemFlavorData( inPasteboard, itemID, CFSTR("public.utf8-plain-text"), &flavorData );      
+      err = PasteboardCopyItemFlavorData( inPasteboard, itemID, CFSTR("public.utf8-plain-text"), &flavorData );
       data = (char*)CFDataGetBytePtr(flavorData);
 
       uint32 size;
@@ -22221,11 +21732,11 @@ return -1;
 
 
 
-      
+
     CantGetPasteboardItemIdentifier:
       ;
     }
-   
+
   CantGetPasteboardItemCount:
     text=qbs_new(0,1);
     return text;
@@ -22487,8 +21998,8 @@ return -1;
   }
 
   int32 gfs_free(int32 i){
-    
-        if (!gfs_validhandle(i)) return -2;//invalid handle    
+
+        if (!gfs_validhandle(i)) return -2;//invalid handle
     if (gfs_freed_size<=gfs_freed_n){
       gfs_freed_size++;
       gfs_freed=(int32*)realloc(gfs_freed,gfs_freed_size*4);
@@ -22507,7 +22018,7 @@ return -1;
     if (gfs_file[i].scrn) return 0; //No further action needed
     if (gfs_file[i].field_buffer){free(gfs_file[i].field_buffer); gfs_file[i].field_buffer=NULL;}
     if (gfs_file[i].field_strings){free(gfs_file[i].field_strings); gfs_file[i].field_strings=NULL;}
-    
+
 #ifdef GFS_C
     static gfs_file_struct *f;
     f=&gfs_file[i];
@@ -22638,7 +22149,7 @@ return -1;
       }else{//0
         if (v==-2) return -1;//leading 0s are invalid
         if (v==-1) v=-2;//0...
-        if (v>0) v=v*10; 
+        if (v>0) v=v*10;
       }
       if (v>2147483647) return -1;//numeric value too large (LONG values only)
     }
@@ -22703,7 +22214,7 @@ return -1;
     //stage>4
     if (!strv) return -1;//all options after 4 require a string
     if (strv==21330){ if (f->com_rs!=-1) return -1;//RS
-      f->com_rs=1; 
+      f->com_rs=1;
       goto done_stage;}
     if (strv==5130562){ if (f->com_bin_asc!=-1) return -1;//BIN
       f->com_bin_asc=0;
@@ -22756,7 +22267,7 @@ return -1;
     x=20;
     if (f->com_data_bits_per_byte==5) x=15;
       }
-      f->com_stop_bits=x; 
+      f->com_stop_bits=x;
     }
     if (f->com_bin_asc==-1) f->com_bin_asc=0;
     if (f->com_asc_lf==-1) f->com_asc_lf=0;
@@ -22786,35 +22297,35 @@ return -1;
     static int32 i,x,x2,x3,e;
     static qbs *filenamez=NULL;
     static gfs_file_struct *f;
-    
+
     if (!filenamez) filenamez=qbs_new(0,0);
     qbs_set(filenamez,qbs_add(filename,qbs_new_txt_len("\0",1)));
 
         i=gfs_new();
     f=&gfs_file[i];
 
-            int32 v1;                
-                unsigned char *c1=filename->chr;                
-                v1=*c1;                
-                if (v1==83||v1==115) {  //S                
-                        c1++;                
-                        v1=*c1;                
-                    if (v1==67||v1==99) {  //C                
-                        c1++;                
-                            v1=*c1;                
-                        if (v1==82||v1==114) {  //R                
-                                    c1++;                
-                                v1=*c1;                
-                            if (v1==78||v1==110) {  //N                
-                                            c1++;                
-                                v1=*c1;                
-                                if (v1==58) {  //:                
-                                                        f->scrn=1;                
-                                        return i;                
-                                                };                
-                                        };                
-                                };                
-                    };                
+            int32 v1;
+                unsigned char *c1=filename->chr;
+                v1=*c1;
+                if (v1==83||v1==115) {  //S
+                        c1++;
+                        v1=*c1;
+                    if (v1==67||v1==99) {  //C
+                        c1++;
+                            v1=*c1;
+                        if (v1==82||v1==114) {  //R
+                                    c1++;
+                                v1=*c1;
+                            if (v1==78||v1==110) {  //N
+                                            c1++;
+                                v1=*c1;
+                                if (v1==58) {  //:
+                                                        f->scrn=1;
+                                        return i;
+                                                };
+                                        };
+                                };
+                    };
                 };
 
 
@@ -22852,7 +22363,7 @@ return -1;
     f->file_handle_o->open(fixdir(filenamez),ios::out);
     if (f->file_handle_o->is_open()){//created new file
       f->file_handle_o->close();
-      //retry open 
+      //retry open
       f->file_handle->clear();
       if (how==2){
         //with truncate
@@ -22868,7 +22379,7 @@ return -1;
     }
     delete f->file_handle_o;
       }
-    }//how 
+    }//how
     if (!f->file_handle->is_open()){//couldn't open file
       delete f->file_handle;
       gfs_free(i);
@@ -22918,7 +22429,7 @@ return -1;
       if (x==15) x2=1;
       if (x==20) x2=2;
       cs.StopBits=x2;
-      cs.ByteSize=f->com_data_bits_per_byte; 
+      cs.ByteSize=f->com_data_bits_per_byte;
       x=f->com_parity;
       if (x==0) x2=0;
       if (x==1) x2=2;
@@ -22926,7 +22437,7 @@ return -1;
       if (x==3) x2=4;
       if (x==4) x2=3;
       //if (x==5) x2=... ***"PE" will be supported later***
-      //0-4=None,Odd,Even,Mark,Space  
+      //0-4=None,Odd,Even,Mark,Space
       cs.Parity=x2; if (x2==0) cs.fParity=0; else cs.fParity=1;
       if (f->com_rs) cs.fRtsControl=RTS_CONTROL_DISABLE;
       if (f->com_bin_asc==0) cs.fBinary=1; else cs.fBinary=0;
@@ -22955,10 +22466,10 @@ return -1;
       #define OPEN_EXISTING       3
       #define OPEN_ALWAYS         4
       #define TRUNCATE_EXISTING   5
-    */ 
+    */
     x3=OPEN_EXISTING;
     if (how) x3=OPEN_ALWAYS;
-  undefined_retry: 
+  undefined_retry:
     f_w->file_handle=CreateFile(fixdir(filenamez),x,x2,NULL,x3,FILE_ATTRIBUTE_NORMAL,NULL);
     if (f_w->file_handle==INVALID_HANDLE_VALUE){
 
@@ -23136,7 +22647,7 @@ return -1;
 
 #ifdef GFS_C
     f->file_handle->clear();
-    f->file_handle->read((char*)data,size); 
+    f->file_handle->read((char*)data,size);
     if (f->file_handle->bad()){//note: 'eof' also sets the 'fail' flag, so only the the 'bad' flag is checked
       return -7;//assume: permission denied
     }
@@ -23168,7 +22679,7 @@ return -1;
 
       if (ReadFile(f_w->file_handle,data,size2,(unsigned long*)&bytesread,NULL)){
     data+=bytesread; f->pos+=bytesread; gfs_read_bytes_value+=bytesread;
-    if (bytesread!=size2){   
+    if (bytesread!=size2){
       ZeroMemory(data,size+(size2-bytesread));//nullify remaining buffer
       f->eof_passed=1; return -10;
     }//eof passed
@@ -23266,7 +22777,7 @@ return -1;
     if (!UnlockFile(f_w->file_handle,*((DWORD*)(&offset_start)),*(((DWORD*)(&offset_start))+1),*((DWORD*)(&bytes)),*(((DWORD*)(&bytes))+1))){
       //failed
       static int32 e;
-      e=GetLastError(); 
+      e=GetLastError();
       if ((e==5)||(e==33)||(e==158)) return -7;//permission denied
       //showvalue(e);
       return -9;//assume: path/file access error
@@ -23408,25 +22919,25 @@ return -1;
 
     init=1;
 
-    BitBlt(        hdc2, 
-           0,0, 
+    BitBlt(        hdc2,
+           0,0,
            w,h,
-           hdc, 
+           hdc,
            x1,y1,
            SRCCOPY);
 
-    static BITMAPFILEHEADER   bmfHeader;  
+    static BITMAPFILEHEADER   bmfHeader;
     static BITMAPINFOHEADER   bi;
-    bi.biSize = sizeof(BITMAPINFOHEADER);    
-    bi.biWidth = w;    
+    bi.biSize = sizeof(BITMAPINFOHEADER);
+    bi.biWidth = w;
     bi.biHeight = -h; //A bottom-up DIB is specified by setting the height to a positive number, while a top-down DIB is specified by setting the height to a negative number. The bitmap color table will be appended to the BITMAPINFO structure.
-    bi.biPlanes = 1;    
-    bi.biBitCount = 32;    
-    bi.biCompression = BI_RGB;    
-    bi.biSizeImage = 0;  
-    bi.biXPelsPerMeter = 0;    
-    bi.biYPelsPerMeter = 0;    
-    bi.biClrUsed = 0;    
+    bi.biPlanes = 1;
+    bi.biBitCount = 32;
+    bi.biCompression = BI_RGB;
+    bi.biSizeImage = 0;
+    bi.biXPelsPerMeter = 0;
+    bi.biYPelsPerMeter = 0;
+    bi.biClrUsed = 0;
     bi.biClrImportant = 0;
 
     static int32 i,i2;
@@ -23477,7 +22988,7 @@ return -1;
 
     ZeroMemory(&input,sizeof(INPUT));
     input.type=INPUT_MOUSE;
-    
+
     if (passed){
         if (button==1) {input.mi.dwFlags=MOUSEEVENTF_LEFTDOWN;}
         if (button==2) {input.mi.dwFlags=MOUSEEVENTF_RIGHTDOWN;}
@@ -24085,14 +23596,14 @@ return -1;
 
     static CGEventSourceRef es;
     static CGEventRef e;
- 
+
     for (i=0;i<txt->len;i++){
       c=txt->chr[i];
 
       //static int32 i,s,x,vk,c;
 
       /*
-    CONTROL+{A-Z} 
+    CONTROL+{A-Z}
     The following 'x' letters cannot be simulated this way because they map to implemented control code (8,9,13) functionality:
     ABCDEFGHIJKLMNOPQRSTUVWXYZ
     .......xx...x.............
@@ -24248,7 +23759,7 @@ return -1;
       //...
 
       /*
-    CONTROL+{A-Z} 
+    CONTROL+{A-Z}
     The following 'x' letters cannot be simulated this way because they map to above functionality:
     ABCDEFGHIJKLMNOPQRSTUVWXYZ
     .......xx...x.............
@@ -24293,9 +23804,9 @@ return -1;
       vk=x&255;
 
       s=(x>>8)&255;
-      //1 Either shift key is pressed. 
-      //2 Either CTRL key is pressed. 
-      //4 Either ALT key is pressed. 
+      //1 Either shift key is pressed.
+      //2 Either CTRL key is pressed.
+      //4 Either ALT key is pressed.
       if (s&1){
     ZeroMemory(&input,sizeof(INPUT));
     input.type=INPUT_KEYBOARD;
@@ -24360,7 +23871,7 @@ return -1;
     }else i=1;
     if (i){//add * (and new NULL term.)
       strz->chr[strz->len-1]=42;//"*"
-      qbs_set(strz,qbs_add(strz,qbs_new_txt_len("\0",1))); 
+      qbs_set(strz,qbs_add(strz,qbs_new_txt_len("\0",1)));
     }
 
     qbs_set(strpath,strz);
@@ -24369,7 +23880,7 @@ return -1;
       if ((strpath->chr[i-1]==47)||(strpath->chr[i-1]==92)){strpath->len=i; break;}
     }//i
     if (i==0) strpath->len=0;//no path specified
- 
+
     //print the current path
     //note: for QBASIC compatibility reasons it does not print the directory name of the files being displayed
     static uint8 curdir[4096];
@@ -24418,7 +23929,7 @@ return -1;
 
       makefit(strz2);
       qbs_print(strz2,0);
- 
+
     }while(FindNextFile(hFind,&fd));
     FindClose(hFind);
 
@@ -24873,7 +24384,7 @@ return -1;
     if (item_x<(x2*8+leeway_x)){//cannot fit min. width
       item_x=(x2*8+leeway_x); row_limit=(w/(x2*8+leeway_x))*(x2*8+leeway_x)-leeway_x;
       if (item_x>w){item_x=w; row_limit=w-leeway_x;}//can't even fit 1!
-    }  
+    }
       }
     }else{
       item_x=w/12; row_limit=item_x*12;
@@ -25170,13 +24681,13 @@ dst_himg->depthbuffer_mode=new_mode;
 void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2,float sx3,float sy3,int32 si,float fdx1,float fdy1,float fdz1,float fdx2,float fdy2,float fdz2,float fdx3,float fdy3,float fdz3,int32 di,int32 smooth_options,int32 passed){
     //[{_CLOCKWISE|_ANTICLOCKWISE}][{_SEAMLESS}](?,?)-(?,?)-(?,?)[,?]{TO}(?,?[,?])-(?,?[,?])-(?,?[,?])[,[?][,{_SMOOTH|_SMOOTHSHRUNK|_SMOOTHSTRETCHED}]]"
     //  (1)       (2)              1                             2           4         8         16    32   (1)     (2)           (3)
-    
+
     if (new_error) return;
-    
+
     static int32 dwidth,dheight,swidth,sheight,swidth2,sheight2;
     static int32 lhs,rhs,lhs1,lhs2,top,bottom,temp,flats,flatg,final,tile,no_edge_overlap;
     flats=0; final=0; tile=0; no_edge_overlap=0;
-    static int32 v,i,x,x1,x2,y,y1,y2,z,h,ti,lhsi,rhsi,d; 
+    static int32 v,i,x,x1,x2,y,y1,y2,z,h,ti,lhsi,rhsi,d;
     static int32 g1x,g2x,g1tx,g2tx,g1ty,g2ty,g1xi,g2xi,g1txi,g2txi,g1tyi,g2tyi,tx,ty,txi,tyi,roff,loff;
     static int64 i64;
     static img_struct *src,*dst;
@@ -25224,7 +24735,7 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
     hardware_graphics_command_struct* hgc=(hardware_graphics_command_struct*)list_get(hardware_graphics_command_handles,hgch);
 
     hgc->remove=0;
- 
+
     //set command values
     if (use3d){
         hgc->command=HARDWARE_GRAPHICS_COMMAND__MAPTRIANGLE3D;
@@ -25258,7 +24769,7 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
         if (dst==-1) hgc->depthbuffer_mode=depthbuffer_mode1;
         if (dst_himg!=NULL){
              hgc->depthbuffer_mode=dst_himg->depthbuffer_mode;
-        }        
+        }
     }
 
     hgc->smooth=smooth_options;
@@ -25908,7 +25419,7 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
     static img_struct *im;
     if (passed){
       if (i>=0){
-    validatepage(i); im=&img[image_handle=page[i]]; 
+    validatepage(i); im=&img[image_handle=page[i]];
     image_handle=-image_handle;
       }else{
     image_handle=i;
@@ -25959,7 +25470,7 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
     //checking A
     if ( ((mem_block*)(blk))->lock_offset==NULL ){error(309); goto fail;}
     //checking B
-    if ( 
+    if (
     off< ((mem_block*)(blk))->offset || (off+bytes)> (((mem_block*)(blk))->offset+((mem_block*)(blk))->size) ||
     ((mem_lock*)(((mem_block*)(blk))->lock_offset))->id!=((mem_block*)(blk))->lock_id
      ){
@@ -26053,33 +25564,6 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   void sub__memcopy(void *sblk,ptrszint soff,ptrszint bytes,void *dblk,ptrszint doff){
     //checking A
     if ( ((mem_block*)(sblk))->lock_offset==NULL || ((mem_block*)(dblk))->lock_offset==NULL ){
@@ -26129,7 +25613,7 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
 
   double func_rad2deg (double value) {
     return (value * 57.29577951308232);
-  } 
+  }
 
   double func_deg2grad (double value) {
     return (value * 1.111111111111111);
@@ -26141,11 +25625,11 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
 
   double func_rad2grad (double value) {
     return (value * 63.66197723675816);
-  } 
+  }
 
   double func_grad2rad (double value) {
     return (value * .01570796326794896);
-  } 
+  }
 
   double func_pi (double multiplier,int32 passed) {
     if (passed) {return 3.14159265358979323846264338327950288419716939937510582 * multiplier;}
@@ -26227,10 +25711,10 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
       keyup_vk(VK+QBVK_LALT);
     }
     */
-#endif 
+#endif
 
-//Note: The following is required regardless of whether FREEGLUT is/isn't being used          
-//#ifdef CORE_FREEGLUT          
+//Note: The following is required regardless of whether FREEGLUT is/isn't being used
+//#ifdef CORE_FREEGLUT
     //Is CTRL key down? If so, unencode character (applying shift as required)
     if (mod&2){
       //if (key==127){ //Removed: Might clash with CTRL+DELETE
@@ -26276,12 +25760,6 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
   }
 
   void GLUT_KEYBOARD_FUNC(unsigned char key,int x, int y){
-
-          
- 
-          
-          
-
     //glutPostRedisplay();
 
     //qbs_print(qbs_str(key),0);
@@ -26319,7 +25797,7 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
     }
         */
 #endif
-          
+
     static int32 vk;
     vk=-1;
     if (key==GLUT_KEY_F1){vk=0x3B00;}
@@ -26376,7 +25854,7 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
 #ifdef QB64_GLUT
     glutPostRedisplay();
     int32 msdelay=1000.0/max_fps;
-    Sleep(4); msdelay-=4;//this forces GLUT to relinquish some CPU time to other threads but still allow for _FPS 100+ 
+    Sleep(4); msdelay-=4;//this forces GLUT to relinquish some CPU time to other threads but still allow for _FPS 100+
     if (msdelay<1) msdelay=1;
     glutTimerFunc(msdelay,GLUT_TIMER_EVENT,0);
 #endif
@@ -26384,17 +25862,17 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
 #else
   void GLUT_IDLEFUNC(){
 
-#ifdef QB64_MACOSX          
+#ifdef QB64_MACOSX
 #ifdef DEPENDENCY_DEVICEINPUT
           //must be in same thread as GLUT for OSX
           QB64_GAMEPAD_POLL();
           //[[[[NSApplication sharedApplication] mainWindow] standardWindowButton:NSWindowCloseButton] setEnabled:YES];
-#endif         
 #endif
-          
+#endif
+
 #ifdef QB64_GLUT
 
-    if (x11_lock_request){     
+    if (x11_lock_request){
      x11_locked=1;
      x11_lock_request=0;
      while (x11_locked) Sleep(1);
@@ -26453,7 +25931,7 @@ void sub__maptriangle(int32 cull_options,float sx1,float sy1,float sx2,float sy2
     if (resize_event){
       resize_event=0;
       return -1;
-    } 
+    }
     return 0;
   }
 
@@ -26535,25 +26013,14 @@ qbs *func__startdir(){
 
 qbs *rootDir=NULL;//the dir moved to when program begins
 
-char *android_dir_downloads=NULL;
-char *android_dir_documents=NULL;
-char *android_dir_pictures=NULL;
-char *android_dir_music=NULL;
-char *android_dir_video=NULL;
-char *android_dir_dcim=NULL;
-
 qbs *func__dir(qbs* context_in){
-    
+
     	static qbs *context=NULL;
 	if (!context){context=qbs_new(0,0);}
 
 	qbs_set(context,qbs_ucase(context_in));
 
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("TEXT"))||qbs_equal(qbs_ucase(context),qbs_new_txt("DOCUMENT"))||qbs_equal(qbs_ucase(context),qbs_new_txt("DOCUMENTS"))||qbs_equal(qbs_ucase(context),qbs_new_txt("MY DOCUMENTS"))){
-		#ifdef QB64_ANDROID
-            mkdir(android_dir_documents,0770);
-			return qbs_new_txt(android_dir_documents);
-		#endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,5,NULL,0,osPath))){ //Documents
@@ -26561,12 +26028,8 @@ qbs *func__dir(qbs* context_in){
 			}
 		#endif
 	}
-	
+
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("MUSIC"))||qbs_equal(qbs_ucase(context),qbs_new_txt("AUDIO"))||qbs_equal(qbs_ucase(context),qbs_new_txt("SOUND"))||qbs_equal(qbs_ucase(context),qbs_new_txt("SOUNDS"))||qbs_equal(qbs_ucase(context),qbs_new_txt("MY MUSIC"))){
-		#ifdef QB64_ANDROID
-            mkdir(android_dir_music,0770);
-			return qbs_new_txt(android_dir_music);
-		#endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,13,NULL,0,osPath))){ //Music
@@ -26576,10 +26039,6 @@ qbs *func__dir(qbs* context_in){
 	}
 
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("PICTURE"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PICTURES"))||qbs_equal(qbs_ucase(context),qbs_new_txt("IMAGE"))||qbs_equal(qbs_ucase(context),qbs_new_txt("IMAGES"))||qbs_equal(qbs_ucase(context),qbs_new_txt("MY PICTURES"))){
-		#ifdef QB64_ANDROID
-            		mkdir(android_dir_pictures,0770);
-			return qbs_new_txt(android_dir_pictures);
-		#endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,39,NULL,0,osPath))){//Pictures
@@ -26589,10 +26048,6 @@ qbs *func__dir(qbs* context_in){
 	}
 
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("DCIM"))||qbs_equal(qbs_ucase(context),qbs_new_txt("CAMERA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("CAMERA ROLL"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PHOTO"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PHOTOS"))){
-		#ifdef QB64_ANDROID
-            		mkdir(android_dir_dcim,0770);
-			return qbs_new_txt(android_dir_dcim);
-		#endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,39,NULL,0,osPath))){//Pictures
@@ -26602,10 +26057,6 @@ qbs *func__dir(qbs* context_in){
 	}
 
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("MOVIE"))||qbs_equal(qbs_ucase(context),qbs_new_txt("MOVIES"))||qbs_equal(qbs_ucase(context),qbs_new_txt("VIDEO"))||qbs_equal(qbs_ucase(context),qbs_new_txt("VIDEOS"))||qbs_equal(qbs_ucase(context),qbs_new_txt("MY VIDEOS"))){
-		#ifdef QB64_ANDROID
-			mkdir(android_dir_video,0770);
-			return qbs_new_txt(android_dir_video);
-		#endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,14,NULL,0,osPath))){ //Videos
@@ -26615,10 +26066,6 @@ qbs *func__dir(qbs* context_in){
 	}
 
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("DOWNLOAD"))||qbs_equal(qbs_ucase(context),qbs_new_txt("DOWNLOADS"))){
-		#ifdef QB64_ANDROID
-	        	mkdir(android_dir_downloads,0770);
-			return qbs_new_txt(android_dir_downloads);
-		#endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,0x0028,NULL,0,osPath))){//user folder
@@ -26630,10 +26077,6 @@ qbs *func__dir(qbs* context_in){
 	}
 
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("DESKTOP"))){
-		#ifdef QB64_ANDROID
-			mkdir(android_dir_downloads,0770);
-			return qbs_new_txt(android_dir_downloads);
-		#endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,0,NULL,0,osPath))){ //Desktop
@@ -26643,9 +26086,6 @@ qbs *func__dir(qbs* context_in){
 	}
 
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("APPDATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("APPLICATION DATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAM DATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("DATA"))){
-		#ifdef QB64_ANDROID			
-			return qbs_add(rootDir,qbs_new_txt("/"));
-		#endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,0x001a,NULL,0,osPath))){ //CSIDL_APPDATA (%APPDATA%)
@@ -26655,9 +26095,6 @@ qbs *func__dir(qbs* context_in){
 	}
 
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("LOCALAPPDATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("LOCAL APPLICATION DATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("LOCAL PROGRAM DATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("LOCAL DATA"))){
-		#ifdef QB64_ANDROID
-			return qbs_add(rootDir,qbs_new_txt("/"));
-		#endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,0x001c,NULL,0,osPath))){ //CSIDL_LOCAL_APPDATA (%LOCALAPPDATA%)
@@ -26674,10 +26111,6 @@ qbs *func__dir(qbs* context_in){
 		}
 		return qbs_new_txt(".\\");//current location
 	#else
-		#ifdef QB64_ANDROID
-            		mkdir(android_dir_downloads,0770);
-			return qbs_new_txt(android_dir_downloads);
-		#endif
 		return qbs_new_txt("./");//current location
 	#endif
 }
@@ -26769,9 +26202,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
 #endif
 
 
-
-
-
     onkey[1].keycode=59<<8;//F1-F10
     onkey[2].keycode=60<<8;
     onkey[3].keycode=61<<8;
@@ -26799,11 +26229,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
     ontimer[0].active=0;
 
 
-
-
-
-
-
     {
       /* For bounds check on numeric ENVIRON$ */
       char **p = envp;
@@ -26823,11 +26248,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
     img[x].valid=0;
     x=newimg();//reserve index 1
     img[x].valid=0;
-
-
-
-
-
 
 
 
@@ -26870,11 +26290,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
     segreg[5]=&cpu.gs;
 
 #ifdef QB64_WINDOWS
-
-
-
-
-
     /*
 
       HANDLE WINAPI GetStdHandle(
@@ -26883,21 +26298,21 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
       STD_INPUT_HANDLE
       (DWORD)-10
 
-    
+
 
       The standard input device. Initially, this is the console input buffer, CONIN$.
 
       STD_OUTPUT_HANDLE
       (DWORD)-11
 
-    
+
 
       The standard output device. Initially, this is the active console screen buffer, CONOUT$.
 
       STD_ERROR_HANDLE
       (DWORD)-12
 
-    
+
 
       The standard error device. Initially, this is the active console screen buffer, CONOUT$.
 
@@ -26906,8 +26321,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
       //   __in  DWORD dwMode
       // );
       */
-
-
 
 #endif
 
@@ -26923,14 +26336,6 @@ render_state.cull_mode=CULL_MODE__UNKNOWN;
     mem_static_limit=mem_static+mem_static_size;
 
     memset(&cmem[0],0,sizeof(cmem));
-
-
-
-
-
-
-
-
 
 
     memset(&keyon[0],0,sizeof(keyon));
@@ -26973,7 +26378,7 @@ qbs_set(startDir,func__cwd());
                 {
                         char pathbuf[65536];
                         uint32_t pathbufsize = sizeof(pathbuf);
-                        _NSGetExecutablePath(pathbuf, &pathbufsize);                        
+                        _NSGetExecutablePath(pathbuf, &pathbufsize);
                         chdir(dirname(pathbuf));
                 }
 #endif
@@ -27024,7 +26429,7 @@ qbs_set(rootDir,func__cwd());
     //call both timing routines as close as possible to each other to maximize accuracy
     //wait for second "hand" to "tick over"/move
     time(&qb64_tm_val_old);
-    //note: time() returns the time as seconds elapsed since midnight, January 1, 1970, or -1 in the case of an error. 
+    //note: time() returns the time as seconds elapsed since midnight, January 1, 1970, or -1 in the case of an error.
     if (qb64_tm_val_old!=-1){
       do{
     time(&qb64_tm_val);
@@ -27055,7 +26460,7 @@ qbs_set(rootDir,func__cwd());
 
     //init truetype .ttf/.fon font library
 
-#ifdef QB64_WINDOWS 
+#ifdef QB64_WINDOWS
     //for caps lock, use the state of the lock (=1)
     //for held keys check against (=-127)
     if (GetKeyState(VK_SCROLL)&1) keyheld_add(QBK+QBK_SCROLL_LOCK_MODE);
@@ -27135,10 +26540,6 @@ qbs_set(rootDir,func__cwd());
     memcpy(img[-image_qbicon32_handle].offset32,&image_qbicon32[0],image_qbicon32_w*image_qbicon32_h*4);
 
 
-
-
-
-
 //setup default _DEVICE(s)
 i=0;
 
@@ -27171,7 +26572,7 @@ QB64_GAMEPAD_INIT();
     {
       uintptr_t thread_handle = _beginthread(QBMAIN_WINDOWS,0,NULL);
       SetThreadPriority((HANDLE)thread_handle, THREAD_PRIORITY_NORMAL);
-    }    
+    }
 #else
     {
       static pthread_t thread_handle;
@@ -27179,7 +26580,7 @@ QB64_GAMEPAD_INIT();
     }
 #endif
 
-#ifdef QB64_WINDOWS    
+#ifdef QB64_WINDOWS
     {
       uintptr_t thread_handle = _beginthread(TIMERTHREAD_WINDOWS,0,NULL);
       SetThreadPriority((HANDLE)thread_handle, THREAD_PRIORITY_NORMAL);
@@ -27190,16 +26591,6 @@ QB64_GAMEPAD_INIT();
       pthread_create(&thread_handle,NULL,&TIMERTHREAD_LINUX,NULL);
     }
 #endif
-
-
-
-
-
-
-    
-
-
-
 
 
 
@@ -27232,7 +26623,7 @@ QB64_GAMEPAD_INIT();
     //that is not required, so run MAIN_LOOP() in our primary thread
     MAIN_LOOP();
     exit(0);
-#endif    
+#endif
 
 #ifdef QB64_WINDOWS
     {
@@ -27247,14 +26638,14 @@ QB64_GAMEPAD_INIT();
 #endif
 
     if (!screen_hide) create_window=1;
-    
+
     while (!create_window){Sleep(100);}
 
 
 #ifdef QB64_GLUT
     glutInit(&argc, argv);
 
-#ifdef QB64_MACOSX  
+#ifdef QB64_MACOSX
           //This is a global keydown handler for OSX, it requires assistive devices in asseccibility to be enabled
           //becuase of security concerns (QB64 will not use this)
           /*
@@ -27265,7 +26656,7 @@ QB64_GAMEPAD_INIT();
            NSLog(@"keydown globally! Which key? This key: %c", character);
        }];
           */
-                     
+
           /*
           [NSEvent addLocalMonitorForEventsMatchingMask:NSKeyDownMask handler:^NSEvent* (NSEvent* event){
            //NSString *keyPressed = event.charactersIgnoringModifiers;
@@ -27278,20 +26669,20 @@ QB64_GAMEPAD_INIT();
       */
 
       //[[[[NSApplication sharedApplication] mainWindow] standardWindowButton:NSWindowCloseButton] setEnabled:YES];
-          
+
           [NSEvent addLocalMonitorForEventsMatchingMask:NSFlagsChangedMask handler:^NSEvent* (NSEvent* event){
-           
+
            //notes on bitfields:
            //if ([event modifierFlags] == 131330) keydown_vk(VK+QBVK_LSHIFT);// 100000000100000010
-           //if ([event modifierFlags] == 131332) keydown_vk(VK+QBVK_RSHIFT);// 100000000100000100                      
+           //if ([event modifierFlags] == 131332) keydown_vk(VK+QBVK_RSHIFT);// 100000000100000100
            //if ([event modifierFlags] == 262401) keydown_vk(VK+QBVK_LCTRL); //1000000000100000001
-           //if ([event modifierFlags] == 270592) keydown_vk(VK+QBVK_RCTRL); //1000010000100000000           
+           //if ([event modifierFlags] == 270592) keydown_vk(VK+QBVK_RCTRL); //1000010000100000000
            //if ([event modifierFlags] == 524576) keydown_vk(VK+QBVK_LALT); //10000000000100100000
            //if ([event modifierFlags] == 524608) keydown_vk(VK+QBVK_RALT); //10000000000101000000
        //caps lock                                                      //   10000000100000000
-           
+
            int x=[event modifierFlags];
-           
+
            if (x&(1<<0)){
            if (!keyheld(VK+QBVK_LCTRL)) keydown_vk(VK+QBVK_LCTRL);
            }else{
@@ -27302,7 +26693,7 @@ QB64_GAMEPAD_INIT();
            }else{
            if (keyheld(VK+QBVK_RCTRL)) keyup_vk(VK+QBVK_RCTRL);
            }
-           
+
            if (x&(1<<1)){
            if (!keyheld(VK+QBVK_LSHIFT)) keydown_vk(VK+QBVK_LSHIFT);
            }else{
@@ -27313,7 +26704,7 @@ QB64_GAMEPAD_INIT();
            }else{
            if (keyheld(VK+QBVK_RSHIFT)) keyup_vk(VK+QBVK_RSHIFT);
            }
-           
+
            if (x&(1<<5)){
            if (!keyheld(VK+QBVK_LALT)) keydown_vk(VK+QBVK_LALT);
            }else{
@@ -27324,46 +26715,46 @@ QB64_GAMEPAD_INIT();
            }else{
            if (keyheld(VK+QBVK_RALT)) keyup_vk(VK+QBVK_RALT);
            }
-           
+
            if (x&(1<<16)){
            if (!keyheld(VK+QBVK_CAPSLOCK)) keydown_vk(VK+QBVK_CAPSLOCK);
            }else{
            if (keyheld(VK+QBVK_CAPSLOCK)) keyup_vk(VK+QBVK_CAPSLOCK);
            }
-           
+
            return event;
            }];
-          
+
        /*
           [NSEvent addLocalMonitorForEventsMatchingMask:NSKeyDownMask|NSFlagsChangedMask handler:^NSEvent *(NSEvent *incomingEvent) {
            if (incomingEvent.type == NSFlagsChanged && (incomingEvent.modifierFlags & NSDeviceIndependentModifierFlagsMask)) {
            NSLog(@"modifier key down");
            } else if (incomingEvent.type == NSKeyDown) {
            NSLog(@"other key down");
-           }           
+           }
            return incomingEvent;
        }];
-       */          
-                    
+       */
+
           /*
           if (NSApp){
                   NSMenu      *menu;
-                  NSMenuItem  *menuItem;  
-                  
+                  NSMenuItem  *menuItem;
+
                   [NSApp setMainMenu:[[NSMenu alloc] init]];
-                  
+
                   menu = [[NSMenu alloc] initWithTitle:@""];
-                  [menu addItemWithTitle:@"About..." action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""]; 
-                  
+                  [menu addItemWithTitle:@"About..." action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+
                   menuItem = [[NSMenuItem alloc] initWithTitle:@"Apple" action:nil keyEquivalent:@""];
                   [menuItem setSubmenu:menu];
                   [[NSApp mainMenu] addItem:menuItem];
                   [NSApp setAppleMenu:menu];
-     }  
+     }
          */
 
-#endif 
-          
+#endif
+
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
     glutInitWindowSize(640,400);//cannot be changed unless display_x(etc) are modified
@@ -27371,7 +26762,7 @@ QB64_GAMEPAD_INIT();
     //glutInitWindowPosition(300, 200);
 
     if (!glutGet(GLUT_DISPLAY_MODE_POSSIBLE))//must be called on Linux or GLUT crashes
-      { 
+      {
     exit(1);
       }
 
@@ -27434,12 +26825,12 @@ QB64_GAMEPAD_INIT();
     int32 update=0;//0=update input,1=update display
 
   main_loop:
-    
+
         #ifdef DEPENDENCY_DEVICEINPUT
-                #ifndef QB64_MACOSX 
+                #ifndef QB64_MACOSX
                         QB64_GAMEPAD_POLL();
                 #endif
-        #endif        
+        #endif
 
     if (lock_mainloop==1){
       lock_mainloop=2;
@@ -27507,7 +26898,7 @@ QB64_GAMEPAD_INIT();
       char * buffer;
       size_t result;
       pFile = NULL;
-  
+
       static char filename[] = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
       sprintf(filename, "input_%d.txt\0", qloud_next_input_index);
       pFile = fopen ( filename , "rb" );
@@ -27548,9 +26939,9 @@ QB64_GAMEPAD_INIT();
         start++;
 
         #ifdef QB64_GUI
-        
+
         if (code==77){//M (mousemove)
-          sscanf (buffer+start,"%d,%d",&v1,&v2);          
+          sscanf (buffer+start,"%d,%d",&v1,&v2);
           GLUT_MOTION_FUNC(v1,v2);
         }//M
 
@@ -27645,7 +27036,7 @@ QB64_GAMEPAD_INIT();
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
       };
 
-#ifdef QB64_WINDOWS 
+#ifdef QB64_WINDOWS
       //manage important external keyboard lock/state changes
       if ((GetKeyState(VK_SCROLL)&1)!=keyheld(QBK+QBK_SCROLL_LOCK_MODE)){
     if (keyheld(QBK+QBK_SCROLL_LOCK_MODE)){
@@ -27702,7 +27093,7 @@ QB64_GAMEPAD_INIT();
 
     if (cloud_app){
       FILE *f = fopen("..\\final.txt", "w");
-      if (f != NULL){        
+      if (f != NULL){
         fprintf(f, "Program exited normally");
         fclose(f);
       }
@@ -27711,13 +27102,6 @@ QB64_GAMEPAD_INIT();
 
     exit(exit_code);
   }
-
-
-
-
-
-
-
 
 
   //used to preserve the previous frame's content for comparison/reuse purposes
@@ -27759,9 +27143,6 @@ QB64_GAMEPAD_INIT();
       BGRA_to_RGBA=1;
     }
 
-
-
-
     if (lock_display==1){lock_display=2; Sleep(0);}
 
     if (cloud_app==0){
@@ -27787,7 +27168,7 @@ QB64_GAMEPAD_INIT();
       //or preferably an unused frame if possible (note: this check happens 2nd for threading reasons)
       for (i=0;i<=2;i++){
     if (display_frame[i].state==DISPLAY_FRAME_STATE__EMPTY){
-      frame_i=i;    
+      frame_i=i;
     }
       }
       if (frame_i==-1){
@@ -27971,11 +27352,11 @@ QB64_GAMEPAD_INIT();
           highest_order=display_frame[i3].order;
           i2=i3;
         }
-      } 
+      }
       if (i2!=-1){
         memcpy(display_frame[frame_i].bgra,display_frame[i2].bgra,display_frame[frame_i].w*display_frame[frame_i].h*4);
       }else{
-        alert("Text Screen Update: Failed to locate previous frame's data for comparison"); 
+        alert("Text Screen Update: Failed to locate previous frame's data for comparison");
         check_last=0;//never occurs, safe-guard only
       }
     }
@@ -28106,7 +27487,7 @@ QB64_GAMEPAD_INIT();
           }
           //RULE: IF V1<=1, IF V2<=3 FROM V1 TO V3 ELSE FROM V1 TO BOTTOM
           if (v1<=1){
-        if (v2<=3){begin=v1;size=v2-v1+1; goto cursor_created;} 
+        if (v2<=3){begin=v1;size=v2-v1+1; goto cursor_created;}
         begin=v1;size=255; goto cursor_created;
           }
           //RULE: IF V1=2, IF V2=3, 2 TO 3
@@ -28206,33 +27587,12 @@ QB64_GAMEPAD_INIT();
       }//text
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       if (display_page->bits_per_pixel==32){
 
     //note: as software->hardware should be avoided at all costs, pixeldata is
     //      still backed up for comparison purposes because in the very likely
-    //      event the data has not changed there is no point generating a 
-    //      new hardware surface from the software frame when the old hardware surface 
+    //      event the data has not changed there is no point generating a
+    //      new hardware surface from the software frame when the old hardware surface
     //      can be reused. It also saves on BGRA->RGBA conversion on some platforms.
 
     if (!BGRA_to_RGBA){
@@ -28248,9 +27608,9 @@ QB64_GAMEPAD_INIT();
           highest_order=display_frame[i3].order;
           i2=i3;
         }
-      } 
+      }
       if (force_display_update) goto update_display32b; //force update
-      if (i2!=-1){  
+      if (i2!=-1){
         if (!screen_last_valid) goto update_display32b; //force update because of mode change?
         i=display_page->width*display_page->height*4;
         if (i!=(display_frame[i2].w*display_frame[i2].h*4)) goto update_display32b;
@@ -28259,13 +27619,13 @@ QB64_GAMEPAD_INIT();
           //a valid frame of the correct dimensions exists and we are not required to display software content
           goto no_new_frame;
         }
-        
+
         if (memcmp(display_frame[i2].bgra,display_page->offset,i)) goto update_display32b;
         goto no_new_frame;//no need to update display
       }
     update_display32b:;
     }else{
- 
+
      //BGRA_to_RGBA
       i=display_page->width*display_page->height*4;
       if (i!=pixeldatasize){
@@ -28321,18 +27681,6 @@ QB64_GAMEPAD_INIT();
 
     goto screen_refreshed;
       }//32
-
-
-
-
-
-
-
-
-
-
-
-
 
 
       //assume <=256 colors using palette
@@ -28409,12 +27757,6 @@ QB64_GAMEPAD_INIT();
       goto screen_refreshed;
 
 
-
-
-
-
-
-
     screen_refreshed:
 
       force_display_update=0;
@@ -28448,7 +27790,7 @@ QB64_GAMEPAD_INIT();
       */
 
       static HANDLE cloud_screenshot_file_handle=NULL;
-      if (cloud_screenshot_file_handle==NULL) cloud_screenshot_file_handle=CreateFile("output_image.raw", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, 
+      if (cloud_screenshot_file_handle==NULL) cloud_screenshot_file_handle=CreateFile("output_image.raw", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS,
                                               /*FILE_ATTRIBUTE_NORMAL*/FILE_FLAG_WRITE_THROUGH, NULL);
 
 
@@ -28493,12 +27835,9 @@ QB64_GAMEPAD_INIT();
     }//lock_display==0
     if (lock_display==1){lock_display=2; Sleep(0);}
     if (autodisplay==-1) autodisplay=0;
-    display_called=1; 
+    display_called=1;
     return;
   }
-
-
-
 
 
   /*
@@ -28515,7 +27854,7 @@ QB64_GAMEPAD_INIT();
     SDL_Rect rect;
     SDL_Surface *surface;
     SDL_Event eventExpose;
-    
+
     switch(event.type){
     case SDL_QUIT:
     return 1;
@@ -28524,9 +27863,6 @@ QB64_GAMEPAD_INIT();
     SDL_UpdateRect(screen, 0, 0, 0, 0);
     break;
     case SDL_KEYDOWN:
-
-
-            
 
 
     if (event.key.keysym.sym == QBVK_F1) {
@@ -28801,8 +28137,8 @@ QB64_GAMEPAD_INIT();
     //CTRL+BREAK handling
     if (
     (x==(VK+QBVK_BREAK))
-    || ((x==(VK+QBVK_SCROLLOCK))&&(keyheld(VK+QBVK_LCTRL)||keyheld(VK+QBVK_RCTRL))) 
-    || ((x==(VK+QBVK_F15))&&(keyheld(VK+QBVK_LCTRL)||keyheld(VK+QBVK_RCTRL))) 
+    || ((x==(VK+QBVK_SCROLLOCK))&&(keyheld(VK+QBVK_LCTRL)||keyheld(VK+QBVK_RCTRL)))
+    || ((x==(VK+QBVK_F15))&&(keyheld(VK+QBVK_LCTRL)||keyheld(VK+QBVK_RCTRL)))
     ){
       if (exit_blocked){exit_value|=2; goto key_handled;}
       close_program=1;
@@ -28817,7 +28153,7 @@ QB64_GAMEPAD_INIT();
           close_program=1;
           goto key_handled;
         }
-    #endif    
+    #endif
 
     //note: On early keyboards without a Pause key (before the introduction of 101-key keyboards) the Pause function was assigned to Ctrl+NumLock, and the Break function to Ctrl+ScrLock; these key-combinations still work with most programs, even on modern PCs with modern keyboards.
     //PAUSE handling
@@ -28846,9 +28182,9 @@ QB64_GAMEPAD_INIT();
         fullscreen_smooth=1;
       }else{
         fs_mode++;
-        fullscreen_smooth=0;   
+        fullscreen_smooth=0;
       }
-    } 
+    }
     if (full_screen!=fs_mode) full_screen_set=fs_mode;
     force_display_update=1;
     goto key_handled;
@@ -29038,7 +28374,7 @@ QB64_GAMEPAD_INIT();
             //mask trigger key
             for (i=0;i<=keyup_mask_last;i++){
               if (!keyup_mask[i]){
-            keyup_mask[i]=x;  
+            keyup_mask[i]=x;
             break;
               }
             }
@@ -29073,7 +28409,7 @@ QB64_GAMEPAD_INIT();
           //mask trigger key
           for (i=0;i<=keyup_mask_last;i++){
             if (!keyup_mask[i]){
-              keyup_mask[i]=x;  
+              keyup_mask[i]=x;
               break;
             }
           }
@@ -29103,7 +28439,7 @@ QB64_GAMEPAD_INIT();
           static int32 i;
           for (i=0;i<=keyup_mask_last;i++){
             if (!keyup_mask[i]){
-              keyup_mask[i]=x;  
+              keyup_mask[i]=x;
               break;
             }
           }
@@ -29357,7 +28693,7 @@ QB64_GAMEPAD_INIT();
         if (uMsg==WM_KEYDOWN){
 
         if (device_last){//core devices required?
-        
+
         /*
         16-23        The scan code. The value depends on the OEM.
         24        Indicates whether the key is an extended key, such as the right-hand ALT and CTRL keys that appear on an enhanced 101- or 102-key keyboard. The value is 1 if it is an extended key; otherwise, it is 0.
@@ -29365,7 +28701,7 @@ QB64_GAMEPAD_INIT();
 
           static int32 code,special;
           special=0;//set to 2 for keys which we cannot detect a release for
-          code=(lParam>>16)&511;          
+          code=(lParam>>16)&511;
 
         keydown_special:
         static device_struct *d;
@@ -29378,7 +28714,7 @@ QB64_GAMEPAD_INIT();
           if (special==1) setDeviceEventButtonValue(d,eventIndex,code,0);
           commitDeviceEvent(d);
 
-        }//not 1          
+        }//not 1
         }//core devices required
 
 }//WM_KEYDOWN
@@ -29387,7 +28723,7 @@ QB64_GAMEPAD_INIT();
         if (uMsg==WM_KEYUP){
 
         if (device_last){//core devices required?
-        
+
         /*
         16-23        The scan code. The value depends on the OEM.
         24        Indicates whether the key is an extended key, such as the right-hand ALT and CTRL keys that appear on an enhanced 101- or 102-key keyboard. The value is 1 if it is an extended key; otherwise, it is 0.
@@ -29395,7 +28731,7 @@ QB64_GAMEPAD_INIT();
 
           static int32 code;
 
-          code=(lParam>>16)&511;          
+          code=(lParam>>16)&511;
 
         static device_struct *d;
         d=&devices[1];//keyboard
@@ -29405,24 +28741,10 @@ QB64_GAMEPAD_INIT();
 	  setDeviceEventButtonValue(d,eventIndex,code,0);
           commitDeviceEvent(d);
 
-        }//not 1          
+        }//not 1
         }//core devices required
 
 }//WM_KEYUP
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     }
     if (*qb64_os_event_info==OS_EVENT_POST_PROCESSING){
