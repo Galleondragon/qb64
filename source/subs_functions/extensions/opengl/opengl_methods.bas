@@ -70,6 +70,7 @@ IF GL_KIT THEN hk = FREEFILE: OPEN "internal\c\parts\core\gl_header_for_parsing\
 IF GL_KIT THEN PRINT #hk, "DECLARE LIBRARY"
 
 d = 0: a2$ = ""
+glVersion$ = ""
 h = FREEFILE
 OPEN "internal\c\parts\core\gl_header_for_parsing\gl.h" FOR INPUT AS #h
 DO UNTIL EOF(h)
@@ -121,6 +122,10 @@ DO UNTIL EOF(h)
             got_define:
         END IF '#define
 
+		'checking for GLEW Version
+		IF LEFT$(a$, 14) = "//GLEW_VERSION" THEN
+		    glVersion$ = RIGHT$(a$, LEN(a$)-2)
+		END IF
 
         IF RIGHT$(a$, 1) = ";" THEN
             a2$ = readchunk(a$, l$): IF a2$ <> "WINGDIAPI" GOTO discard
@@ -263,7 +268,7 @@ DO UNTIL EOF(h)
             hd$ = hd$ + "){"
             hc$ = hc$ + ");"
             IF GL_KIT THEN PRINT #hk, ")"
-            h$ = hd$ + CRLF + "if (!sub_gl_called) error(270);" + CRLF + hc$ + CRLF + "}" + CRLF
+            h$ = hd$ + CRLF + "if (!sub_gl_called) error(270);" + CRLF + "if (!" + glVersion$ + ")error(5);" + CRLF + hc$ + CRLF + "}" + CRLF
 
             IF need_helper_function THEN 'do we need the helper function for this command?
                 GL_HELPER_CODE = GL_HELPER_CODE + h$
