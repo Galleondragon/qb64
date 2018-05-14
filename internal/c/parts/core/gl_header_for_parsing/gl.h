@@ -1036,6 +1036,7 @@ typedef void (APIENTRY *PFNGLGETCOLORTABLEEXTPROC)(GLenum target,GLenum format,G
 typedef void (APIENTRY *PFNGLGETCOLORTABLEPARAMETERIVEXTPROC)(GLenum target,GLenum pname,GLint *params);
 typedef void (APIENTRY *PFNGLGETCOLORTABLEPARAMETERFVEXTPROC)(GLenum target,GLenum pname,GLfloat *params);
 
+
 #ifdef __cplusplus
 }
 #endif

@@ -27363,7 +27363,7 @@ QB64_GAMEPAD_INIT();
          */
 
 #endif 
-          
+    
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
     glutInitWindowSize(640,400);//cannot be changed unless display_x(etc) are modified
