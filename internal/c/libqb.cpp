@@ -27364,8 +27364,7 @@ QB64_GAMEPAD_INIT();
 
 #endif 
     
-	glutSetOption(GLUT_MULTISAMPLE, 8); //for anti-aliasing (Only available via direct OpenGL rendering)
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
     glutInitWindowSize(640,400);//cannot be changed unless display_x(etc) are modified
 
