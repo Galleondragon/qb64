@@ -1036,6 +1036,9 @@ typedef void (APIENTRY *PFNGLGETCOLORTABLEEXTPROC)(GLenum target,GLenum format,G
 typedef void (APIENTRY *PFNGLGETCOLORTABLEPARAMETERIVEXTPROC)(GLenum target,GLenum pname,GLint *params);
 typedef void (APIENTRY *PFNGLGETCOLORTABLEPARAMETERFVEXTPROC)(GLenum target,GLenum pname,GLfloat *params);
 
+// define constant for Multi-Sampling to work with OpenGL.
+#define GL_MULTISAMPLE 0x809D
+
 #ifdef __cplusplus
 }
 #endif

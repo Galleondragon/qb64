@@ -12,4 +12,4 @@ DIM SHARED GL_COMMANDS_LAST
 REDIM SHARED GL_DEFINES(2000) AS STRING 'average ~600 entries
 REDIM SHARED GL_DEFINES_VALUE(2000) AS _INTEGER64
 DIM SHARED GL_DEFINES_LAST
-DIM SHARED GL_KIT: GL_KIT = 0
+DIM SHARED GL_KIT: GL_KIT = 1 'making this true, will also rewrite gl_kit.bas parsing file along with gl_helper_code.h
