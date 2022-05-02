@@ -1,14 +1,36 @@
-qbs*oldstr4761=NULL;
-if(_SUB_IDEPAR_STRING_TITLE->tmp||_SUB_IDEPAR_STRING_TITLE->fixed||_SUB_IDEPAR_STRING_TITLE->readonly){
-oldstr4761=_SUB_IDEPAR_STRING_TITLE;
-if (oldstr4761->cmem_descriptor){
-_SUB_IDEPAR_STRING_TITLE=qbs_new_cmem(oldstr4761->len,0);
+qbs *_FUNC_IDEFILEEXISTS_STRING_IDEFILEEXISTS=NULL;
+if (!_FUNC_IDEFILEEXISTS_STRING_IDEFILEEXISTS)_FUNC_IDEFILEEXISTS_STRING_IDEFILEEXISTS=qbs_new(0,0);
+qbs*oldstr5289=NULL;
+if(_FUNC_IDEFILEEXISTS_STRING_F->tmp||_FUNC_IDEFILEEXISTS_STRING_F->fixed||_FUNC_IDEFILEEXISTS_STRING_F->readonly){
+oldstr5289=_FUNC_IDEFILEEXISTS_STRING_F;
+if (oldstr5289->cmem_descriptor){
+_FUNC_IDEFILEEXISTS_STRING_F=qbs_new_cmem(oldstr5289->len,0);
 }else{
-_SUB_IDEPAR_STRING_TITLE=qbs_new(oldstr4761->len,0);
+_FUNC_IDEFILEEXISTS_STRING_F=qbs_new(oldstr5289->len,0);
 }
-memcpy(_SUB_IDEPAR_STRING_TITLE->chr,oldstr4761->chr,oldstr4761->len);
+memcpy(_FUNC_IDEFILEEXISTS_STRING_F->chr,oldstr5289->chr,oldstr5289->len);
 }
-byte_element_struct *byte_element_4762=NULL;
-if (!byte_element_4762){
-if ((mem_static_pointer+=12)<mem_static_limit) byte_element_4762=(byte_element_struct*)(mem_static_pointer-12); else byte_element_4762=(byte_element_struct*)mem_static_malloc(12);
+int32 *_FUNC_IDEFILEEXISTS_LONG_L=NULL;
+if(_FUNC_IDEFILEEXISTS_LONG_L==NULL){
+_FUNC_IDEFILEEXISTS_LONG_L=(int32*)mem_static_malloc(4);
+*_FUNC_IDEFILEEXISTS_LONG_L=0;
+}
+byte_element_struct *byte_element_5290=NULL;
+if (!byte_element_5290){
+if ((mem_static_pointer+=12)<mem_static_limit) byte_element_5290=(byte_element_struct*)(mem_static_pointer-12); else byte_element_5290=(byte_element_struct*)mem_static_malloc(12);
+}
+byte_element_struct *byte_element_5292=NULL;
+if (!byte_element_5292){
+if ((mem_static_pointer+=12)<mem_static_limit) byte_element_5292=(byte_element_struct*)(mem_static_pointer-12); else byte_element_5292=(byte_element_struct*)mem_static_malloc(12);
+}
+qbs *_FUNC_IDEFILEEXISTS_STRING_M=NULL;
+if (!_FUNC_IDEFILEEXISTS_STRING_M)_FUNC_IDEFILEEXISTS_STRING_M=qbs_new(0,0);
+byte_element_struct *byte_element_5293=NULL;
+if (!byte_element_5293){
+if ((mem_static_pointer+=12)<mem_static_limit) byte_element_5293=(byte_element_struct*)(mem_static_pointer-12); else byte_element_5293=(byte_element_struct*)mem_static_malloc(12);
+}
+int32 *_FUNC_IDEFILEEXISTS_LONG_RESULT=NULL;
+if(_FUNC_IDEFILEEXISTS_LONG_RESULT==NULL){
+_FUNC_IDEFILEEXISTS_LONG_RESULT=(int32*)mem_static_malloc(4);
+*_FUNC_IDEFILEEXISTS_LONG_RESULT=0;
 }

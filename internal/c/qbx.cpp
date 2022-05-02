@@ -1,5 +1,27 @@
 #include "common.h"
 
+
+extern int32 func__cinp (int32 toggle, int32 passed); //Console INP scan code reader
+extern int func__capslock();
+extern int func__scrolllock();
+extern int func__numlock();
+extern void sub__capslock(int32 options);
+extern void sub__scrolllock(int32 options);
+extern void sub__numlock(int32 options);
+extern void sub__consolefont(qbs* FontName, int FontSize);
+extern void sub__console_cursor(int32 visible, int32 cursorsize, int32 passed);
+extern int32 func__getconsoleinput();
+
+extern void unlockvWatchHandle();
+extern int32 vWatchHandle();
+
+#ifdef DEPENDENCY_ZLIB
+    #include <zlib.h>
+    qbs *func__deflate(qbs *text);
+    qbs *func__inflate(qbs *text, int64 originalsize, int32 passed);
+#endif
+
+
 #ifdef QB64_MACOSX
     #include <ApplicationServices/ApplicationServices.h>
 #endif
@@ -99,6 +121,7 @@ uint8**out_data,int32*out_x,int32 *out_y,int32*out_x_pre_increment,int32*out_x_p
 
 extern void sub__title(qbs *title);
 extern void sub__echo(qbs *message);
+extern void sub__assert(int32 expression, qbs *assert_message, int32 passed);
 extern void sub__finishdrop();
 extern int32 func__filedrop();
 extern void sub__filedrop(int32 on_off=NULL);
@@ -139,6 +162,7 @@ extern void sub__memfree(void *);
 extern void sub__memcopy(void *sblk,ptrszint soff,ptrszint bytes,void *dblk,ptrszint doff);
 extern mem_block func__memnew(ptrszint);
 extern mem_block func__memimage(int32,int32);
+extern mem_block func__memsound(int32 i,int32 targetChannel);
 
 extern int64 func__shellhide(qbs *str);
 extern int64 func_shell(qbs *str);
@@ -153,6 +177,8 @@ extern int32 func_windowexists();
 extern int32 func_screenicon();
 extern int32 func_screenwidth();
 extern int32 func_screenheight();
+extern int32 func__borderwidth();
+extern int32 func__titlebarheight();
 extern void sub_screenicon();
 extern void sub__console(int32);
 extern int32 func__console();
@@ -161,6 +187,7 @@ extern int32 func__controlchr();
 extern void sub__blink(int32);
 extern int32 func__blink();
 extern int32 func__hasfocus();
+extern void set_foreground_window(ptrszint i);
 extern qbs *func__title();
 extern int32 func__handle();
 extern int32 func__fileexists(qbs*);
@@ -223,6 +250,7 @@ extern int32 func__openconnection(int32);
 extern int32 func__openclient(qbs*);
 extern int32 func__connected(int32);
 extern qbs *func__connectionaddress(int32);
+extern int32 func__environcount();
 extern qbs *func_environ(qbs*);
 extern qbs *func_environ(int32);
 extern void sub_environ(qbs*);
@@ -257,7 +285,9 @@ extern uint64 build_uint64(uint32 val2,uint32 val1);
 extern void fix_error();
 extern double get_error_erl();
 extern uint32 get_error_err();
+extern char *human_error(int32 errorcode);
 extern void end();
+extern int32 stop_program_state();
 extern uint8 *mem_static_malloc(uint32 size);
 extern void mem_static_restore(uint8* restore_point);
 extern uint8 *cmem_dynamic_malloc(uint32 size);
@@ -282,6 +312,7 @@ extern qbs *qbs_new_txt(const char *txt);
 extern qbs *qbs_new_txt_len(const char *txt,int32 len);
 extern qbs *qbs_new_fixed(uint8 *offset,uint32 size,uint8 tmp);
 extern qbs *qbs_new(int32 size,uint8 tmp);
+extern void set_qbs_size(ptrszint *target_qbs,int32 newlength);
 extern qbs *qbs_set(qbs *deststr,qbs *srcstr);
 extern qbs *qbs_add(qbs *str1,qbs *str2);
 extern qbs *qbs_ucase(qbs *str);
@@ -356,7 +387,7 @@ extern void defaultcolors();
 extern void validatepage(int32 n);
 extern void qbg_screen(int32 mode,int32 color_switch,int32 active_page,int32 visual_page,int32 refresh,int32 passed);
 extern void sub_pcopy(int32 src,int32 dst);
-extern void qbsub_width(int32 option,int32 value1,int32 value2,int32 passed);
+extern void qbsub_width(int32 option,int32 value1,int32 value2,int32 value3, int32 value4, int32 passed);
 extern void pset(int32 x,int32 y,uint32 col);
 extern void pset_and_clip(int32 x,int32 y,uint32 col);
 extern void qb32_boxfill(float x1f,float y1f,float x2f,float y2f,uint32 col);
@@ -458,6 +489,8 @@ extern long double func_fix_float(long double value);
 extern double func_exp_single(double value);
 extern long double func_exp_float(long double value);
 extern void sub_sleep(int32 seconds,int32 passed);
+extern qbs *func__bin(int64 value,int32 neg_bits);
+extern qbs *func__bin_float(long double value);
 extern qbs *func_oct(int64 value,int32 neg_bits);
 extern qbs *func_oct_float(long double value);
 extern qbs *func_hex(int64 value,int32 neg_size);
@@ -606,6 +639,8 @@ extern qbs *ui642string(uint64 v);
 extern qbs *s2string(float v);
 extern qbs *d2string(double v);
 extern qbs *f2string(long double v);
+extern qbs *o2string(ptrszint v);
+extern qbs *uo2string(uptrszint v);
 extern char string2b(qbs*str);
 extern uint8 string2ub(qbs*str);
 extern int16 string2i(qbs*str);
@@ -617,9 +652,15 @@ extern uint64 string2ui64(qbs*str);
 extern float string2s(qbs*str);
 extern double string2d(qbs*str);
 extern long double string2f(qbs*str);
+extern ptrszint string2o(qbs*str);
+extern uptrszint string2uo(qbs*str);
 //Cobalt(aka Dave) added the next 2 lines
-int64 func__shr(int64 a1, int b1);
-int64 func__shl(int64 a1, int b1);
+uint64 func__shr(uint64 a1, int b1);
+uint64 func__shl(uint64 a1, int b1);
+int64 func__readbit(uint64 a1, int b1);
+uint64 func__setbit(uint64 a1, int b1);
+uint64 func__resetbit(uint64 a1, int b1);
+uint64 func__togglebit(uint64 a1, int b1);
 #ifndef QB64_WINDOWS
     extern void Sleep(uint32 milliseconds);
     extern void ZeroMemory(void *ptr,int64 bytes);
@@ -628,6 +669,7 @@ extern int64 qbr(long double f);
 extern uint64 qbr_longdouble_to_uint64(long double f);
 extern int32 qbr_float_to_long(float f);
 extern int32 qbr_double_to_long(double f);
+extern void fpu_reinit(void);
 
 extern uint64 getubits(uint32 bsize,uint8 *base,ptrszint i);
 extern int64 getbits(uint32 bsize,uint8 *base,ptrszint i);
@@ -677,6 +719,7 @@ double error_erl=0;
 uint32 qbs_tmp_list_nexti=1;
 uint32 error_occurred=0;
 uint32 new_error=0;
+uint32 bkp_new_error=0;
 qbs* nothingstring;
 uint32 qbevent=0;
 uint8 suspend_program=0;
@@ -900,6 +943,46 @@ inline int16 func_abs(int16 d){return abs(d);}
 inline int32 func_abs(int32 d){return abs(d);}
 inline int64 func_abs(int64 d){return llabs(d);}
 
+extern int32 disableEvents;
+
+ptrszint check_lbound(ptrszint *array,int32 index, int32 num_indexes) {
+    static ptrszint ret;
+    disableEvents = 1;
+    ret = func_lbound((ptrszint*)(*array),index,num_indexes);
+    new_error=0;
+    disableEvents = 0;
+    return ret;
+}
+
+ptrszint check_ubound(ptrszint *array,int32 index, int32 num_indexes) {
+    static ptrszint ret;
+    disableEvents = 1;
+    ret = func_ubound((ptrszint*)(*array),index,num_indexes);
+    new_error=0;
+    disableEvents = 0;
+    return ret;
+}
+
+uint64 call_getubits(uint32 bsize,ptrszint *array,ptrszint i) {
+    return getubits(bsize,(uint8*)(*array),i);
+}
+
+int64 call_getbits(uint32 bsize,ptrszint *array,ptrszint i) {
+    return getbits(bsize,(uint8*)(*array),i);
+}
+
+void call_setbits(uint32 bsize,ptrszint *array,ptrszint i,int64 val) {
+    setbits(bsize,(uint8*)(*array),i,val);
+}
+
+int32 logical_drives() {
+    #ifdef QB64_WINDOWS
+        return GetLogicalDrives();
+    #else
+        return 0;
+    #endif
+}
+
 inline ptrszint array_check(uptrszint index,uptrszint limit){
     //nb. forces signed index into an unsigned variable for quicker comparison
     if (index<limit) return index;
@@ -948,11 +1031,23 @@ inline int32 func_sgn(long double v){
 }
 
 //bit-shifting
-inline int64 func__shl(int64 a1,int b1) 
+inline uint64 func__shl(uint64 a1,int b1) 
 {return a1<<b1;}
 
-inline int64 func__shr(int64 a1,int b1) 
+inline uint64 func__shr(uint64 a1,int b1) 
 {return a1>>b1;}
+
+inline int64 func__readbit(uint64 a1, int b1)
+{if (a1 & 1ull<<b1) return -1; else return 0;}
+
+inline uint64 func__setbit(uint64 a1, int b1)
+{return a1 | 1ull<<b1;}
+
+inline uint64 func__resetbit(uint64 a1, int b1)
+{return a1 & ~(1ull<<b1);}
+
+inline uint64 func__togglebit(uint64 a1, int b1)
+{return a1 ^ 1ull<<b1;}
 
 //Working with 32bit colors:
 inline uint32 func__rgb32(int32 r,int32 g,int32 b,int32 a){
@@ -1109,6 +1204,12 @@ qbs *func__inclerrorfile(){
     return qbs_new_txt(includedfilename);
 }
 
+qbs *func__errormessage(int32 errorcode, int32 passed){
+    if (!passed)
+        errorcode = get_error_err();
+    return qbs_new_txt(human_error(errorcode));
+}
+
 void chain_input(){
     //note: common data or not, every program must check for chained data,
     //      it could be sharing files or screen state
@@ -1166,7 +1267,6 @@ void chain_input(){
 
 void sub_chain(qbs* f){
     if (new_error) return;
-    if (cloud_app){error(262); return;}
     
     #ifdef QB64_WINDOWS
         
@@ -1736,6 +1836,15 @@ ontimer_struct *ontimer=(ontimer_struct*)malloc(sizeof(ontimer_struct));
 
 int32 ontimerthread_lock=0;
 
+void stop_timers() {
+  ontimerthread_lock = 1;
+  while (ontimerthread_lock != 2);
+}
+
+void start_timers() {
+  ontimerthread_lock = 0;
+}
+
 int32 func__freetimer(){
     if (new_error) return 0;
     static int32 i;
@@ -1982,8 +2091,6 @@ extern int64 display_lock_request;
 extern int64 display_lock_confirmed;
 extern int64 display_lock_released;
 
-extern int32 disableEvents;
-
 uint32 r;
 void evnt(uint32 linenumber, uint32 inclinenumber = 0, const char* incfilename = NULL){
     if (disableEvents) return;
@@ -2028,7 +2135,6 @@ void division_by_zero_handler(int ignore){
 //    error(256);//assume stack overflow? (the most likely cause)
 //}
 
-
 #ifdef QB64_WINDOWS
     void QBMAIN_WINDOWS(void *unused){
         QBMAIN(NULL);
@@ -2042,80 +2148,7 @@ void division_by_zero_handler(int ignore){
 #endif
 void QBMAIN(void *unused)
 {
-    
-    
-    
-    
-    
-    
-    /*
-        lame_t lame = lame_init();
-        lame_set_in_samplerate(lame, 44100);
-        //lame_set_VBR(lame, vbr_default);
-        lame_init_params(lame);
-    */
-    
-    
-    /*
-        ///OPENAL
-        dev = alcOpenDevice(NULL); if(!dev) exit(111);
-        ctx = alcCreateContext(dev, NULL);
-        alcMakeContextCurrent(ctx); if(!ctx) exit(222);
-        #define NUM_BUFFERS 3
-        #define BUFFER_SIZE 4096
-        ALuint source, buffers[NUM_BUFFERS];
-        ALuint frequency;
-        ALenum format;
-        unsigned char *buf;
-        alGenBuffers(NUM_BUFFERS, buffers);
-        alGenSources(1, &source);
-        if(alGetError() != AL_NO_ERROR) exit(333);
-        int channels, bits;
-        channels=1;
-        bits=8;
-        frequency=22050;
-        format = 0;
-        if(bits == 8)
-        {
-        if(channels == 1)
-        format = AL_FORMAT_MONO8;
-        else if(channels == 2)
-        format = AL_FORMAT_STEREO8;
-        }
-        else if(bits == 16)
-        {
-        if(channels == 1)
-        format = AL_FORMAT_MONO16;
-        else if(channels == 2)
-        format = AL_FORMAT_STEREO16;
-        }
-        int ret;
-        
-        //qbs_print(qbs_str((int32)ALC_FREQUENCY),1);
-        
-        
-        //uint8 *buf;
-        buf=(unsigned char*)malloc(4096);
-        //fill with crap!
-        int ii;
-        for (ii=0;ii<4096;ii++){
-        buf[ii]=func_rnd(NULL,0)*255.0;
-        }
-        alBufferData(buffers[0], format, buf, BUFFER_SIZE, frequency);
-        alBufferData(buffers[1], format, buf, BUFFER_SIZE, frequency);
-        alBufferData(buffers[2], format, buf, BUFFER_SIZE, frequency);
-        
-        alSourceQueueBuffers(source, NUM_BUFFERS, buffers);
-        alSourcePlay(source);
-        if(alGetError() != AL_NO_ERROR) exit(444);
-    */
-    
-    
-    #ifdef QB64_WINDOWS
-        static uint8 controlfp_set=0;
-        if (!controlfp_set){controlfp_set=1; _controlfp(_PC_64,0x00030000);}//_MCW_PC=0x00030000
-    #endif
-    
+    fpu_reinit();
     #ifdef QB64_WINDOWS
         signal(SIGFPE, division_by_zero_handler);
         //signal(SIGSEGV, SIGSEGV_handler);
@@ -2126,28 +2159,11 @@ void QBMAIN(void *unused)
         sig_act.sa_flags = 0;
         sigaction(SIGFPE, &sig_act, NULL);
     #endif
-    
-    
-    
-    
-    
-    
-    /*
-        ptrszint z;
-        z=(ptrszint)&dummyfunc;
-        myfunc=(functype*)z;
-        exit(myfunc(0,0));
-    */
-    
+
     ptrszint tmp_long;
     int32 tmp_fileno;
     qbs* tqbs;
     uint32 qbs_tmp_base=qbs_tmp_list_nexti;
-    
-    
-    
-    
-    
     static mem_lock *sf_mem_lock=NULL;
     if (!sf_mem_lock){new_mem_lock(); sf_mem_lock=mem_lock_tmp; sf_mem_lock->type=3;}
     
@@ -2169,7 +2185,7 @@ void QBMAIN(void *unused)
         }
         chain_input();
         #include "..\\temp\\main.txt"
-        #else
+    #else
         #include "../temp/maindata.txt"
         #include "../temp/runline.txt"
         #include "../temp/mainerr.txt"
@@ -2190,4 +2206,3 @@ void QBMAIN(void *unused)
     #endif
     
 //} (closed by main.txt)
-

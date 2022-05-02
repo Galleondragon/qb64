@@ -5,7 +5,7 @@ The [[CONST]] statement globally defines one or more named numeric or string val
 : [[CONST]] {{Parameter|constantName}} = {{Parameter|value}}[, ...]
 
 
-{{Parameters}}
+{{PageParameters}}
 * {{Parameter|constantName}} is the constant name or list of names assigned by the programmer.
 * {{Parameter|value}} is the value to initialize the global constant which cannot change once defined.
 ** If {{Parameter|constantName}} specifies a numeric type, {{Parameter|value}} must be a numeric expression containing literals and other constants.
@@ -14,8 +14,8 @@ The [[CONST]] statement globally defines one or more named numeric or string val
 
 {{PageDescription}}
 * The {{Parameter|constantName}} does not have to include a type suffix. The datatype is automatically infered by the compiler using the {{Parameter|value}}.
-* Constant values cannot reference a variable, [[SUB]] or [[FUNCTION]] return values when defined.
-** The exception to the above are color functions [[_RGB32]] and [[_RGBA32]], which can be used in a CONST statement. See ''Example 2'' below.
+* Constant values cannot reference a variable or [[FUNCTION]] return values.
+** The exception to the above are the internal functions: [[_PI]], [[_ACOS]], [[_ASIN]], [[_ARCSEC]], [[_ARCCSC]], [[_ARCCOT]], [[_SECH]], [[_CSCH]], [[_COTH]], [[COS]], [[SIN]], [[TAN]], [[LOG]], [[EXP]], [[ATN]], [[_D2R]], [[_D2G]], [[_R2D]], [[_R2G]], [[_G2D]], [[_G2R]], [[ABS]], [[SGN]], [[INT]], [[_ROUND]], [[_CEIL]], [[FIX]], [[_SEC]], [[_CSC]], [[_COT]], [[ASC]], [[_RGB32]], [[_RGBA32]], [[_RGB]], [[_RGBA]], [[_RED32]], [[_GREEN32]], [[_BLUE32]], [[_ALPHA32]], [[_RED]], [[_GREEN]], [[_BLUE]], [[_ALPHA]] (See Example 2 below).
 * Constants cannot be reassigned values. They retain the same value throughout all of the program procedures.
 * Constants defined in module-level code have [[SHARED|shared]] scope, so they can also be used in [[SUB]] or [[FUNCTION]] procedures.
 * Constants defined in [[SUB]] or [[FUNCTION]] procedures are local to those procedures.
@@ -29,11 +29,11 @@ The [[CONST]] statement globally defines one or more named numeric or string val
 {{Cl|CONST}} PI = 3.141593
 
 ' Declare some string constants:
-{{Cl|CONST}} circumferenceText = &quot;The circumference of the circle is&quot;
-{{Cl|CONST}} areaText = &quot;The area of the circle is&quot;
+{{Cl|CONST}} circumferenceText = "The circumference of the circle is"
+{{Cl|CONST}} areaText = "The area of the circle is"
 
 {{Cl|DO...LOOP|DO}}
-    {{Cl|INPUT}} &quot;Enter the radius of a circle or zero to quit&quot;; radius
+    {{Cl|INPUT}} "Enter the radius of a circle or zero to quit"; radius
     {{Cl|IF...THEN|IF}} radius = 0 {{Cl|IF...THEN|THEN}} {{Cl|END}}
     {{Cl|PRINT}} circumferenceText; 2 * PI * radius 
     {{Cl|PRINT}} areaText; PI * radius * radius ' radius squared
@@ -58,7 +58,7 @@ Enter the radius of a circle or zero to quit? ''0''
 {{Cl|CONST}} Red = _RGB32(255,0,0)
 
 {{Cl|COLOR}} Red
-{{Cl|PRINT}} &quot;Hello World&quot;
+{{Cl|PRINT}} "Hello World"
 {{CodeEnd}}
 
 {{PageSeeAlso}}

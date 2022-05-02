@@ -1,7 +1,12 @@
-if(oldstr3389){
-if(oldstr3389->fixed)qbs_set(oldstr3389,_SUB_PREPARSE_STRING_E);
+if(oldstr3581){
+if(oldstr3581->fixed)qbs_set(oldstr3581,_SUB_PREPARSE_STRING_E);
 qbs_free(_SUB_PREPARSE_STRING_E);
 }
 qbs_free(_SUB_PREPARSE_STRING_T);
+qbs_free(_SUB_PREPARSE_STRING_SEP);
+qbs_free(_SUB_PREPARSE_STRING_THISCONSTNAME);
+qbs_free(_SUB_PREPARSE_STRING_R);
+qbs_free(_SUB_PREPARSE_STRING_L);
+qbs_free(_SUB_PREPARSE_STRING_M);
 qbs_free(_SUB_PREPARSE_STRING_COMP);
 qbs_free(_SUB_PREPARSE_STRING_BIN);

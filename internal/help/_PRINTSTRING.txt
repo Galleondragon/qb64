@@ -6,7 +6,7 @@ The [[_PRINTSTRING]] statement prints text [[STRING|strings]] using graphic colu
 : [[_PRINTSTRING]]({{Parameter|column}}, {{Parameter|row}}), {{Parameter|textExpression$}}[, {{Parameter|imageHandle&amp;}}] 
 
 
-{{Parameters}}
+{{PageParameters}}
 * {{Parameter|column}} and {{Parameter|row}} are [[INTEGER]] or [[LONG]] starting PIXEL (graphic) column and row coordinates to set text or custom fonts.
 * {{Parameter|textExpression$}} is any literal or variable [[STRING|string]] value of text to be displayed.
 * {{Parameter|imageHandle&amp;}} is the optional image or destination to use. Zero designates current [[SCREEN (statement)|SCREEN]] page.
@@ -24,12 +24,9 @@ The [[_PRINTSTRING]] statement prints text [[STRING|strings]] using graphic colu
 * In SCREEN 0 (text only), [[_PRINTSTRING]] works as one-line replacement for '''LOCATE x, y: PRINT text$''', without changing the current cursor position.
 
 
-==Availability==
-* In versions of QB64 prior to 1.000 _PRINTSTRING can only be used in graphic, 256 color or 32 bit screen modes, not SCREEN 0.''
-
 
 {{PageExamples}}
-''Example 1:'' Printing those unprintable [[ASCII]] control characters is no longer a problem!
+''Example 1:'' Printing those unprintable [[ASCII]] control characters is no longer a problem.
 {{CodeStart}} '' ''
 {{Cl|SCREEN}} {{Cl|_NEWIMAGE}}(800, 600, 256)
 
@@ -37,7 +34,7 @@ The [[_PRINTSTRING]] statement prints text [[STRING|strings]] using graphic colu
   chrstr$ = chrstr$ + {{Cl|CHR$}}(code) + {{Cl|SPACE$}}(1)
 {{Cl|NEXT}}
 
-{{Cl|_FONT}} {{Cl|_LOADFONT}}(&quot;C:\Windows\Fonts\Cour.ttf&quot;, 20, &quot;MONOSPACE&quot;) 'select monospace font
+{{Cl|_FONT}} {{Cl|_LOADFONT}}("C:\Windows\Fonts\Cour.ttf", 20, "MONOSPACE") 'select monospace font
 
 {{Cl|_PRINTSTRING}} (0, 16), chrstr$
 
@@ -48,38 +45,7 @@ The [[_PRINTSTRING]] statement prints text [[STRING|strings]] using graphic colu
 {{OutputEnd}}
 
 
-''Example 2:'' Making any '''QB64 program window''' larger using a SUB that easily converts PRINT to [[_PRINTSTRING]]. 
-{{CodeStart}}
-Scr13&amp; = {{Cl|_NEWIMAGE}}(320, 200, 13)  'this is the old SCREEN 13 image page to set the image
-Big13&amp; = {{Cl|_NEWIMAGE}}(640, 480, 256) 'use 4 X 3 aspect ratio that Qbasic used when full screen
-
-{{Cl|SCREEN (statement)|SCREEN}} Big13&amp;
-{{Cl|_DEST}} Scr13&amp;
-image1&amp; = {{Cl|_LOADIMAGE}}(&quot;Howie.BMP&quot;, 256)
-image2&amp; = {{Cl|_LOADIMAGE}}(&quot;Howie2.BMP&quot;, 256)
-{{Cl|_PUTIMAGE}} (10, 20), image1&amp;, Scr13&amp;
-{{Cl|_PUTIMAGE}} (160, 20), image2&amp;, Scr13&amp;
-{{Cl|_COPYPALETTE}} image1&amp;, Scr13&amp;
-{{Cl|COLOR}} 151: {{Cl|LOCATE}} 2, 4: PRINTS &quot;Screen 13 Height Reduction to 83%&quot; 
-{{Cl|LOCATE}} 22, 22: PRINTS {{Cl|CHR$}}(24) + &quot; 4 X 3 Proportion&quot;  'use {{Cl|concatenation}}
-{{Cl|LOCATE}} 24, 21: PRINTS {{Cl|CHR$}}(27) + &quot; Stretched at 100%&quot; 'instead of a {{Cl|semicolon}}!
-{{Cl|_COPYPALETTE}} Scr13&amp;, Big13&amp;  'required when imported image colors are used
-{{Cl|_PUTIMAGE}} , Scr13&amp;, Big13&amp;   'stretches the screen to double the size
-K$ = {{Cl|INPUT$}}(1)
-{{Cl|END}}
-
-{{Cl|SUB}} PRINTS (Text$)
-row% = ({{Cl|CSRLIN}} - 1) * {{Cl|_FONTHEIGHT}}      'finds current screen page text or font row height
-col% = ({{Cl|POS}}(0) - 1) * {{Cl|_PRINTWIDTH}}(&quot;W&quot;) 'finds current page text or font column width
-{{Cl|_PRINTSTRING}} (col%, row%), Text$
-{{Cl|END SUB}} '' ''
-{{CodeEnd}}
-{{small|Code by Ted Weissgerber}}
-: ''Explanation:'' The procedure above creates a larger version of a SCREEN 13 window by stretching it with [[_PUTIMAGE]]. It cannot stretch PRINTed text so [[_PRINTSTRING]] must be used instead. [[LOCATE]] sets the PRINT cursor position for [[CSRLIN]] and [[POS]](0) to read. The SUB then converts the coordinates to graphical ones. Then '''change''' [[PRINT]] to PRINTS using the [[IDE]] '''Search Menu'''.
-&lt;center&gt;[https://www.dropbox.com/s/tcdik1ajegbeiz4/HOWIE.zip?dl=0 Download of Example 2 Bitmap images]&lt;/center&gt;
-
-
-''Example 3:'' Rotating a text string around a graphic object.
+''Example 2:'' Rotating a text string around a graphic object.
 {{CodeStart}} '' ''
 {{Cl|SCREEN (statement)|SCREEN}} 12 '' ''
 {{Cl|DIM}} row {{Cl|AS}} {{Cl|INTEGER}}, cnt {{Cl|AS}} {{Cl|INTEGER}}, cstart {{Cl|AS}} {{Cl|SINGLE}}, cend {{Cl|AS}} {{Cl|SINGLE}}
@@ -94,10 +60,10 @@ row = 1
     x = 300 + (scale * 40 - (row * xrot)) * {{Cl|COS}}(i)
     y = 200 + (scale * 40 - (row * yrot)) * {{Cl|SIN}}(i)
     cnt = cnt + 1
-    {{Cl|COLOR}} 7: {{Cl|_PRINTSTRING}} (x, y), &quot;HELLO WORLD!&quot;, 0  'display 
+    {{Cl|COLOR}} 7: {{Cl|_PRINTSTRING}} (x, y), "HELLO WORLD!", 0  'display 
     {{Cl|IF}} cnt = {{Cl|LEN}}(text$) * 8 {{Cl|THEN}} cnt = 0: {{Cl|EXIT DO}}
     {{Cl|_DISPLAY}}
-    {{Cl|COLOR}} 0: {{Cl|_PRINTSTRING}} (x, y), &quot;HELLO WORLD!&quot;, 0  'erase 
+    {{Cl|COLOR}} 0: {{Cl|_PRINTSTRING}} (x, y), "HELLO WORLD!", 0  'erase 
     {{Cl|_DELAY}} 0.02    
   {{Cl|NEXT}}
 {{Cl|LOOP}} {{Cl|UNTIL}} {{Cl|INKEY$}} = {{Cl|CHR$}}(27) 'escape key exit

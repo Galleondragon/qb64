@@ -6,7 +6,7 @@ The [[_MEMPUT]] statement writes data to a portion of a designated memory block 
 : [[_MEMPUT]] {{Parameter|memoryBlock}}, {{Parameter|bytePosition}}, {{Parameter|sourceVariable}} [AS {{Parameter|type}}]
 
 
-{{Parameters}}
+{{PageParameters}}
 * {{Parameter|memoryBlock}} is a [[_MEM]] variable type memory block name created by [[_MEMNEW]] or the [[_MEM (function)|_MEM]] function.
 * {{Parameter|bytePosition}} is the {{Parameter|memoryBlock}}.[[OFFSET]] start position plus any bytes needed to read specific values. 
 * The {{Parameter|sourceVariable}} type designates the size and {{Parameter|bytePosition}} it should be written to. It can be a variable, [[arrays|array]] or user defined type.
@@ -17,7 +17,7 @@ The [[_MEMPUT]] statement writes data to a portion of a designated memory block 
 * The _MEMPUT statement is similar to the [[PUT]] file statement, but {{Parameter|bytePosition}} is required.
 * The {{Parameter|memoryBlock}}.[[OFFSET]] returns the starting byte position of the block. Add bytes to move into the block.
 * The variable type held in the memory block can determine the next ''byte position'' to write a value. 
-* [[LEN]] can be used to determine the byte size of numerical or user defined variable [[type]]s regardless of the value held.
+* [[LEN]] can be used to determine the byte size of numerical or user defined variable [[Variable Types|type]]s regardless of the value held.
 * [[STRING]] values should be of a defined length. Variable length strings can actually move around in memory and not be found.
 
 

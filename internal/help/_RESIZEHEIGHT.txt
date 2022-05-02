@@ -11,8 +11,8 @@ The [[_RESIZEHEIGHT]] function returns the user resized screen pixel height if [
 * The program should decide if the request is allowable for proper program interaction.
 
 
-==Availability==
-* '''Version 1.000 and up'''.
+{{PageAvailability}}
+* Version 1.000 and up.
 
 
 {{PageExamples}}
@@ -23,7 +23,7 @@ The [[_RESIZEHEIGHT]] function returns the user resized screen pixel height if [
 s&amp; = {{Cl|_NEWIMAGE}}(300, 300, 32)
 {{Cl|SCREEN}} s&amp;
 
-bee&amp; = {{Cl|_LOADIMAGE}}(&quot;qb64_trans.png&quot;) 'QB64's bee from http://www.qb64.net/qb64_trans.png
+bee&amp; = {{Cl|_LOADIMAGE}}("qb64_trans.png") 'replace with your own image
 
 {{Cl|DO}}
     {{Cl|IF}} {{Cl|_RESIZE (function)|_RESIZE}} THEN

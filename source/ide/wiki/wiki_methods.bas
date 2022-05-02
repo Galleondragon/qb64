@@ -7,7 +7,6 @@ FUNCTION Back2BackName$ (a$)
 END FUNCTION
 
 FUNCTION Wiki$ (PageName$)
-    STATIC AlternativeServer AS _BYTE
     Help_PageLoaded$ = PageName$
     PageName2$ = PageName$
 
@@ -31,9 +30,30 @@ FUNCTION Wiki$ (PageName$)
             a$ = SPACE$(LOF(fh))
             GET #fh, , a$
             CLOSE #fh
+            chr13 = INSTR(a$, CHR$(13))
+            removedchr13 = 0
+            DO WHILE chr13 > 0
+                removedchr13 = -1
+                a$ = LEFT$(a$, chr13 - 1) + MID$(a$, chr13 + 1)
+                chr13 = INSTR(a$, CHR$(13))
+            LOOP
+            IF removedchr13 THEN
+                fh = FREEFILE
+                OPEN Cache_Folder$ + "/" + PageName2$ + ".txt" FOR OUTPUT AS #fh: CLOSE #fh
+                OPEN Cache_Folder$ + "/" + PageName2$ + ".txt" FOR BINARY AS #fh
+                PUT #fh, 1, a$
+                CLOSE #fh
+            END IF
             Wiki$ = a$
             EXIT FUNCTION
         END IF
+    END IF
+
+    IF _SHELLHIDE("curl --version") <> 0 THEN
+        PCOPY 2, 0
+        result = idemessagebox("QB64", "Cannot find 'curl'.", "#Abort")
+        PCOPY 3, 0: SCREEN , , 3, 0
+        EXIT FUNCTION
     END IF
 
     IF Help_Recaching = 0 THEN
@@ -47,78 +67,36 @@ FUNCTION Wiki$ (PageName$)
         PCOPY 3, 0
     END IF
 
-    url$ = "www.qb64.org/wiki/index.php?title=" + PageName2$ + "&action=edit"
-    'when fetching from .org, look for name="wpTextbox1">
+    url$ = CHR$(34) + wikiBaseAddress$ + "/index.php?title=" + PageName2$ + "&action=edit" + CHR$(34)
+    outputFile$ = Cache_Folder$ + "/" + PageName2$ + ".txt"
+
+    'wiki text delimiters:
     s1$ = "name=" + CHR$(34) + "wpTextbox1" + CHR$(34) + ">"
-    try:
-    IF AlternativeServer THEN
-        url$ = "www.qb64.net/wiki/index.php?title=" + PageName2$ + "&action=edit"
-        s1$ = "readonly=" + CHR$(34) + "readonly" + CHR$(34) + ">"
-    END IF
-    url2$ = url$
-    x = INSTR(url2$, "/")
-    IF x THEN url2$ = LEFT$(url$, x - 1)
-    c = _OPENCLIENT("TCP/IP:80:" + url2$)
-    IF c = 0 THEN
-        IF INSTR(url$, ".net") = 0 THEN
-            AlternativeServer = -1
-            IF Help_Recaching = 0 THEN
-                a$ = "Downloading '" + PageName$ + "' page from alternative server..."
-                IF LEN(a$) > 60 THEN a$ = LEFT$(a$, 57) + STRING$(3, 250)
-                IF LEN(a$) < 60 THEN a$ = a$ + SPACE$(60 - LEN(a$))
+    s2$ = "</textarea>"
 
-                COLOR 0, 3: LOCATE idewy + idesubwindow, 2
-                PRINT a$;
+    SHELL _HIDE "curl -o " + CHR$(34) + outputFile$ + CHR$(34) + " " + url$
+    fh = FREEFILE
+    OPEN outputFile$ FOR BINARY AS #fh 'get new content
+    a$ = SPACE$(LOF(fh))
+    GET #fh, 1, a$
+    CLOSE #fh
 
-                PCOPY 3, 0
-            END IF
-            GOTO try
-        ELSE
-            EXIT FUNCTION
+    s1 = INSTR(a$, s1$)
+    IF s1 > 0 THEN
+        'clean up downloaded contents
+        a$ = MID$(a$, s1 + LEN(s1$))
+        s2 = INSTR(a$, s2$)
+        IF s2 > 0 THEN
+            a$ = LEFT$(a$, s2)
         END IF
-    END IF
-    e$ = CHR$(13) + CHR$(10)
-    url3$ = RIGHT$(url$, LEN(url$) - x + 1)
-    x$ = "GET " + url3$ + " HTTP/1.1" + e$
-    x$ = x$ + "Host: " + url2$ + e$ + e$
-    PUT #c, , x$
-    t! = TIMER
 
-    DO
-        _DELAY 0.1
-        GET #c, , a2$
-        IF LEN(a2$) THEN
-            a$ = a$ + a2$
-            IF INSTR(a$, "</body>") THEN
-                CLOSE #c
-                s2$ = "</textarea>"
-                s1 = INSTR(a$, s1$): IF s1 = 0 THEN EXIT FUNCTION
-                s1 = s1 + LEN(s1$)
-                s2 = INSTR(a$, s2$): IF s2 = 0 THEN EXIT FUNCTION
-                s2 = s2 - 1
-                IF s1 > s2 THEN EXIT FUNCTION
-                a$ = MID$(a$, s1, s2 - s1 + 1)
-                fh = FREEFILE
-                E = 0
-                ON ERROR GOTO qberror_test
-                OPEN Cache_Folder$ + "/" + PageName2$ + ".txt" FOR OUTPUT AS #fh 'clear old content
-                ON ERROR GOTO qberror
-                IF E = 0 THEN
-                    CLOSE #fh
-                    ON ERROR GOTO qberror_test
-                    OPEN Cache_Folder$ + "/" + PageName2$ + ".txt" FOR BINARY AS #fh
-                    ON ERROR GOTO qberror
-                    IF E = 0 THEN
-                        PUT #fh, , a$
-                        CLOSE #fh
-                    END IF
-                END IF
-                Wiki$ = a$
-                EXIT FUNCTION
-            END IF
-        END IF
-    LOOP UNTIL ABS(TIMER - t!) > 20
-    CLOSE #c
+        OPEN outputFile$ FOR OUTPUT AS #fh 'clear old content
+        PRINT #fh, a$ 'save clean content
+        CLOSE #fh
+    END IF
+
+    Wiki$ = a$
+    EXIT FUNCTION
 END FUNCTION
 
 SUB Help_AddTxt (t$, col, link)
@@ -181,7 +159,7 @@ SUB Help_NewLine
     IF Help_Pos > help_w THEN help_w = Help_Pos
 
     Help_Txt_Len = Help_Txt_Len + 1: ASC(Help_Txt$, Help_Txt_Len) = 13
-    Help_Txt_Len = Help_Txt_Len + 1: ASC(Help_Txt$, Help_Txt_Len) = col + Help_BG_Col * 16
+    Help_Txt_Len = Help_Txt_Len + 1: ASC(Help_Txt$, Help_Txt_Len) = Help_BG_Col * 16
     Help_Txt_Len = Help_Txt_Len + 1: ASC(Help_Txt$, Help_Txt_Len) = 0
     Help_Txt_Len = Help_Txt_Len + 1: ASC(Help_Txt$, Help_Txt_Len) = 0
 
@@ -272,9 +250,10 @@ SUB WikiParse (a$)
     '  eg. {{KW|PRINT}}=a key word, a link to a page
     '      {{Cl|PRINT}}=a key word in a code example, will be printed in bold and aqua
     '      {{Parameter|expression}}=a parameter, in italics
-    '      {{PageSyntax}} {{PageDescription}} {{PageExamples}}
+    '      {{PageSyntax}} {{PageParameters}} {{PageDescription}} {{PageExamples}}
     '      {{CodeStart}} {{CodeEnd}} {{OutputStart}} {{OutputEnd}}
-    '      {{PageSeeAlso}} {{PageNavigation}}
+    '      {{PageSeeAlso}} {{PageNavigation}} {{PageLegacySupport}}
+    '      {{PageQBasic}} {{PageAvailability}}
     ' [[SPACE$]]=a link to wikipage called "SPACE$"
     ' [[INTEGER|integer]]=a link, link's name is on left and text to appear is on right
     ' *=a dot point
@@ -288,6 +267,12 @@ SUB WikiParse (a$)
     FOR ii = 1 TO prefetch
         c$(ii) = SPACE$(ii)
     NEXT
+
+    i = INSTR(a$, "<span ")
+    DO WHILE i
+        a$ = LEFT$(a$, i - 1) + MID$(a$, INSTR(i + 1, a$, ">") + 1)
+        i = INSTR(a$, "<span ")
+    LOOP
 
     n = LEN(a$)
     i = 1
@@ -347,6 +332,19 @@ SUB WikiParse (a$)
                 i = i + LEN(s$) - 1
                 GOTO Special
             END IF
+
+            s$ = "&lt;nowiki>"
+            IF c$(LEN(s$)) = s$ THEN
+                i = i + LEN(s$) - 1
+                GOTO Special
+            END IF
+
+            s$ = "&lt;/nowiki>"
+            IF c$(LEN(s$)) = s$ THEN
+                i = i + LEN(s$) - 1
+                GOTO Special
+            END IF
+
 
             s$ = "&lt;p style="
             IF c$(LEN(s$)) = s$ THEN
@@ -479,9 +477,13 @@ SUB WikiParse (a$)
                 cb = 0
 
                 IF cb$ = "PageSyntax" THEN Help_AddTxt "Syntax:" + CHR$(13), Help_Col_Section, 0
+                IF cb$ = "PageParameters" THEN Help_AddTxt "Parameters:" + CHR$(13), Help_Col_Section, 0
                 IF cb$ = "PageDescription" THEN Help_AddTxt "Description:" + CHR$(13), Help_Col_Section, 0
+                IF cb$ = "PageAvailability" THEN Help_AddTxt "Availability:" + CHR$(13), Help_Col_Section, 0
                 IF cb$ = "PageExamples" THEN Help_AddTxt "Code Examples:" + CHR$(13), Help_Col_Section, 0
                 IF cb$ = "PageSeeAlso" THEN Help_AddTxt "See also:" + CHR$(13), Help_Col_Section, 0
+                IF cb$ = "PageLegacySupport" THEN Help_AddTxt "Legacy support" + CHR$(13), Help_Col_Section, 0
+                IF cb$ = "PageQBasic" THEN Help_AddTxt "QBasic/QuickBASIC" + CHR$(13), Help_Col_Section, 0
 
                 IF cb$ = "CodeStart" THEN
                     Help_NewLine
@@ -588,10 +590,89 @@ SUB WikiParse (a$)
 
         s$ = "{|"
         IF c$(LEN(s$)) = s$ THEN
-            i = i + 1
-            FOR ii = i TO LEN(a$) - 1
-                IF MID$(a$, ii, 2) = "|}" THEN i = ii + 1: EXIT FOR
-            NEXT
+            IF MID$(a$, i, 20) = "{| class=" + CHR$(34) + "wikitable" + CHR$(34) THEN
+                REDIM tableRow(1 TO 100) AS STRING
+                REDIM tableCol(1 TO 100) AS INTEGER
+                DIM totalCols AS INTEGER
+                DIM totalRows AS INTEGER
+                DIM thisCol AS INTEGER
+                totalCols = 0: totalRows = 0
+                DO
+                    l$ = wikiGetLine$(a$, i)
+                    IF l$ = "|}" OR i >= LEN(a$) THEN EXIT DO
+                    IF l$ = "|-" THEN _CONTINUE
+
+                    m$ = ""
+                    IF LEFT$(l$, 2) = "! " THEN m$ = "!!"
+                    IF LEFT$(l$, 2) = "| " THEN m$ = "||"
+
+                    IF LEN(m$) THEN
+                        'new row
+                        totalRows = totalRows + 1
+                        IF totalRows > UBOUND(tableRow) THEN
+                            REDIM _PRESERVE tableRow(1 TO UBOUND(tableRow) + 99) AS STRING
+                        END IF
+
+                        'columns
+                        j = 3
+                        thisCol = 0
+                        DO
+                            p$ = wikiGetUntil$(l$, j, m$)
+                            j = j + 1
+                            IF LEN(_TRIM$(p$)) THEN
+                                thisCol = thisCol + 1
+                                IF totalCols < thisCol THEN totalCols = thisCol
+                                IF thisCol > UBOUND(tableCol) THEN
+                                    REDIM _PRESERVE tableCol(1 TO UBOUND(tableCol) + 99) AS INTEGER
+                                END IF
+                                IF tableCol(thisCol) < LEN(_TRIM$(p$)) + 2 THEN tableCol(thisCol) = LEN(_TRIM$(p$)) + 2
+                                tableRow(totalRows) = tableRow(totalRows) + _TRIM$(p$) + CHR$(0)
+                            END IF
+                        LOOP WHILE j < LEN(l$)
+                    END IF
+                LOOP
+                backupHelp_BG_Col = Help_BG_Col
+                backupBold = Help_Bold
+                Help_BG_Col = 2
+                FOR printTable = 1 TO totalRows
+                    IF printTable = 1 THEN
+                        Help_Bold = 1
+                    ELSE
+                        Help_Bold = 0
+                    END IF
+                    col = Help_Col
+
+                    j = 1
+                    tableOutput$ = ""
+                    FOR checkCol = 1 TO totalCols
+                        p$ = wikiGetUntil$(tableRow(printTable), j, CHR$(0))
+                        p$ = StrReplace$(p$, "&lt;", "<")
+                        p$ = StrReplace$(p$, "&gt;", ">")
+                        p$ = StrReplace$(p$, CHR$(194) + CHR$(160), "")
+                        p$ = StrReplace$(p$, "&amp;", "&")
+                        p$ = StrReplace$(p$, CHR$(226) + CHR$(136) + CHR$(146), "-")
+                        p$ = StrReplace$(p$, "<nowiki>", "")
+                        p$ = StrReplace$(p$, "</nowiki>", "")
+                        p$ = StrReplace$(p$, "<center>", "")
+                        p$ = StrReplace$(p$, "</center>", "")
+                        p$ = StrReplace$(p$, "</span>", "")
+
+                        thisCol$ = SPACE$(tableCol(checkCol))
+                        MID$(thisCol$, 2) = p$
+                        tableOutput$ = tableOutput$ + thisCol$
+                    NEXT
+                    Help_AddTxt tableOutput$, col, 0
+                    Help_AddTxt CHR$(13), col, 0
+                NEXT
+                Help_BG_Col = backupHelp_BG_Col
+                Help_Bold = backupBold
+                Help_AddTxt CHR$(13), col, 0
+            ELSE
+                i = i + 1
+                FOR ii = i TO LEN(a$) - 1
+                    IF MID$(a$, ii, 2) = "|}" THEN i = ii + 1: EXIT FOR
+                NEXT
+            END IF
             GOTO Special
         END IF
 
@@ -784,3 +865,20 @@ SUB WikiParse (a$)
 
 
 END SUB
+
+FUNCTION wikiGetLine$ (a$, i)
+    wikiGetLine$ = wikiGetUntil(a$, i, CHR$(10))
+END FUNCTION
+
+FUNCTION wikiGetUntil$ (a$, i, separator$)
+    IF i >= LEN(a$) THEN EXIT FUNCTION
+    j = INSTR(i, a$, separator$)
+    IF j = 0 THEN
+        wikiGetUntil$ = MID$(a$, i)
+        i = LEN(a$)
+    ELSE
+        wikiGetUntil$ = MID$(a$, i, j - i)
+        i = j + 1
+    END IF
+END FUNCTION
+

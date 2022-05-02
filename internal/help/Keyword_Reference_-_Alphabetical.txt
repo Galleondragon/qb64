@@ -1,50 +1,48 @@
 __NOTOC__
-&lt;div id=&quot;toc&quot;&gt;&lt;p style=&quot;text-align: center&quot;&gt;&lt;br&gt; '''Alphabetical QB64 Keyword Listings''' &lt;br&gt;&lt;br&gt;     '''QB 64:'''  [[#uA|_A]] [[#uB|_B]] [[#uC|_C]] [[#uD|_D]] [[#uE|_E]] [[#uF|_F]] [[#uG|_G]] [[#uH|_H]] [[#uI|_I]] [[#uK|_K]] [[#uL|_L]] [[#uM|_M]] [[#uN|_N]] [[#uO|_O]] [[#uP|_P]] [[#uR|_R]] [[#uS|_S]] [[#uT|_T]] [[#uU|_U]] [[#uV|_V]] [[#uW|_W]]                &lt;br&gt;&lt;br&gt;'''QBasic:'''  [[#A|A]]   [[#B|B]]   [[#C|C]]   [[#D|D]]   [[#E|E]]    [[#F|F]]   [[#G|G]]   [[#H|H]]    [[#I| I]]    [[#K|K]]   [[#L|L]]   [[#M|M]]   [[#N|N]]    [[#O|O]]   [[#P|P]]    [[#R|R]]   [[#S|S]]    [[#T|T]]   [[#U|U]]   [[#V|V]]   [[#W|W]]   [[#X|X]]   &lt;br&gt;&lt;br&gt;'''OpenGL:'''   [[#glA|A]]    [[#glB|B]]    [[#glC|C]]    [[#glD|D]]    [[#glE|E]]     [[#glF|F]]    [[#glG|G]]    [[#glH|H]]    [[#glI| I  ]]   [[#glL|L]]    [[#glM|M]]    [[#glN|N]]     [[#glO|O]]    [[#glP|P]]     [[#glR|R]]    [[#glS|S]]     [[#glT|T]]     [[#glV|V]]       &lt;br&gt;&lt;br&gt; [[#symbols|Symbols]] '''   -   ''' [[#references|References]]&lt;br&gt;&lt;br&gt;[[Full Story|{{small|Menu Created by Cyperium}} ]]&lt;/p&gt;&lt;/div&gt;
+&lt;div id="toc">&lt;p style="text-align: center">&lt;br> '''Alphabetical QB64 Keyword Listings''' &lt;br>&lt;br>     '''QB64:'''  [[#uA|_A]] [[#uB|_B]] [[#uC|_C]] [[#uD|_D]] [[#uE|_E]] [[#uF|_F]] [[#uG|_G]] [[#uH|_H]] [[#uI|_I]] [[#uK|_K]] [[#uL|_L]] [[#uM|_M]] [[#uN|_N]] [[#uO|_O]] [[#uP|_P]] [[#uR|_R]] [[#uS|_S]] [[#uT|_T]] [[#uU|_U]] [[#uV|_V]] [[#uW|_W]]                &lt;br>&lt;br>'''QBasic:'''  [[#A|A]]   [[#B|B]]   [[#C|C]]   [[#D|D]]   [[#E|E]]    [[#F|F]]   [[#G|G]]   [[#H|H]]    [[#I| I]]    [[#K|K]]   [[#L|L]]   [[#M|M]]   [[#N|N]]    [[#O|O]]   [[#P|P]]    [[#R|R]]   [[#S|S]]    [[#T|T]]   [[#U|U]]   [[#V|V]]   [[#W|W]]   [[#X|X]]   &lt;br>&lt;br> [[#symbols|Symbols]] '''   -   ''' [[#references|References]]&lt;br>&lt;br>{{small|Menu Created by Cyperium}}&lt;/p>&lt;/div>
 
 
 
-&lt;center&gt;[[QB64 FAQ|Go to Frequently Asked Questions about QB64]]&lt;/center&gt;
+&lt;center>[[QB64 FAQ|Frequently Asked Questions about QB64]]&lt;/center>
 
-&lt;p style=&quot;text-align: center&quot;&gt;[[Keyword Reference - By usage|Go to keywords by Usage]]&lt;/p&gt;
+&lt;p style="text-align: center">[[Keyword Reference - By usage|Keywords by usage]]&lt;/p>
 
-&lt;p style=&quot;text-align: center&quot;&gt;Keywords beginning with _underscores are QB64 specific.&lt;/p&gt;
+&lt;p style="text-align: center">Keywords beginning with _underscores are QB64 specific. '''To use them without the prefix, use [[$NOPREFIX]].'''&lt;/p>
 
-&lt;p style=&quot;text-align: center&quot;&gt;[[Keywords currently not supported by QB64]]&lt;/p&gt;
+&lt;p style="text-align: center">[[Keywords currently not supported by QB64]]&lt;/p>
 
-&lt;p style=&quot;text-align: center&quot;&gt;[[Keywords currently not supported by QB64#Keywords_Not_Supported_in_Linux_or_MAC_OSX_versions|Keywords Not Supported in Linux or MAC versions]]&lt;/p&gt;
+&lt;p style="text-align: center">[[Keywords currently not supported by QB64#Keywords_Not_Supported_in_Linux_or_MAC_OSX_versions|Keywords not supported in Linux or MAC versions]]&lt;/p>
 
-&lt;p style=&quot;text-align: center&quot;&gt;Keywords without the underscore at the beginning should work with both QB 4.5 and QB64.&lt;/p&gt;
+&lt;p style="text-align: center">Keywords without the underscore at the beginning should work with both QB 4.5 and QB64.&lt;/p>
 
-&lt;p style=&quot;text-align: center&quot;&gt; [https://dl.dropbox.com/u/10291175/QB64OfflineWiki.7z Download the QB64 WIKI for Offline Reference (7 Zip 3.8MB)].&lt;/p&gt;
+&lt;p style="text-align: center">For comments or suggestions about this WIKI goto the [http://www.qb64.org/forum/index.php QB64 Forum].&lt;/p>
 
-&lt;p style=&quot;text-align: center&quot;&gt; Offline WIKI Reference contributed by OlDosLover.&lt;/p&gt;
+&lt;center> '''If code examples only display partial code, use the browser Refresh button'''&lt;/center>
 
-&lt;p style=&quot;text-align: center&quot;&gt;For comments or suggestions about this WIKI goto the [http://www.qb64.net/forum/index.php?board=14.0 QB64 Community Development Forum].&lt;/p&gt;
-
-&lt;center&gt;'''[[Known QB64 Issues]]'''&lt;/center&gt;
-
-&lt;center&gt; '''If code examples only display partial code, use the browser Refresh button'''&lt;/center&gt;
-
-&lt;center&gt;[[Main Page|Main Page with Appendix and Tutorials]]&lt;/center&gt;
+&lt;center>[[Main Page|Main Page with Appendix and Tutorials]]&lt;/center>
 
 
 
 ==QB64 specific keywords:==
 
-&lt;p style=&quot;text-align: center&quot;&gt;The underscore prefix is reserved for QB64 _KEYWORDS only.&lt;/p&gt;
+&lt;p style="text-align: center">The underscore prefix is reserved for QB64 _KEYWORDS only.&lt;/p>
 
-&lt;div id = &quot;uA&quot;&gt;_A&lt;/div&gt;
+&lt;div id = "uA">_A&lt;/div>
+* [[_ACCEPTFILEDROP]] (statement) {{text|turns a program window into a valid drop destination for dragging files from Windows Explorer.}}
 * [[_ACOS]] (function) {{text|arccosine function returns the angle in radians based on an input [[COS]]ine value range from -1 to 1.}}
-* [[_ACOSH]] (function) {{text|Returns the nonnegative arc hyperbolic cosine of x, expressed in radians.}}
+* [[_ACOSH]] (function) {{text|returns the nonnegative arc hyperbolic cosine of x, expressed in radians.}}
+* [[_ALLOWFULLSCREEN]] (statement) {{text|allows setting the behavior of the ALT+ENTER combo.}}
 * [[_ALPHA]] (function) {{text|returns the alpha channel transparency level of a color value used on a screen page or image.}}
 * [[_ALPHA32]] (function) {{text|returns the alpha channel transparency level of a color value used on a 32 bit screen page or image.}}
 * [[Mathematical_Operations|_ARCCOT]] (function) {{text|is the inverse function of the cotangent. .  http://mathworld.wolfram.com/InverseCosecant.html}}
 * [[Mathematical_Operations|_ARCCSC]] (function) {{text|is the inverse function of the cosecant.  http://mathworld.wolfram.com/InverseCosecant.html}}
 * [[Mathematical_Operations|_ARCSEC]] (function) {{text|is the inverse function of the secant.  http://mathworld.wolfram.com/InverseSecant.html}}
-* [[_ASIN]] (function) {{text|Returns the principal value of the arc sine of x, expressed in radians.}}
-* [[_ASINH]] (function) {{text|Returns the arc hyperbolic sine of x, expressed in radians.}}
-* [[_ATAN2]] (function) {{text|Returns the principal value of the [[ATN|arc tangent]] of y/x, expressed in radians.}}
-* [[_ATANH]] (function) {{text|Returns the arc hyperbolic tangent of x, expressed in radians.}}
+* [[_ASIN]] (function) {{text|returns the principal value of the arc sine of x, expressed in radians.}}
+* [[_ASINH]] (function) {{text|returns the arc hyperbolic sine of x, expressed in radians.}}
+* [[_ASSERT]] (statement) {{text|performs debug tests.}}
+* [[$ASSERTS]] ([[metacommand]]) {{text|enables the [[_ASSERT]] macro}}
+* [[_ATAN2]] (function) {{text|returns the principal value of the [[ATN|arc tangent]] of y/x, expressed in radians.}}
+* [[_ATANH]] (function) {{text|returns the arc hyperbolic tangent of x, expressed in radians.}}
 * [[_AUTODISPLAY]] (statement) {{text|enables the automatic display of the screen image changes previously disabled by [[_DISPLAY]].}}
 * [[_AUTODISPLAY (function)]] {{text|returns the current display mode as true (-1) if automatic or false (0) if per request using [[_DISPLAY]].}}
 * [[_AXIS]] (function) {{text|returns a [[SINGLE]] value between -1 and 1 indicating the maximum distance from the device axis center, 0.}}
@@ -52,7 +50,7 @@ __NOTOC__
 ----
 
 
-&lt;div id = &quot;uB&quot;&gt;_B&lt;/div&gt;
+&lt;div id = "uB">_B&lt;/div>
 * [[_BACKGROUNDCOLOR]] (function) {{text|returns the current [[SCREEN|screen page]] background color.}}
 * [[_BIT]] (` numerical type) {{text|can return only signed values of 0 (bit off) and -1 (bit on). Unsigned 0 or 1.}}
 * [[_BLEND]] (statement) {{text|statement turns on 32 bit alpha blending for the current image or screen mode and is default.}}
@@ -65,14 +63,17 @@ __NOTOC__
 * [[_BUTTONCHANGE]] (function) {{text|returns -1 when a device button has been pressed and 1 when released. Zero indicates no change.}}
 * [[_BYTE]] (%% numerical type) {{text|can hold signed values from -128 to 127 (one byte or _BIT * 8). Unsigned from 0 to 255.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;uC&quot;&gt;_C&lt;/div&gt;
-* [[$CHECKING]] (QB64 C++ [[Metacommand]]) {{text|turns event error checking OFF or ON.}}
-* [[_CEIL]] (function) {{text|Rounds x upward, returning the smallest integral value that is not less than x.}}
+&lt;div id = "uC">_C&lt;/div>
+* [[_CAPSLOCK (function)]] {{text|returns -1 when Caps Lock is on}}
+* [[_CAPSLOCK]] (statement) {{text|sets Caps Lock key state}}
+* [[$CHECKING]] ([[metacommand]]) {{text|turns event error checking OFF or ON.}}
+* [[_CEIL]] (function) {{text|rounds x upward, returning the smallest integral value that is not less than x.}}
+* [[_CINP]] (function) {{text|returns a key code from $CONSOLE input}}
 * [[_CLEARCOLOR (function)]] {{text|returns the current transparent color of an image.}}
 * [[_CLEARCOLOR]] (statement) {{text|sets a specific color index of an image to be transparent}}
 * [[_CLIP]] ([[PUT (graphics statement)|PUT]] graphics option) {{text|allows placement of an image partially off of the screen.}}
@@ -80,11 +81,13 @@ __NOTOC__
 * [[_CLIPBOARD$ (statement)]] {{text|sets and overwrites the [[STRING]] value in the operating system's clipboard.}} 
 * [[_CLIPBOARDIMAGE (function)]] {{text|pastes an image from the clipboard into a new QB64 image in memory.}}
 * [[_CLIPBOARDIMAGE]] {{text|(statement) copies a valid QB64 image to the clipboard.}}
+* [[$COLOR]] ([[metacommand]]) {{text|includes named color constants in a program}}
 * [[_COMMANDCOUNT]] (function) {{text|returns the number of arguments passed to the compiled program from the command line.}}
 * [[_CONNECTED]] (function) {{text|returns the status of a TCP/IP connection handle.}}
 * [[_CONNECTIONADDRESS$]] (TCP/IP function) {{text|returns a connected user's STRING IP address value using the handle.}}
-* [[$CONSOLE]] (QB64 [[Metacommand]]) {{text|creates a console window that can be used throughout a program.}}
+* [[$CONSOLE]] ([[metacommand]]) {{text|creates a console window that can be used throughout a program.}}
 * [[_CONSOLE]] (statement) {{text|used to turn a console window OFF or ON or to designate [[_DEST]] _CONSOLE for output.}}
+* [[_CONSOLEINPUT]] (function) {{text|fetches input data from a [[$CONSOLE]] window to be read later (both mouse and keyboard)}}
 * [[_CONSOLETITLE]] (statement) {{text|creates the title of the console window using a literal or variable [[STRING|string]].}}
 * [[_CONTINUE]] (statement) {{text|skips the remaining lines in a control block (DO/LOOP, FOR/NEXT or WHILE/WEND)}}
 * [[_CONTROLCHR]] (statement) {{text|[[OFF]] allows the control characters to be used as text characters. [[ON]] (default) can use them as commands.}}
@@ -92,25 +95,27 @@ __NOTOC__
 * [[_COPYIMAGE]] (function) {{text|copies an image handle value to a new designated handle.}}
 * [[_COPYPALETTE]] (statement) {{text|copies the color palette intensities from one 4 or 8 BPP image to another image.}}
 * [[Mathematical_Operations|_COT]] (function) {{text| the mathematical function cotangent defined by 1/TAN.  http://mathworld.wolfram.com/Cotangent.html}}
-* [[Mathematical_Operations|_COTH]] (function) {{text|Returns the hyperbolic cotangent.  http://mathworld.wolfram.com/HyperbolicCotangent.html}}
-* [[Mathematical_Operations|_COSH]] (function) {{text|Returns the hyperbolic cosine of x radians.  http://mathworld.wolfram.com/HyperbolicCosine.html}}
+* [[Mathematical_Operations|_COTH]] (function) {{text|returns the hyperbolic cotangent.  http://mathworld.wolfram.com/HyperbolicCotangent.html}}
+* [[Mathematical_Operations|_COSH]] (function) {{text|returns the hyperbolic cosine of x radians.  http://mathworld.wolfram.com/HyperbolicCosine.html}}
 * [[Mathematical_Operations|_CSC]] (function) {{text| the mathematical function cosecant defined by 1/SIN.  http://mathworld.wolfram.com/Cosecant.html}}
-* [[Mathematical_Operations|_CSCH]] (function) {{text|Returns the hyperbolic cosecant.  http://mathworld.wolfram.com/HyperbolicCosecant.html}}
+* [[Mathematical_Operations|_CSCH]] (function) {{text|returns the hyperbolic cosecant.  http://mathworld.wolfram.com/HyperbolicCosecant.html}}
 * [[_CV]] (function) {{text|converts any [[_MK$]] [[STRING]] value to the designated numerical type value.}}
 * [[_CWD$]] (function) {{text|returns the current working directory  as a [[STRING]] value.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;uD&quot;&gt;_D&lt;/div&gt;
+&lt;div id = "uD">_D&lt;/div>
 * [[_D2G]] (function) {{text|converts degrees to gradient angle values.}}
 * [[_D2R]] (function) {{text|converts degrees to radian angle values.}}
 * [[DECLARE LIBRARY|DECLARE LIBRARY (QB64 statement block)]] {{text|declares a C++, SDL or Operating System [[SUB]] or [[FUNCTION]] to be used.}}
 * [[DECLARE DYNAMIC LIBRARY|DECLARE DYNAMIC LIBRARY (QB64 statement)]] {{text|declares DYNAMIC, CUSTOMTYPE or STATIC library (DLL) [[SUB]] or [[FUNCTION]].}}
+* [[$DEBUG]] (precompiler [[metacommand]]) {{text|enables debugging features allowing you to step through your code running line by line and to inspect variables and change their values in real time.}}
 * [[_DEFAULTCOLOR]] (function) {{text|returns the current default text color for an image handle or page.}}
 * [[_DEFINE]] (statement) {{text|defines a range of variable names according to their first character as a data type.}}
+* [[_DEFLATE$]] (function) {{text|compresses a string}}
 * [[_DELAY]] (statement) {{text|suspends program execution for a [[SINGLE]] number of seconds.}}
 * [[_DEPTHBUFFER]] (statement) {{text|enables, disables, locks or clears depth buffering.}}
 * [[_DESKTOPHEIGHT]] (function) {{text|returns the height of the desktop (not program window).}}
@@ -127,26 +132,32 @@ __NOTOC__
 * [[_DISPLAYORDER]] (statement) {{text|designates the order to render software, hardware and custom-opengl-code.}}
 * [[_DONTBLEND]] (statement) {{text|statement turns off default [[_BLEND]] 32 bit [[_ALPHA|alpha]] blending for the current image or screen.}}
 * [[_DONTWAIT]] ([[SHELL]] action) {{text|specifies that the program should not wait until the shelled command/program is finished.}}
+* [[_DROPPEDFILE]] (function) {{text| returns the list of items (files or folders) dropped in a program's window after [[_ACCEPTFILEDROP]] is enabled.}}
 
 
 ----
 
 
-&lt;div id = &quot;uE&quot;&gt;_E&lt;/div&gt;
-* [[$ELSE]] (Pre-Compiler [[Metacommand]]) {{text|used in conjunction with $IF for the precompiler.}}
-* [[$ELSEIF]] (Pre-Compiler [[Metacommand]]) {{text|used in conjunction with $IF for the precompiler.}}
-* [[$END IF]] (Pre-Compiler [[Metacommand]]) {{text|used in conjunction with $IF for the precompiler.}}
+&lt;div id = "uE">_E&lt;/div>
+* [[_ECHO]] (statement) {{text|used in conjunction with $IF for the precompiler.}}
+* [[$ELSE]] (precompiler [[metacommand]]) {{text|used in conjunction with $IF for the precompiler.}}
+* [[$ELSEIF]] (precompiler [[metacommand]]) {{text|used in conjunction with $IF for the precompiler.}}
+* [[$END IF]] (precompiler [[metacommand]]) {{text|used in conjunction with $IF for the precompiler.}}
+* [[_ENVIRONCOUNT]] (function) {{text|returns the number of key/value pairs currently exist in the environment table.}}
+* [[$ERROR]]  (precompiler [[metacommand]]) {{text|used to trigger compiler errors.}}
 * [[_ERRORLINE]] (function) {{text|returns the source code line number that caused the most recent runtime error.}}
-* [[$EXEICON]] (Pre-Compiler [[Metacommand]]) {{text|used with a .ICO icon file name to embed the image into the QB64 executable.}}
+* [[_ERRORMESSAGE$]] (function) {{text|returns a human-readable message describing the most recent runtime error.}}
+* [[$EXEICON]] (precompiler [[metacommand]]) {{text|used with a .ICO icon file name to embed the image into the QB64 executable.}}
 * [[_EXIT (function)]] {{text|prevents a user exit and indicates if a user has clicked the close X window button or CTRL + BREAK.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;uF&quot;&gt;_F&lt;/div&gt;
+&lt;div id = "uF">_F&lt;/div>
 * [[_FILEEXISTS]] (function) {{text|returns -1 if the file name [[STRING|string]] parameter exists. Zero if it does not.}}
+* [[_FINISHDROP]] (statement) {{text| resets [[_TOTALDROPPEDFILES]] and clears the [[_DROPPEDFILE]] list of items (files/folders).}}
 * [[_FLOAT]] (numerical type ##) {{text|offers the maximum floating-point decimal precision available using QB64.}}
 * [[_FONT]] (statement) {{text|sets the current font handle to be used by PRINT or [[_PRINTSTRING]].}}
 * [[_FONT (function)]] {{text|creates a new font handle from a designated image handle.}}
@@ -161,50 +172,52 @@ __NOTOC__
 ----
 
 
-&lt;div id = &quot;uG&quot;&gt;_G&lt;/div&gt;
+&lt;div id = "uG">_G&lt;/div>
 * [[_G2D]] (function) {{text|converts gradient to degree angle values.}}
 * [[_G2R]] (function) {{text|converts gradient to radian angle values.}}
 * [[_GREEN]] (function) {{text|function returns the palette or the green component intensity of a 32-bit image color.}}
 * [[_GREEN32]] (function) {{text|returns the green component intensity of a 32-bit color value.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;uH&quot;&gt;_H&lt;/div&gt;
+&lt;div id = "uH">_H&lt;/div>
 * [[_HEIGHT]] (function) {{text|returns the height of a designated image handle.}}
 * [[_HIDE]] ([[SHELL]] action) {{text| hides the command line display during a shell.}}
-* [[_HYPOT]] (function) {{text|Returns the hypotenuse of a right-angled triangle whose legs are x and y.}}
+* [[_HYPOT]] (function) {{text|returns the hypotenuse of a right-angled triangle whose legs are x and y.}}
 
 
 ----
 
 
-&lt;div id = &quot;uI&quot;&gt;_I&lt;/div&gt;
-* [[$IF]] (Pre-Compiler [[Metacommand]]) {{text|used to set an IF condition for the precompiler.}}
+&lt;div id = "uI">_I&lt;/div>
+* [[$IF]] (precompiler [[metacommand]]) {{text|used to set an IF condition for the precompiler.}}
 * [[_ICON]] (statement) {{text|designates a [[_LOADIMAGE]] image file handle to be used as the program's icon or loads the embedded icon (see [[$EXEICON]]).}}
-* [[_INCLERRORFILE$]] {function) {{text|returns the name of the original source code $INCLUDE module that caused the most recent error.}}
+* [[_INCLERRORFILE$]] (function) {{text|returns the name of the original source code $INCLUDE module that caused the most recent error.}}
 * [[_INCLERRORLINE]] (function) {{text|returns the line number in an included file that caused the most recent error.}}
+* [[_INFLATE$]] (function) {{text|decompresses a string}}
+* [[_INSTRREV]] (function) {{text|allows searching for a substring inside another string, but unlike [[INSTR]] it returns the last occurrence instead of the first one.}}
 * [[_INTEGER64]] (&amp;&amp; numerical type) {{text|can hold whole numerical values from -9223372036854775808 to 9223372036854775807.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 
 ----
 
 
-&lt;div id = &quot;uK&quot;&gt;_K&lt;/div&gt;
-*[[_KEYCLEAR]] (function) {{text|clears the keyboard buffers for INKEY$, _KEYHIT, and INP.}}
-*[[_KEYHIT]] (function) {{text|returns [[ASCII]] one and two byte, SDL Virtual Key and [[Unicode]] keyboard key press codes.}}
+&lt;div id = "uK">_K&lt;/div>
+*[[_KEYCLEAR]] (statement) {{text|clears the keyboard buffers for INKEY$, _KEYHIT, and INP.}}
 *[[_KEYDOWN]] (function) {{text|returns whether CTRL, ALT, SHIFT, combinations and other keys are pressed.}}
+*[[_KEYHIT]] (function) {{text|returns [[ASCII]] one and two byte, Virtual Key and [[Unicode]] keyboard key press codes.}}
 
 
 ----
 
 
-&lt;div id = &quot;uL&quot;&gt;_L&lt;/div&gt;
-* [[$LET]] (Pre-Compiler [[Metacommand]]) {{text|used to set a flag variable for the precompiler.}}
+&lt;div id = "uL">_L&lt;/div>
+* [[$LET]] (precompiler [[metacommand]]) {{text|used to set a flag variable for the precompiler.}}
 * [[_LASTAXIS]] (function) {{text|returns the number of axis available on a specified number device listed by [[_DEVICE$]].}}
 * [[_LASTBUTTON]] (function) {{text|returns the number of buttons available on a specified number device listed by [[DEVICE$]].}} 
 * [[_LASTWHEEL]] (function) {{text|returns the number of scroll wheels available on a specified number device listed by [[_DEVICE$]].}}
@@ -212,12 +225,12 @@ __NOTOC__
 * [[_LOADFONT]] (function) {{text|designates a [[_FONT|font]] TTF file to load and returns a handle value.}}
 * [[_LOADIMAGE]] (function) {{text|designates an image file to load and returns a handle value.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;uM&quot;&gt;_M&lt;/div&gt;
+&lt;div id = "uM">_M&lt;/div>
 * [[_MAPTRIANGLE]] (statement) {{text|maps a triangular image source area to put on a destination area.}}
 * [[_MAPUNICODE]] (statement) {{text|maps a [[Unicode]] value to an [[ASCII]] code number.}}
 * [[_MAPUNICODE (function)]] {{text|returns the [[Unicode]] (UTF32) code point value of a mapped [[ASCII]] character code.}}
@@ -233,6 +246,7 @@ __NOTOC__
 * [[_MEMIMAGE]] (function) {{text|returns a [[_MEM]] block referring to a designated image handle's memory}}
 * [[_MEMNEW]] (function) {{text|allocates new memory with a designated SIZE and returns a [[_MEM]] block referring to it.}}
 * [[_MEMPUT]] (statement) {{text|places a designated value into a designated memory block OFFSET}}
+* [[_MEMSOUND]] (function) {{text|returns a [[_MEM]] block referring to a designated sound handle's memory}}
 * [[_SCREENMOVE|_MIDDLE]] (_SCREENMOVE parameter) {{text|centers the program window on the desktop in any screen resolution.}}
 * [[_MK$]] (function) {{text|converts a numerical value to a designated [[ASCII]] [[STRING]] value.}}
 * [[_MOUSEBUTTON]] (function) {{text|returns the status of a designated mouse button.}}
@@ -241,9 +255,8 @@ __NOTOC__
 * [[_MOUSEMOVE]] (statement) {{text|moves the mouse pointer to a designated position on the program [[SCREEN]].}}
 * [[_MOUSEMOVEMENTX]] (function) {{text|returns the relative horizontal position of the mouse cursor compared to the previous position.}}
 * [[_MOUSEMOVEMENTY]] (function) {{text|returns the relative vertical position of the mouse cursor compared to the previous position.}}
-* [[_MOUSEPIPEOPEN]] (function) {{text|creates a pipe handle value for a mouse when using a virtual keyboard.}}
 * [[_MOUSESHOW]] (statement) {{text|displays the mouse cursor after it has been hidden or can change the cursor shape.}}
-* [[_MOUSEWHEEL]] (function) {{text|returns the number of mouse scroll wheel &quot;clicks&quot; since last read.}}
+* [[_MOUSEWHEEL]] (function) {{text|returns the number of mouse scroll wheel "clicks" since last read.}}
 * [[_MOUSEX]] (function) {{text|returns the current horizontal position of the mouse cursor.}}
 * [[_MOUSEY]] (function) {{text|returns the current vertical position of the mouse cursor.}}
 
@@ -251,28 +264,32 @@ __NOTOC__
 ----
 
 
-&lt;div id = &quot;uN&quot;&gt;_N&lt;/div&gt;
+&lt;div id = "uN">_N&lt;/div>
 * [[_NEWIMAGE]] (function) {{text|creates a designated size program [[SCREEN]] or page image and returns a handle value.}}
+* [[$NOPREFIX]] ([[metacommand]]) {{text|allows QB64-specific keywords to be used without the underscore prefix.}}
+* [[_NUMLOCK (function)]] {{text|returns -1 when Num Lock is on}}
+* [[_NUMLOCK]] (statement) {{text|sets Num Lock key state}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;uO&quot;&gt;_O&lt;/div&gt;
+&lt;div id = "uO">_O&lt;/div>
 * [[_OFFSET (function)]] {{text|returns the memory offset of a variable when used with [[DECLARE LIBRARY]] or [[_MEM]] only.}}
 * [[_OFFSET]] (%&amp; numerical type) {{text|can be used store the value of an offset in memory when using [[DECLARE LIBRARY]] or [[MEM]] only.}}
 * [[_OPENCLIENT]] (TCP/IP function) {{text|connects to a Host on the Internet as a Client and returns the Client status handle.}}
 * [[_OPENCONNECTION]] (TCP/IP function) {{text|open's a connection from a client that the host has detected and returns a status handle.}}
 * [[_OPENHOST]] (TCP/IP function) {{text|opens a Host and returns a Host status handle.}}
-* [[OPTION _EXPLICIT]] (Pre-compiler directive) {{text|instructs the compiler to require variable declaration with [[DIM]] or an equivalent statement.}} 
+* [[OPTION _EXPLICIT]] (precompiler statement) {{text|instructs the compiler to require variable declaration with [[DIM]] or an equivalent statement.}}
+* [[OPTION _EXPLICITARRAY]] (precompiler statement) {{text|instructs the compiler to require array declaration with [[DIM]] or an equivalent statement.}} 
 * [[_OS$]] (function) {{text|returns the QB64 compiler version in which the program was compiled as [WINDOWS], [LINUX] or [MACOSX] and [32BIT] or [64BIT].}}
 
 
 ----
 
 
-&lt;div id = &quot;uP&quot;&gt;_P&lt;/div&gt;
+&lt;div id = "uP">_P&lt;/div>
 * [[_PALETTECOLOR]] (statement) {{text|sets the color value of a palette entry of an image using 256 colors or less palette modes.}}
 * [[_PALETTECOLOR (function)]] {{text|return the 32 bit attribute color setting of an image or screen page handle's palette.}}
 * [[_PI]] (function) {{text|returns the value of '''π''' or parameter multiples for angle or [[CIRCLE|circle]] calculations.}}
@@ -285,17 +302,19 @@ __NOTOC__
 * [[_PRINTWIDTH]] (function) {{text|returns the pixel width of a text string to be printed using [[_PRINTSTRING]].}}
 * [[_PUTIMAGE]] (statement) {{text|maps a rectangular image source area to an image destination area.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;uR&quot;&gt;_R&lt;/div&gt;
+&lt;div id = "uR">_R&lt;/div>
 * [[_R2D]] (function) {{text|converts radians to degree angle values.}}
 * [[_R2G]] (function) {{text|converts radians to gradient angle values.}}
 * [[_RED]] (function) {{text|function returns the palette or the red component intensity of a 32-bit image color.}}
 * [[_RED32]] (function) {{text|returns the red component intensity of a 32-bit color value.}}
-* [[$RESIZE]] ([[Metacommand]]) {{text|used with ON allows a user to resize the program window where OFF does not.}}
+* [[_READBIT]] (function) {{text|returns the state of the specified bit of an integer variable.}}
+* [[_RESETBIT]] (function) {{text|is used to set the specified bit of an integer variable to 0.}}
+* [[$RESIZE]] ([[metacommand]]) {{text|used with ON allows a user to resize the program window where OFF does not.}}
 * [[_RESIZE]] (statement) {{text|sets resizing of the window ON or OFF and sets the method as _STRETCH or _SMOOTH.}}
 * [[_RESIZE (function)]] {{text|returns -1 when a program user wants to resize the program screen.}}
 * [[_RESIZEHEIGHT]] (function) {{text|returns the requested new user screen height when [[$RESIZE]]:ON allows it.}}
@@ -306,31 +325,36 @@ __NOTOC__
 * [[_RGBA32]] (function) {{text|returns the [[LONG]] 32 bit color value in 32 bit screens only with the [[ALPHA]]}}
 * [[_ROUND]] (function) {{text|rounds to the closest [[INTEGER]], [[LONG]] or [[_INTEGER64]] numerical value.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;uS&quot;&gt;_S&lt;/div&gt;
+&lt;div id = "uS">_S&lt;/div>
 * [[Mathematical_Operations#Derived_Mathematical_Functions|_SEC]] (function) {{text| the mathematical function secant defined by 1/COS.  http://mathworld.wolfram.com/Secant.html}}
-* [[Mathematical_Operations#Derived_Mathematical_Functions|_SECH]] (function) {{text|Returns the hyperbolic secant.  http://mathworld.wolfram.com/HyperbolicSecant.html}}
+* [[Mathematical_Operations#Derived_Mathematical_Functions|_SECH]] (function) {{text|returns the hyperbolic secant.  http://mathworld.wolfram.com/HyperbolicSecant.html}}
 * [[_SCREENCLICK]] (statement) {{text|simulates clicking on a point on the desktop screen with the left mouse button.}}
 * [[_SCREENEXISTS]] (function) {{text|returns a -1 value once a screen has been created.}}
-* [[$SCREENHIDE]] ([QB64 [Metacommand]]) {{text|hides the program window from view.}}
+* [[$SCREENHIDE]] ([[metacommand]]) {{text|hides the program window from view.}}
 * [[_SCREENHIDE]] (statement) {{text|hides the program window from view.}}
 * [[_SCREENICON (function)]] {{text|returns -1 or 0 to indicate if the window has been minimized to an icon on the taskbar.}} 
 * [[_SCREENICON]] (statement) {{text|minimizes the program window to an icon on the taskbar.}} 
 * [[_SCREENIMAGE]] (function) {{text|creates an image of the current desktop and returns an image handle.}}
 * [[_SCREENMOVE]] (statement) {{text|positions program window on the desktop using designated coordinates or the _MIDDLE option.}}
 * [[_SCREENPRINT]] (statement) {{text|simulates typing text into a Windows program using the keyboard.}}
-* [[$SCREENSHOW]] (QB64 [[Metacommand]]) {{text|displays that program window after it was hidden by [[$SCREENHIDE]].}}
+* [[$SCREENSHOW]] ([[metacommand]]) {{text|displays that program window after it was hidden by [[$SCREENHIDE]].}}
 * [[_SCREENSHOW]] (statement) {{text|displays the program window after it has been hidden by [[_SCREENHIDE]].}}
 * [[_SCREENX]] (function) {{text|returns the program window's upper left corner horizontal position on the desktop.}}
 * [[_SCREENY]] (function) {{text|returns the program window's upper left corner vertical position on the desktop.}}
+* [[_SCROLLLOCK (function)]] {{text|returns -1 when Scroll Lock is on}}
+* [[_SCROLLLOCK]] (statement) {{text|sets Scroll Lock key state}}
 
 * [[_SETALPHA]] (statement) {{text|sets the alpha channel transparency level of some or all of the pixels of an image.}}
+* [[_SETBIT]] (function) {{text|is used to set the specified bit of an integer variable to 1.}}
 * [[_SHELLHIDE]] (function) {{text|returns the code sent by a program exit using [[END]] or [[SYSTEM]] followed by an [[INTEGER]] value.}}
-* [[Mathematical_Operations|_SINH]] (function) {{text|Returns the hyperbolic sine of x radians.}}
+* [[_SHL]] (function) {{text|used to shift the bits of a numerical value to the left}}
+* [[_SHR]] (function) {{text|used to shift the bits of a numerical value to the right.}}
+* [[Mathematical_Operations|_SINH]] (function) {{text|returns the hyperbolic sine of x radians.}}
 * [[_SNDBAL]] (statement) {{text|attempts to set the balance or 3D position of a sound file.}}
 * [[_SNDCLOSE]] (statement) {{text|frees and unloads an open sound using the sound handle created by [[_SNDOPEN]].}}
 * [[_SNDCOPY]] (function) {{text|copies a sound handle value to a new designated handle.}}
@@ -359,22 +383,25 @@ __NOTOC__
 * [[_STRCMP]] (function) {{text|compares the relationship between two strings.}}
 * [[_STRICMP]] (function) {{text|compares the relationship between two strings, without regard for case-sensitivity.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;uT&quot;&gt;_T&lt;/div&gt;
+&lt;div id = "uT">_T&lt;/div>
 
-* [[Mathematical_Operations|_TANH]] (function) {{text|Returns the hyperbolic tangent of x radians.}}
+* [[Mathematical_Operations|_TANH]] (function) {{text|returns the hyperbolic tangent of x radians.}}
 * [[_TITLE]] (statement) {{text|sets the program title [[STRING|string]] value.}}
 * [[_TITLE$]] (function) {{text|gets the program title [[STRING|string]] value.}}
+* [[_TOGGLEBIT]] (function) {{text|is used to toggle the specified bit of an integer variable from 1 to 0 or 0 to 1.}}
+* [[_TOTALDROPPEDFILES]] (function) {{text| returns the number of items (files or folders) dropped in a program's window after [[_ACCEPTFILEDROP]] is enabled.}}
+* [[_TRIM$]] (function) {{text|shorthand to [[LTRIM$]]([[RTRIM$]]("text"))}}
 
 
 ----
 
 
-&lt;div id = &quot;uU&quot;&gt;_U&lt;/div&gt;
+&lt;div id = "uU">_U&lt;/div>
 
 * [[_UNSIGNED]] (numerical type) {{text|expands the positive range of numerical [[INTEGER]], [[LONG]] or [[_INTEGER64]] values returned.}}
 
@@ -382,31 +409,31 @@ __NOTOC__
 ----
 
 
-&lt;div id = &quot;uV&quot;&gt;_V&lt;/div&gt;
+&lt;div id = "uV">_V&lt;/div>
 
-* [[$VERSIONINFO]] ([[Metacommand]]) {{text|adds metadata to Windows only binaries for identification purposes across the OS.}}
-* [[$VIRTUALKEYBOARD]] ([[Metacommand]]) {{text|turns the virtual keyboard ON or OFF for use in touch-enabled devices}}
+* [[$VERSIONINFO]] ([[metacommand]]) {{text|adds metadata to Windows only binaries for identification purposes across the OS.}}
+* [[$VIRTUALKEYBOARD]] ([[metacommand]] - Deprecated) {{text|turns the virtual keyboard ON or OFF for use in touch-enabled devices}}
 
 
 ----
 
 
-&lt;div id = &quot;uW&quot;&gt;_W&lt;/div&gt;
+&lt;div id = "uW">_W&lt;/div>
 
 * [[_WHEEL]] (function) {{text|returns -1 when a control device wheel is scrolled up and 1 when scrolled down. Zero indicates no activity.}}
 * [[_WIDTH (function)]] {{text|returns the width of a [[SCREEN]] or image handle.}}
 * [[_WINDOWHANDLE]] (function) {{text|returns the window handle assigned to the current program by the OS. Windows-only.}}
 * [[_WINDOWHASFOCUS]] (function) {{text|returns true (-1) if the current program's window has focus. Windows-only.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 
-&lt;center&gt;([[Keyword Reference - Alphabetical#QB64 specific keywords:|Go to Top of QB64 specific keywords]])&lt;/center&gt;
+&lt;center>([[Keyword Reference - Alphabetical#QB64 specific keywords:|Top of QB64 specific keywords]])&lt;/center>
 
 ==Original QBasic keywords:==
-'''&lt;p style=&quot;text-align: center&quot;&gt;These QBasic keywords (with a few noted exceptions) will work in all versions of QB64.&lt;/p&gt;'''
+'''&lt;p style="text-align: center">These QBasic keywords (with a few noted exceptions) will work in all versions of QB64.&lt;/p>'''
 
-&lt;div id = &quot;A&quot;&gt;A&lt;/div&gt;
+&lt;div id = "A">A&lt;/div>
 * [[ABS]] (function) {{text|converts any negative numerical value to a positive value.}}
 * [[CALL ABSOLUTE|ABSOLUTE]] (statement) {{text|is used to access computer interrupt registers.}}
 * [[ACCESS]] (file statement) {{text|sets the read and write access of a file when opened.}}
@@ -423,27 +450,24 @@ __NOTOC__
 ----
 
 
-&lt;div id = &quot;B&quot;&gt;B&lt;/div&gt;
+&lt;div id = "B">B&lt;/div>
 * [[BEEP]] (statement) {{text|creates an error sound of a fixed duration.}}
 * [[BINARY]] (file mode) {{text|creates or opens an existing file for [[GET|read]] and [[PUT|write]] byte-wise access.}}
 * [[BLOAD]] (statement) {{text|transfers the contents of a [[BINARY]] [[BSAVE]] file to a specific [[Arrays|array]].}}
 * [[BSAVE]] (statement) {{text|transfers the contents of an [[Arrays|array]] to a specified size [[BINARY]] file.}}
 * [[BYVAL]] (statement) {{text|assigns a numerical variable value by its value, not the name.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;C&quot;&gt;C&lt;/div&gt;
+&lt;div id = "C">C&lt;/div>
 * [[CALL]] (statement) {{text|optional statement that sends the program to a [[SUB]] procedure.  Requires parameters be enclosed in brackets(parenthesis).}}
 * [[CALL ABSOLUTE]] (statement) {{text|is used to access computer interrupt registers.}}
-* [[CALLS]] (non-BASIC call statement)
 * [[CASE]] ([[SELECT CASE]] condition) {{text|designates specific conditions in a [[SELECT CASE]] statement block.}}
 * [[CASE ELSE]] ([[SELECT CASE]] condition) {{text|designates an alternative condition to be evaluated in a [[SELECT CASE]] statement block.}}
 * [[CASE IS]] ([[SELECT CASE]] condition) {{text|designates specific conditions in a [[SELECT CASE]] statement block.}}
-* [[CDBL]] (function) {{text|returns the closest [[DOUBLE]] value of a number.}}
-* [[CDECL]] ([[DECLARE (non-BASIC statement)]])
 * [[CHAIN]] (statement) {{text|sends a program to another specified program module or compiled program.}}
 * [[CHDIR]] (statement) {{text|changes the current program path for file access.}}
 * [[CHR$]] (function) {{text|returns a text [[STRING|string]] character by the specified [[ASCII]] code number.}}
@@ -467,20 +491,16 @@ __NOTOC__
 * [[CVS]] (function) {{text|returns the [[SINGLE]] numerical value of a 4 byte [[MKS$]] [[STRING|string]].}}
 * [[CVSMBF]] (function) {{text|returns the [[SINGLE]] numerical value of a [[MKSMBF$|Microsoft Binary Format]] [[STRING|string]].}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;D&quot;&gt;D&lt;/div&gt;
+&lt;div id = "D">D&lt;/div>
 * [[DATA]] (statement) {{text|creates a line of fixed program information separated by commas.}}
 * [[DATE$]] (function) {{text|returns the present Operating System date [[STRING|string]] formatted as mm-dd-yyyy.}}
-* [[DATE$ (statement)]] {{text|sets the date of the Operating System using a mm-dd-yyyy [[STRING|string]] format.}}
-* [[DECLARE]] (BASIC statement) {{text|declares a [[SUB]] or [[FUNCTION]] procedure at the start of a program. Not required in QB64.}}
-* [[DECLARE (non-BASIC statement)]] {{text|declares non-basic [[SUB]] or [[FUNCTION]] procedures. Not implemented in QB64.}}
 * [[DECLARE LIBRARY|DECLARE LIBRARY (QB64 statement block)]] {{text|declares a C++, SDL or Operating System [[SUB]] or [[FUNCTION]] to be used.}}
 * [[DECLARE DYNAMIC LIBRARY|DECLARE DYNAMIC LIBRARY (QB64 statement)]] {{text|declares DYNAMIC, CUSTOMTYPE or STATIC  library(DLL) [[SUB]] or [[FUNCTION]].}}
-* [[DEF FN]] (statement) {{text|defines a function procedure in the main program that cannot be used recursively.}}
 * [[DEF SEG]] (statement) {{text|defines a segment in memory to be accessed by a memory procedure.}}
 * [[DEFDBL]] (statement) {{text|defines a set of undefined variable name starting letters as [[DOUBLE]] type numerical values.}}
 * [[DEFINT]] (statement) {{text|defines a set of undefined variable name starting letters as [[INTEGER]] type numerical values.}}
@@ -491,44 +511,40 @@ __NOTOC__
 * [[DO...LOOP]] (statement) {{text|sets a recursive procedure loop that can be ignored or exited using conditional arguments.}}
 * [[DOUBLE]] (numerical type #) {{text|8 byte value limited to values up to 15 decimal places.}}
 * [[DRAW]] (statement) {{text|uses a special [[STRING|string]] format that draws graphical lines in specific directions.}}
-* [[$DYNAMIC]] ([[Metacommand]]) {{text|used at the start of a program to set all program arrays as changeable in size using [[REDIM]].}}
+* [[$DYNAMIC]] ([[metacommand]]) {{text|used at the start of a program to set all program arrays as changeable in size using [[REDIM]].}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;E&quot;&gt;E&lt;/div&gt;
+&lt;div id = "E">E&lt;/div>
 * [[ELSE]] ([[IF...THEN]] statement) {{text|is used to direct program flow when no other condition is evaluated as true.}}
 * [[ELSEIF]] ([[IF...THEN]] statement) {{text|is used with [[THEN]] to set alternate conditional evaluations.}}
 * [[END]] (statement) {{text|sets the end of a program, sub-procedure, statement block, [[DECLARE LIBRARY]] or [[TYPE]] definition.}}
 * [[IF...THEN|END IF]] (statement) {{text|[[END]]s an IF...THEN conditional block statement using more than one line of code.}}
-* [[ENVIRON]] (statement) {{text|temporarily sets or changes an environmental string value.}}
+* [[ENVIRON]] (statement) {{text|temporarily sets an environmental key/value pair.}}
 * [[ENVIRON$]] (function) {{text|returns a specified string setting or numerical position as an environmental [[STRING]] value.}}
 * [[EOF]] (file function) {{text|returns -1 when a file [[INPUT (file statement)|INPUT]] or [[GET]] has reached the end of a file.}}
 * [[EQV]] (logic operator) {{text|is used to compare two numerical values bitwise.}}
 * [[ERASE]] (statement) {{text|clears the values from [[$STATIC]] arrays and completely removes [[$DYNAMIC]] arrays.}}
-* [[ERDEV]] (function) {{text|returns an error code from the last device to create an error.}}
-* [[ERDEV$]] (function) {{text|returns the 8 character name of the last device to declare an error as a [[STRING|string]].}}
 * [[ERL]] (error function) {{text|returns the closest line number before an error occurred if line numbers are used.}}
 * [[ERR]] (function) {{text|returns the [[ERROR Codes|ERROR code]] when a program error occurs.}}
 * [[ERROR]] (statement) {{text|sets a specific [[ERROR Codes|ERROR code]] to be simulated.}}
-* [[EXIT]] (statement) {{text|immediately exits a program [[FOR...NEXT]], [[DO...LOOP]], [[SUB]], [[FUNCTION]] or [[DEF FN]] procedure.}}
+* [[EXIT]] (statement) {{text|immediately exits a program [[FOR...NEXT]], [[DO...LOOP]], [[SUB]] or [[FUNCTION]] procedure.}}
 * [[EXP]] (function) {{text|returns the value of e to the exponential power specified.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;F&quot;&gt;F&lt;/div&gt;
+&lt;div id = "F">F&lt;/div>
 * [[FIELD]] (statement) {{text|defines the variable sizes to be written or read from a file.}}
-* [[FILEATTR]] (function) {{text|returns the current file access mode.}}
 * [[FILES]] (statement) {{text|returns a list of files in the current directory path to the [[SCREEN]].}}
 * [[FIX]] (function) {{text|returns the rounded [[INTEGER]] value of a numerical value.}}
 * [[FOR...NEXT]] (statement) {{text|creates a recursive loop procedure that loop a specified number of times.}}
 * [[FOR (file statement)]] {{text|used in an [[OPEN]] file or device statement to indicate the access mode.}}
-* [[FRE]] (function) {{text|returns the number of bytes of Memory available to running programs.}}
 * [[TIMER (statement)|FREE (QB64 TIMER statement)]] {{text|frees a numbered TIMER event in QB64.}}
 * [[FREEFILE]] (file function) {{text|returns a file number that is currently not in use by the Operating System.}}
 * [[FUNCTION]] (procedure block) {{text|sub-procedure that can calculate and return one value to a program in its name.}}
@@ -537,62 +553,59 @@ __NOTOC__
 ----
 
 
-&lt;div id = &quot;G&quot;&gt;G&lt;/div&gt;
+&lt;div id = "G">G&lt;/div>
 * [[GET]] (file statement) {{text|reads a file sequencially or at a specific position and returns the value as the variable type used.}}
 * [[GET (TCP/IP statement)|GET (QB64 TCP/IP statement)]] {{text|reads a connection port to return a value.}}
 * [[GET (graphics statement)]] {{text|maps an area the current [[SCREEN|screen's]] video information and places it in an [[INTEGER]] [[arrays|array]].}}
 * [[GOSUB]] (statement) {{text|sends the program to a designated line label procedure in the main program.}}
 * [[GOTO]] (statement) {{text|sends the program to a designated line number or line label in a procedure.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;H&quot;&gt;H&lt;/div&gt;
+&lt;div id = "H">H&lt;/div>
 * [[HEX$]] (function) {{text|returns the hexadecimal(base 16) [[STRING]] representation of a decimal [[INTEGER]] value.}}
 
 
 ----
 
 
-&lt;div id = &quot;I&quot;&gt;I&lt;/div&gt;
+&lt;div id = "I">I&lt;/div>
 * [[IF...THEN]] (statement) {{text|a conditional block statement used control program flow.}}
 * [[IMP]] (logic operator) {{text|is used to compare two numerical values bitwise.}}
-* [[$INCLUDE]] ([[Metacommand]]) {{text|designates a text code library file to include with the program.}}
+* [[$INCLUDE]] ([[metacommand]]) {{text|designates a text code library file to include with the program.}}
 * [[INKEY$]] (function) [[ASCII]] {{text|returns a [[STRING|string]] value entry from the keyboard.}}
 * [[INP]] (function) {{text|returns a numerical value from a specified port register address. See [[Keyboard scancodes]]}}
 * [[INPUT]] (statement) {{text|a user input that returns a value to one or more specified variable(s).}}
 * [[INPUT (file mode)]] {{text|[[OPEN]] statement that only allows an existing file to be read using [[INPUT (file statement)]] or [[INPUT$]].}}
 * [[INPUT (file statement)]] {{text|reads a file sequentially using the variable types designated.}} 
-* [[INPUT (TCP/IP statement)|INPUT (QB64 TCP/IP statement)]] {{text|reads a port connection sequencially using the variable types designated.}}
 * [[INPUT$]] (function) {{text|returns a designated number of [[STRING|string]] bytes from the keyboard entry or a file number.}}
 * [[INSTR]] (function) {{text|returns the position in a text [[STRING|string]] where a character sequence match starts.}}
 * [[INT]] (function) {{text|rounds a numerical value to an [[INTEGER]] value by removing the decimal point fraction.}}
 * [[INTEGER]] (% numerical type) {{text|2 byte whole values from -32768 to 32767.}}
 * [[INTERRUPT]] (statement) {{text|is used to access computer interrupt registers.}}
 * [[INTERRUPTX]] (statement) {{text|is used to access computer interrupt registers.}}
-* [[IOCTL]] (statement)
-* [[IOCTL$]] (function)
 
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;K&quot;&gt;K&lt;/div&gt;
-* [[KEY n]] (statement) {{text|used with [[ON KEY(n)]] events to assign a &quot;softkey&quot; string to a key or create a  user defined key.}}
+&lt;div id = "K">K&lt;/div>
+* [[KEY n]] (statement) {{text|used with [[ON KEY(n)]] events to assign a "softkey" string to a key or create a  user defined key.}}
 * [[KEY(n)]] (statement) {{text|used with [[ON KEY(n)]] events to assign, enable, disable or suspend event trapping.}}
 * [[KEY LIST]] (statement) {{text|lists the 12 Function key soft key string assignments going down left side of screen.}}
 * [[KILL]] (statement) {{text|deletes the specified file without a warning. Remove empty folders with [[RMDIR]].}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;L&quot;&gt;L&lt;/div&gt;
+&lt;div id = "L">L&lt;/div>
 * [[LBOUND]] (function) {{text|returns the lower boundary of the specified array.}}
 * [[LCASE$]] (function) {{text|returns the lower case value of a [[STRING]].}}
 * [[LEFT$]] (function) {{text|returns the specified number of text characters from the left end of a [[STRING]].}}
@@ -601,7 +614,7 @@ __NOTOC__
 * [[LINE]] (statement) {{text|creates a graphic line or box on the [[SCREEN]].}}
 * [[LINE INPUT]] (statement) {{text|user input can be any text character including commas and quotes as a [[STRING]] value only.}}
 * [[LINE INPUT (file statement)]] {{text|returns an entire text file line and returns it as a [[STRING]] value.}}
-* [[KEY LIST|LIST]] {{text|displays the current [[ON KEY(n)]] function key (F1 to F10) &quot;soft key&quot; settings.}}
+* [[KEY LIST|LIST]] {{text|displays the current [[ON KEY(n)]] function key (F1 to F10) "soft key" settings.}}
 * [[LOC]] (function) {{text|returns the present file byte position or number of bytes in the [[OPEN COM]] buffer.}}
 * [[LOCATE]] (statement) {{text|sets the text cursor's row and column position for a [[PRINT]] or [[INPUT]] statement.}} 
 * [[LOCK]] (statement) {{text|restricts access to portions or all of a file by other programs or processes.}}
@@ -615,12 +628,12 @@ __NOTOC__
 * [[LSET]] (statement) {{text|left justifies the text in a string so that there are no leading spaces.}}
 * [[LTRIM$]] (function) {{text|returns a [[STRING|string]] value with no leading spaces.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;M&quot;&gt;M&lt;/div&gt;
+&lt;div id = "M">M&lt;/div>
 * [[MID$]] (function) {{text|returns a designated portion of a [[STRING]].}}
 * [[MID$ (statement)]] {{text|redefines existing characters in a [[STRING]].}}
 * [[MKD$]] (function) {{text|returns an 8 byte [[ASCII]] [[STRING|string]] representation of a [[DOUBLE]] numerical value.}}
@@ -636,51 +649,44 @@ __NOTOC__
 ----
 
 
-&lt;div id = &quot;N&quot;&gt;N&lt;/div&gt;
+&lt;div id = "N">N&lt;/div>
 * [[NAME]] (statement) {{text|names an existing file name [[AS]] a new file name.}}
 * [[NEXT]] (statement) {{text|bottom end of a [[FOR...NEXT]] counter loop to returns to the start or a [[RESUME|RESUME NEXT]] error.}}
 * [[NOT]] (logical operator) {{text|inverts the value of a logic operation or returns True when a [[boolean]] evaluation is False.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;O&quot;&gt;O&lt;/div&gt;
+&lt;div id = "O">O&lt;/div>
 * [[OCT$]] (function) {{text|returns the octal (base 8) [[STRING]] representation of a decimal [[INTEGER]] value.}}
 * [[OFF]] (event statement) {{text|turns off all [[ON]] event checking.}}
-* [[ON COM(n)]] (statement) {{text|sets up a COM port event procedure call.}}
 * [[ON ERROR]] (statement) {{text|sets up and activates an error event checking procedure call. Use to avoid program errors.}}
 * [[ON KEY(n)]] (statement) {{text|sets up a keyboard key entry event procedure.}}
-* [[ON PEN]] (statement) {{text|sets up a pen event procedure call.}}
-* [[ON PLAY(n)]] (statement) {{text|sets up a [[PLAY]] event procedure call.}}
 * [[ON STRIG(n)]] (statement) {{text|sets up a joystick button event procedure call.}}
 * [[ON TIMER(n)]] (statement) {{text|sets up a timed event procedure call.}}
-* [[ON UEVENT]] (statement) '''{{text|Not implemented in QB64.}}'''
-* [[ON...GOSUB]] (statement) {{text|sets up a numberical event procedure call.}}
-* [[ON...GOTO]] (statement) {{text|sets up a numberical event procedure call.}}
+* [[ON...GOSUB]] (statement) {{text|sets up a numerical event procedure call.}}
+* [[ON...GOTO]] (statement) {{text|sets up a numerical event procedure call.}}
 * [[OPEN]] (file statement) {{text|opens a file name for an access mode with a specific file number.}}
 * [[OPEN COM]] (statement) {{text|opens a serial communication port for access at a certain speed and mode.}}
-* [[OPTION BASE]] (statement) {{text|can set the lower boundary of all arrays to 1.}}
+* [[OPTION BASE]] (precompiler statement) {{text|can set the lower boundary of all arrays to 1.}}
 * [[OR]] (logic operator) {{text|is used to compare two numerical values bitwise.}}
 * [[OR (boolean)]] {{text| conditonal operator is used to include an alternative evaluation in an [[IF...THEN]] or [[Boolean]] statement.}}
 * [[OUT]] (statement) {{text|writes numerical data to a specified register port.}}
 * [[OUTPUT]] (file mode) {{text|creates a new file or clears all data from an existing file to acess the file sequencially.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;P&quot;&gt;P&lt;/div&gt;
+&lt;div id = "P">P&lt;/div>
 * [[PAINT]] (statement) {{text|fills an enclosed area of a graphics [[SCREEN|screen]] with a color until it encounters a specific colored border.}}
 * [[PALETTE]] (statement) {{text|sets the Red, Green and Blue color attribute intensities using a RGB multiplier calculation.}}
 * [[PALETTE USING]] (statement) {{text|sets the color intensity settings using a designated [[arrays|array]].}}
 * [[PCOPY]] (statement) {{text|swaps two designated memory page images when page swapping is enabled in the [[SCREEN]] statement.}}
 * [[PEEK]] (function) {{text|returns a numerical value from a specified segment address in memory.}} 
-* [[PEN]] (function) {{text|returns requested information about the lightpen device used.}}
-* [[PEN (statement)]] {{text|enables/disables or suspends event trapping of a lightpen device.}}
-* [[PLAY(n)]] (function) {{text|returns the number of notes currently in the background music queue.}}
 * [[PLAY]] (statement) {{text|uses a special [[STRING|string]] format that can produce musical tones and effects.}}
 * [[PMAP]] (function) {{text|returns the physical or WINDOW view graphic coordinates.}}
 * [[POINT]] (function) {{text|returns the color attribute number or 32 bit [[_RGB32]] value.}}
@@ -689,7 +695,6 @@ __NOTOC__
 * [[PRESET]] (statement) {{text|sets a pixel coordinate to the background color unless one is specified.}}
 * [[PRINT]] (statement) {{text|prints text [[STRING|strings]] or numerical values to the [[SCREEN]].}}
 * [[PRINT (file statement)]] {{text|prints text [[STRING|strings]] or numerical values to a file.}}
-* [[PRINT (TCP/IP statement)|PRINT (QB64 TCP/IP statement)]] {{text|sends text [[STRING|strings]] to a connection handle.}}
 * [[PRINT USING]] (statement) {{text|prints a template formatted [[STRING|string]] to the [[SCREEN]].}}
 * [[PRINT USING (file statement)]] {{text|prints a template formatted [[STRING|string]] to a file.}}
 * [[PSET]] (statement) {{text|sets a pixel coordinate to the current color unless a color is designated.}}
@@ -697,12 +702,12 @@ __NOTOC__
 * [[PUT (TCP/IP statement)|PUT (QB64 TCP/IP statement)]] {{text|sends raw data to a user's connection handle.}} 
 * [[PUT (graphics statement)]] {{text|places pixel data stored in an [[INTEGER]] array to a specified area of the [[SCREEN]].}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;R&quot;&gt;R&lt;/div&gt;
+&lt;div id = "R">R&lt;/div>
 * [[RANDOM]] (file mode) {{text|creates a file or opens an existing file to [[GET|read]] and [[PUT|write]] records of a set byte size.}}
 * [[RANDOMIZE]] (statement) {{text|sets the random seed value for a specific sequence of random [[RND]] values.}}
 * [[RANDOMIZE|RANDOMIZE USING (QB64 statement)]] {{text|restarts the designated seed value's random sequence of values from the beginning.}}
@@ -720,25 +725,23 @@ __NOTOC__
 * [[RTRIM$]] (function) {{text|returns a [[STRING|string]] with all spaces removed from the right end.}}
 * [[RUN]] (statement) {{text|clears and restarts the program currently in memory or executes another specified program.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;S&quot;&gt;S&lt;/div&gt;
+&lt;div id = "S">S&lt;/div>
 * [[SADD]] (function) {{text|returns the address of a STRING variable as an offset from the current data segment.}}
 * [[SCREEN (function)]] {{text|can return the [[ASCII]] character code or color of the text at a text designated coordinate.}}
 * [[SCREEN]] (statement) {{text|sets the display mode and size of the program window.}}
 * [[SEEK]] (function) {{text|returns the present byte position in an [[OPEN|opened]] file.}}
 * [[SEEK (statement)]] {{text|moves to a specified position in an [[OPEN|opened]] file.}}
 * [[SELECT CASE]] (statement) {{text|a program flow block that can handle numerous conditional evaluations.}}
-* [[SETMEM]] (function) {{text|sets the memory to use.}}
 * [[SGN]] (function) {{text|returns -1 for negative, 0 for zero, and 1 for positive numerical values.}}
 * [[SHARED]] (statement) {{text|designates that a variable can be used by other procedures or the main procedure when in a sub-procedure.}}
 * [[SHELL]] (statement) {{text|sends [[STRING]] commands to the command line. SHELL calls will not affect the current path.}}
 * [[SHELL (function)|SHELL (QB64 function)]] {{text|executes an external command or calls another program. Returns codes sent by [[END]] or [[SYSTEM]].}}
-* [[SIGNAL]] (OS 2 event)
-* [[SIN]] (function) {{text|returns the sine of a [[radians|radian]] angle.}}
+* [[SIN]] (function) {{text|returns the sine of a radian angle.}}
 * [[SINGLE]] (! numerical type) {{text|4 byte floating decimal point values up to 7 decimal places.}}
 * [[SLEEP]] (statement) {{text|pauses the program for a designated number of seconds or until a key is pressed.}}
 * [[SOUND]] (statement) {{text|creates a sound of a specified frequency and duration.}}
@@ -746,7 +749,7 @@ __NOTOC__
 * [[SPC]] (function) {{text|moves the text cursor a number of spaces on the [[SCREEN]].}}
 * [[SQR]] (function) {{text|returns the square root of a non-negative number.}}
 * [[STATIC]] (statement) {{text|creates a [[SUB]] or [[FUNCTION]] variable that retains its value.}}
-* [[$STATIC]] ([[Metacommand]]) {{text|used at the start of a program to set all program arrays as unchangeable in size using [[DIM]].}}
+* [[$STATIC]] ([[metacommand]]) {{text|used at the start of a program to set all program arrays as unchangeable in size using [[DIM]].}}
 * [[STEP]] (keyword) {{text|move relatively from one graphic position or change the counting increment in a [[FOR...NEXT]] loop.}}
 * [[STICK]] (function) {{text|returns the present joystick position.}}
 * [[STOP]] (statement) {{text|stops a program when troubleshooting or stops an [[ON]] event.}}
@@ -759,41 +762,37 @@ __NOTOC__
 * [[SWAP]] (statement) {{text|swaps two [[STRING|string]] or numerical values.}}
 * [[SYSTEM]] (statement) {{text|ends a program immediately.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;T&quot;&gt;T&lt;/div&gt;
+&lt;div id = "T">T&lt;/div>
 * [[TAB]] (function) {{text|moves a designated number of columns on the [[SCREEN|screen]].}}
 * [[TAN]] (function) {{text|returns the ratio of [[SIN]]e to [[COS]]ine or tangent value of an angle measured in radians.}}
 * [[THEN]] ([[IF...THEN]] keyword) {{text|must be used in a one line [[IF...THEN]] program flow statement.}}
 * [[TIME$]] (function) {{text|returns the present time setting of the Operating System as a  format hh:mm:ss [[STRING]].}}
-* [[TIME$ (statement)]] {{text|sets the OS time using the hh:mm:ss [[STRING]] format.}}
 * [[TIMER]] (function) {{text|returns the number of seconds since midnight as a [[SINGLE]] value.}} 
 * [[TIMER (statement)]] {{text|events based on the designated time interval and timer number.}}
 * [[TO]] {{text|indicates a range of numerical values or an assignment of one value to another.}}
-* [[TROFF]] (statement)
-* [[TRON]] (statement)
 * [[TYPE]] (definition) {{text|defines a variable type or file record that can include any [[STRING]] or numerical types.}}
 
 
 ----
 
 
-&lt;div id = &quot;U&quot;&gt;U&lt;/div&gt;
+&lt;div id = "U">U&lt;/div>
 * [[UBOUND]] (function) {{text|returns the upper-most index number of a designated [[arrays|array]].}}
 * [[UCASE$]] (function) {{text|returns an uppercase representation of a specified [[STRING]].}}
-* [[UEVENT]] (statement) '''{{text|Not implemented in QB64.}}'''
 * [[UNLOCK]] (statement) {{text|unlocks a designated file or portions of it.}}
 * [[UNTIL]] (condition) {{text|evaluates a [[DO...LOOP]] condition until it is True.}}
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ----
 
 
-&lt;div id = &quot;V&quot;&gt;V&lt;/div&gt;
+&lt;div id = "V">V&lt;/div>
 * [[VAL]] (function) {{text|returns the numerical value of a [[STRING|string]] number.}}
 * [[VARPTR]] (function) {{text|returns the [[segment]] pointer address in memory.}}
 * [[VARPTR$]] (function) {{text|returns the string value of a numerical value in memory.}}
@@ -805,7 +804,7 @@ __NOTOC__
 ----
 
 
-&lt;div id = &quot;W&quot;&gt;W&lt;/div&gt;
+&lt;div id = "W">W&lt;/div>
 * [[WAIT]] (statement) {{text|waits until a vertical retrace is started or a [[SCREEN|screen]] draw ends.}}
 * [[WEND]] (statement) {{text|the bottom end of a [[WHILE...WEND]] loop.}}
 * [[WHILE]] (condition) {{text|evaluates a [[DO...LOOP]] or [[WHILE...WEND]] condition until it is False.}}
@@ -819,464 +818,45 @@ __NOTOC__
 ----
 
 
-&lt;div id = &quot;X&quot;&gt;X&lt;/div&gt;
+&lt;div id = "X">X&lt;/div>
 
 * [[XOR]] (logic operator) {{text|is used to compare two numerical values bitwise.}}
 
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 
-&lt;center&gt;([[Keyword Reference - Alphabetical#Original QBasic keywords:|Go to Top of Original QB keywords]])&lt;/center&gt;
+&lt;center>([[Keyword Reference - Alphabetical#Original QBasic keywords:|Top of Original QB keywords]])&lt;/center>
 
 &lt;!-- (referenced by QB64 IDE HELP)
---&gt;
-
-==OpenGL specific keywords:==
-&lt;center&gt;'''All QB64 OpenGL keywords must use the underscore _gl prefix with the alphabetically listed function names.'''&lt;/center&gt;
-&lt;center&gt;'''The following keywords cannot be used in QB64 versions .954 and below.'''&lt;/center&gt;
+-->
 
 
-&lt;div id = &quot;glA&quot;&gt;_glA&lt;/div&gt;
-* [[_glAccum]] (statement) {{text|OpenGL command}}
-* [[_glAlphaFunc]] (statement) {{text|OpenGL command}}
-* [[_glAreTexturesResident]] (statement) {{text|OpenGL command}}
-* [[_glArrayElement]] (statement) {{text|OpenGL command}}
-
-
-----
-&lt;div id = &quot;glB&quot;&gt;_glB&lt;/div&gt;
-* [[_glBegin]] (statement) {{text|OpenGL command}}
-* [[_glBindTexture]] (statement) {{text|OpenGL command binds a named texture to a texturing target}}
-* [[_glBitmap]] (statement) {{text|OpenGL command}}
-* [[_glBlendFunc]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glC&quot;&gt;_glC&lt;/div&gt;
-* [[_glCallList]] (statement) {{text|OpenGL command}}
-* [[_glCallLists]] (statement) {{text|OpenGL command}}
-* [[_glClear]] (statement) {{text|OpenGL command clears buffers to preset values}}
-* [[_glClearAccum]] (statement) {{text|OpenGL command}}
-* [[_glClearColor]] (statement) {{text|OpenGL command specifies clear values for the color buffers}}
-* [[_glClearDepth]] (statement) {{text|OpenGL command specifies the depth value used when the depth buffer is cleared. Initial value is 1.}}
-* [[_glClearIndex]] (statement) {{text|OpenGL command}}
-* [[_glClearStencil]] (statement) {{text|OpenGL command specifies the index used when the stencil buffer is cleared. Initial value is 0.}}
-* [[_glClipPlane]] (statement) {{text|OpenGL command}}
-* [[_glColor3b]] (statement) {{text|OpenGL command}}
-* [[_glColor3bv]] (statement) {{text|OpenGL command}}
-* [[_glColor3d]] (statement) {{text|OpenGL command}}
-* [[_glColor3dv]] (statement) {{text|OpenGL command}}
-* [[_glColor3f]] (statement) {{text|OpenGL command}}
-* [[_glColor3fv]] (statement) {{text|OpenGL command}}
-* [[_glColor3i]] (statement) {{text|OpenGL command}}
-* [[_glColor3iv]] (statement) {{text|OpenGL command}}
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-* [[_glColor3s]] (statement) {{text|OpenGL command}}
-* [[_glColor3sv]] (statement) {{text|OpenGL command}}
-* [[_glColor3ub]] (statement) {{text|OpenGL command}}
-* [[_glColor3ubv]] (statement) {{text|OpenGL command}}
-* [[_glColor3ui]] (statement) {{text|OpenGL command}}
-* [[_glColor3uiv]] (statement) {{text|OpenGL command}}
-* [[_glColor3us]] (statement) {{text|OpenGL command}}
-* [[_glColor3usv]] (statement) {{text|OpenGL command}}
-* [[_glColor4b]] (statement) {{text|OpenGL command}}
-* [[_glColor4bv]] (statement) {{text|OpenGL command}}
-* [[_glColor4d]] (statement) {{text|OpenGL command}}
-* [[_glColor4dv]] (statement) {{text|OpenGL command}}
-* [[_glColor4f]] (statement) {{text|OpenGL command}}
-* [[_glColor4fv]] (statement) {{text|OpenGL command}}
-* [[_glColor4i]] (statement) {{text|OpenGL command}}
-* [[_glColor4iv]] (statement) {{text|OpenGL command}}
-* [[_glColor4s]] (statement) {{text|OpenGL command}}
-* [[_glColor4sv]] (statement) {{text|OpenGL command}}
-* [[_glColor4ub]] (statement) {{text|OpenGL command}}
-* [[_glColor4ubv]] (statement) {{text|OpenGL command}}
-* [[_glColor4ui]] (statement) {{text|OpenGL command}}
-* [[_glColor4uiv]] (statement) {{text|OpenGL command}}
-* [[_glColor4us]] (statement) {{text|OpenGL command}}
-* [[_glColor4usv]] (statement) {{text|OpenGL command}}
-* [[_glColorMask]] (statement) {{text|OpenGL command enables and disables writing of frame buffer color components}}
-* [[_glColorMaterial]] (statement) {{text|OpenGL command}}
-* [[_glColorPointer]] (statement) {{text|OpenGL command}}
-* [[_glCopyPixels]] (statement) {{text|OpenGL command}}
-* [[_glCopyTexImage1D]] (statement) {{text|OpenGL command copies pixels into a 1D texture image}}
-* [[_glCopyTexImage2D]] (statement) {{text|OpenGL command copies pixels into a 2D texture image}}
-* [[_glCopyTexSubImage1D]] (statement) {{text|OpenGL command copies a one-dimensional texture subimage}}
-* [[_glCopyTexSubImage2D]] (statement) {{text|OpenGL command copiess a two-dimensional texture subimage}}
-* [[_glCullFace]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glD&quot;&gt;_glD&lt;/div&gt;
-* [[_glDeleteLists]] (statement) {{text|OpenGL command}}
-* [[_glDeleteTextures]] (statement) {{text|OpenGL command deletes named textures}}
-* [[_glDepthFunc]] (statement) {{text|OpenGL command specifies the value used for depth buffer comparisons}}
-* [[_glDepthMask]] (statement) {{text|OpenGL command enables or disables writing into the depth buffer}}
-* [[_glDepthRange]] (statement) {{text|OpenGL command specifies mapping of near clipping plane to window coordinates. Initial value 0.}}
-* [[_glDisable]] (statement) {{text|OpenGL command}}
-* [[_glDisableClientState]] (statement) {{text|OpenGL command}}
-* [[_glDrawArrays]] (statement) {{text|OpenGL command}}
-* [[_glDrawBuffer]] (statement) {{text|OpenGL command}}
-* [[_glDrawElements]] (statement) {{text|OpenGL command}}
-* [[_glDrawPixels]] (statement) {{text|OpenGL command}}
-
-
-----
-&lt;div id = &quot;glE&quot;&gt;_glE&lt;/div&gt;
-* [[_glEdgeFlag]] (statement) {{text|OpenGL command}}
-* [[_glEdgeFlagPointer]] (statement) {{text|OpenGL command}}
-* [[_glEdgeFlagv]] (statement) {{text|OpenGL command}}
-* [[_glEnable]] (statement) {{text|OpenGL command}}
-* [[_glEnableClientState]] (statement) {{text|OpenGL command}}
-* [[_glEnd]] (statement) {{text|OpenGL command}}
-* [[_glEndList]] (statement) {{text|OpenGL command}}
-* [[_glEvalCoord1d]] (statement) {{text|OpenGL command}}
-* [[_glEvalCoord1dv]] (statement) {{text|OpenGL command}}
-* [[_glEvalCoord1f]] (statement) {{text|OpenGL command}}
-* [[_glEvalCoord1fv]] (statement) {{text|OpenGL command}}
-* [[_glEvalCoord2d]] (statement) {{text|OpenGL command}}
-* [[_glEvalCoord2dv]] (statement) {{text|OpenGL command}}
-* [[_glEvalCoord2f]] (statement) {{text|OpenGL command}}
-* [[_glEvalCoord2fv]] (statement) {{text|OpenGL command}}
-* [[_glEvalMesh1]] (statement) {{text|OpenGL command}}
-* [[_glEvalMesh2]] (statement) {{text|OpenGL command}}
-* [[_glEvalPoint1]] (statement) {{text|OpenGL command}}
-* [[_glEvalPoint2]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glF&quot;&gt;_glF&lt;/div&gt;
-* [[_glFeedbackBuffer]] (statement) {{text|OpenGL command}}
-* [[_glFinish]] (statement) {{text|OpenGL command}}
-* [[_glFlush]] (statement) {{text|OpenGL command}}
-* [[_glFogf]] (statement) {{text|OpenGL command}}
-* [[_glFogfv]] (statement) {{text|OpenGL command}}
-* [[_glFogi]] (statement) {{text|OpenGL command}}
-* [[_glFogiv]] (statement) {{text|OpenGL command}}
-* [[_glFrontFace]] (statement) {{text|OpenGL command}}
-* [[_glFrustum]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glG&quot;&gt;_glG&lt;/div&gt;
-* [[_glGenLists]] (statement) {{text|OpenGL command}}
-* [[_glGenTextures]] (statement) {{text|OpenGL command}}
-* [[_glGetBooleanv]] (statement) {{text|OpenGL command}}
-* [[_glGetClipPlane]] (statement) {{text|OpenGL command}}
-* [[_glGetDoublev]] (statement) {{text|OpenGL command}}
-* [[_glGetError]] (statement) {{text|OpenGL command}}
-* [[_glGetFloatv]] (statement) {{text|OpenGL command}}
-* [[_glGetIntegerv]] (statement) {{text|OpenGL command}}
-* [[_glGetLightfv]] (statement) {{text|OpenGL command}}
-* [[_glGetLightiv]] (statement) {{text|OpenGL command}}
-* [[_glGetMapdv]] (statement) {{text|OpenGL command}}
-* [[_glGetMapfv]] (statement) {{text|OpenGL command}}
-* [[_glGetMapiv]] (statement) {{text|OpenGL command}}
-* [[_glGetMaterialfv]] (statement) {{text|OpenGL command}}
-* [[_glGetMaterialiv]] (statement) {{text|OpenGL command}}
-* [[_glGetPixelMapfv]] (statement) {{text|OpenGL command}}
-* [[_glGetPixelMapuiv]] (statement) {{text|OpenGL command}}
-* [[_glGetPixelMapusv]] (statement) {{text|OpenGL command}}
-* [[_glGetPointerv]] (statement) {{text|OpenGL command}}
-* [[_glGetPolygonStipple]] (statement) {{text|OpenGL command}}
-* [[_glGetString]] (statement) {{text|OpenGL command}}
-* [[_glGetTexEnvfv]] (statement) {{text|OpenGL command}}
-* [[_glGetTexEnviv]] (statement) {{text|OpenGL command}}
-* [[_glGetTexGendv]] (statement) {{text|OpenGL command}}
-* [[_glGetTexGenfv]] (statement) {{text|OpenGL command}}
-* [[_glGetTexGeniv]] (statement) {{text|OpenGL command}}
-* [[_glGetTexImage]] (statement) {{text|OpenGL command}}
-* [[_glGetTexLevelParameterfv]] (statement) {{text|OpenGL command}}
-* [[_glGetTexLevelParameteriv]] (statement) {{text|OpenGL command}}
-* [[_glGetTexParameterfv]] (statement) {{text|OpenGL command}}
-* [[_glGetTexParameteriv]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glH&quot;&gt;_glH&lt;/div&gt;
-* [[_glHint]] (statement) {{text|OpenGL command}}
-
-
-----
-&lt;div id = &quot;glI&quot;&gt;_glI&lt;/div&gt;
-* [[_glIndexMask]] (statement) {{text|OpenGL command}}
-* [[_glIndexPointer]] (statement) {{text|OpenGL command}}
-* [[_glIndexd]] (statement) {{text|OpenGL command}}
-* [[_glIndexdv]] (statement) {{text|OpenGL command}}
-* [[_glIndexf]] (statement) {{text|OpenGL command}}
-* [[_glIndexfv]] (statement) {{text|OpenGL command}}
-* [[_glIndexi]] (statement) {{text|OpenGL command}}
-* [[_glIndexiv]] (statement) {{text|OpenGL command}}
-* [[_glIndexs]] (statement) {{text|OpenGL command}}
-* [[_glIndexsv]] (statement) {{text|OpenGL command}}
-* [[_glIndexub]] (statement) {{text|OpenGL command}}
-* [[_glIndexubv]] (statement) {{text|OpenGL command}}
-* [[_glInitNames]] (statement) {{text|OpenGL command}}
-* [[_glInterleavedArrays]] (statement) {{text|OpenGL command}}
-* [[_glIsEnabled]] (statement) {{text|OpenGL command}}
-* [[_glIsList]] (statement) {{text|OpenGL command}}
-* [[_glIsTexture]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glL&quot;&gt;_glL&lt;/div&gt;
-* [[_glLightModelf]] (statement) {{text|OpenGL command}}
-* [[_glLightModelfv]] (statement) {{text|OpenGL command}}
-* [[_glLightModeli]] (statement) {{text|OpenGL command}}
-* [[_glLightModeliv]] (statement) {{text|OpenGL command}}
-* [[_glLightf]] (statement) {{text|OpenGL command}}
-* [[_glLightfv]] (statement) {{text|OpenGL command}}
-* [[_glLighti]] (statement) {{text|OpenGL command}}
-* [[_glLightiv]] (statement) {{text|OpenGL command}}
-* [[_glLineStipple]] (statement) {{text|OpenGL command}}
-* [[_glLineWidth]] (statement) {{text|OpenGL command}}
-* [[_glListBase]] (statement) {{text|OpenGL command}}
-* [[_glLoadIdentity]] (statement) {{text|OpenGL command}}
-* [[_glLoadMatrixd]] (statement) {{text|OpenGL command}}
-* [[_glLoadMatrixf]] (statement) {{text|OpenGL command}}
-* [[_glLoadName]] (statement) {{text|OpenGL command}}
-* [[_glLogicOp]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glM&quot;&gt;_glM&lt;/div&gt;
-* [[_glMap1d]] (statement) {{text|OpenGL command}}
-* [[_glMap1f]] (statement) {{text|OpenGL command}}
-* [[_glMap2d]] (statement) {{text|OpenGL command}}
-* [[_glMap2f]] (statement) {{text|OpenGL command}}
-* [[_glMapGrid1d]] (statement) {{text|OpenGL command}}
-* [[_glMapGrid1f]] (statement) {{text|OpenGL command}}
-* [[_glMapGrid2d]] (statement) {{text|OpenGL command}}
-* [[_glMapGrid2f]] (statement) {{text|OpenGL command}}
-* [[_glMaterialf]] (statement) {{text|OpenGL command}}
-* [[_glMaterialfv]] (statement) {{text|OpenGL command}}
-* [[_glMateriali]] (statement) {{text|OpenGL command}}
-* [[_glMaterialiv]] (statement) {{text|OpenGL command}}
-* [[_glMatrixMode]] (statement) {{text|OpenGL command}}
-* [[_glMultMatrixd]] (statement) {{text|OpenGL command}}
-* [[_glMultMatrixf]] (statement) {{text|OpenGL command}}
-
-
-----
-&lt;div id = &quot;glN&quot;&gt;_glN&lt;/div&gt;
-* [[_glNewList]] (statement) {{text|OpenGL command}}
-* [[_glNormal3b]] (statement) {{text|OpenGL command}}
-* [[_glNormal3bv]] (statement) {{text|OpenGL command}}
-* [[_glNormal3d]] (statement) {{text|OpenGL command}}
-* [[_glNormal3dv]] (statement) {{text|OpenGL command}}
-* [[_glNormal3f]] (statement) {{text|OpenGL command}}
-* [[_glNormal3fv]] (statement) {{text|OpenGL command}}
-* [[_glNormal3i]] (statement) {{text|OpenGL command}}
-* [[_glNormal3iv]] (statement) {{text|OpenGL command}}
-* [[_glNormal3s]] (statement) {{text|OpenGL command}}
-* [[_glNormal3sv]] (statement) {{text|OpenGL command}}
-* [[_glNormalPointer]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glO&quot;&gt;_glO&lt;/div&gt;
-* [[_glOrtho]] (statement) {{text|OpenGL command}}
-
-
-----
-&lt;div id = &quot;glP&quot;&gt;_glP&lt;/div&gt;
-* [[_glPassThrough]] (statement) {{text|OpenGL command}}
-* [[_glPixelMapfv]] (statement) {{text|OpenGL command}}
-* [[_glPixelMapuiv]] (statement) {{text|OpenGL command}}
-* [[_glPixelMapusv]] (statement) {{text|OpenGL command}}
-* [[_glPixelStoref]] (statement) {{text|OpenGL command}}
-* [[_glPixelStorei]] (statement) {{text|OpenGL command}}
-* [[_glPixelTransferf]] (statement) {{text|OpenGL command}}
-* [[_glPixelTransferi]] (statement) {{text|OpenGL command}}
-* [[_glPixelZoom]] (statement) {{text|OpenGL command}}
-* [[_glPointSize]] (statement) {{text|OpenGL command}}
-* [[_glPolygonMode]] (statement) {{text|OpenGL command}}
-* [[_glPolygonOffset]] (statement) {{text|OpenGL command}}
-* [[_glPolygonStipple]] (statement) {{text|OpenGL command}}
-* [[_glPopAttrib]] (statement) {{text|OpenGL command}}
-* [[_glPopClientAttrib]] (statement) {{text|OpenGL command}}
-* [[_glPopMatrix]] (statement) {{text|OpenGL command}}
-* [[_glPopName]] (statement) {{text|OpenGL command}}
-* [[_glPrioritizeTextures]] (statement) {{text|OpenGL command}}
-* [[_glPushAttrib]] (statement) {{text|OpenGL command}}
-* [[_glPushClientAttrib]] (statement) {{text|OpenGL command}}
-* [[_glPushMatrix]] (statement) {{text|OpenGL command}}
-* [[_glPushName]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glR&quot;&gt;_glR&lt;/div&gt;
-* [[_glRasterPos2d]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos2dv]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos2f]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos2fv]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos2i]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos2iv]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos2s]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos2sv]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos3d]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos3dv]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos3f]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos3fv]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos3i]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos3iv]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos3s]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos3sv]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos4d]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos4dv]] (statement) {{text|OpenGL command}}
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-* [[_glRasterPos4f]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos4fv]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos4i]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos4iv]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos4s]] (statement) {{text|OpenGL command}}
-* [[_glRasterPos4sv]] (statement) {{text|OpenGL command}}
-* [[_glReadBuffer]] (statement) {{text|OpenGL command}}
-* [[_glReadPixels]] (statement) {{text|OpenGL command}}
-* [[_glRectd]] (statement) {{text|OpenGL command}}
-* [[_glRectdv]] (statement) {{text|OpenGL command}}
-* [[_glRectf]] (statement) {{text|OpenGL command}}
-* [[_glRectfv]] (statement) {{text|OpenGL command}}
-* [[_glRecti]] (statement) {{text|OpenGL command}}
-* [[_glRectiv]] (statement) {{text|OpenGL command}}
-* [[_glRects]] (statement) {{text|OpenGL command}}
-* [[_glRectsv]] (statement) {{text|OpenGL command}}
-* [[_GLRENDER]] (statement) {{text|sets whether context is displayed, on top of or behind the software rendering.}}
-* [[_glRenderMode]] (statement) {{text|OpenGL command}}
-* [[_glRotated]] (statement) {{text|OpenGL command}}
-* [[_glRotatef]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glS&quot;&gt;_glS&lt;/div&gt;
-* [[_glScaled]] (statement) {{text|OpenGL command}}
-* [[_glScalef]] (statement) {{text|OpenGL command}}
-* [[_glScissor]] (statement) {{text|OpenGL command}}
-* [[_glSelectBuffer]] (statement) {{text|OpenGL command}}
-* [[_glShadeModel]] (statement) {{text|OpenGL command}}
-* [[_glStencilFunc]] (statement) {{text|OpenGL command}}
-* [[_glStencilMask]] (statement) {{text|OpenGL command}}
-* [[_glStencilOp]] (statement) {{text|OpenGL command}}
-
-
-----
-&lt;div id = &quot;glT&quot;&gt;_glT&lt;/div&gt;
-* [[_glTexCoord1d]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord1dv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord1f]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord1fv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord1i]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord1iv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord1s]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord1sv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord2d]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord2dv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord2f]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord2fv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord2i]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord2iv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord2s]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord2sv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord3d]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord3dv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord3f]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord3fv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord3i]] (statement) {{text|OpenGL command}}
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-* [[_glTexCoord3iv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord3s]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord3sv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord4d]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord4dv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord4f]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord4fv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord4i]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord4iv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord4s]] (statement) {{text|OpenGL command}}
-* [[_glTexCoord4sv]] (statement) {{text|OpenGL command}}
-* [[_glTexCoordPointer]] (statement) {{text|OpenGL command}}
-* [[_glTexEnvf]] (statement) {{text|OpenGL command}}
-* [[_glTexEnvfv]] (statement) {{text|OpenGL command}}
-* [[_glTexEnvi]] (statement) {{text|OpenGL command}}
-* [[_glTexEnviv]] (statement) {{text|OpenGL command}}
-* [[_glTexGend]] (statement) {{text|OpenGL command}}
-* [[_glTexGendv]] (statement) {{text|OpenGL command}}
-* [[_glTexGenf]] (statement) {{text|OpenGL command}}
-* [[_glTexGenfv]] (statement) {{text|OpenGL command}}
-* [[_glTexGeni]] (statement) {{text|OpenGL command}}
-* [[_glTexGeniv]] (statement) {{text|OpenGL command}}
-* [[_glTexImage1D]] (statement) {{text|OpenGL command}}
-* [[_glTexImage2D]] (statement) {{text|OpenGL command}}
-* [[_glTexParameterf]] (statement) {{text|OpenGL command}}
-* [[_glTexParameterfv]] (statement) {{text|OpenGL command}}
-* [[_glTexParameteri]] (statement) {{text|OpenGL command}}
-* [[_glTexParameteriv]] (statement) {{text|OpenGL command}}
-* [[_glTexSubImage1D]] (statement) {{text|OpenGL command}}
-* [[_glTexSubImage2D]] (statement) {{text|OpenGL command}}
-* [[_glTranslated]] (statement) {{text|OpenGL command}}
-* [[_glTranslatef]] (statement) {{text|OpenGL command}}
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-----
-&lt;div id = &quot;glV&quot;&gt;_glV&lt;/div&gt;
-* [[_glVertex2d]] (statement) {{text|OpenGL command}}
-* [[_glVertex2dv]] (statement) {{text|OpenGL command}}
-* [[_glVertex2f]] (statement) {{text|OpenGL command}}
-* [[_glVertex2fv]] (statement) {{text|OpenGL command}}
-* [[_glVertex2i]] (statement) {{text|OpenGL command}}
-* [[_glVertex2iv]] (statement) {{text|OpenGL command}}
-* [[_glVertex2s]] (statement) {{text|OpenGL command}}
-* [[_glVertex2sv]] (statement) {{text|OpenGL command}}
-* [[_glVertex3d]] (statement) {{text|OpenGL command}}
-* [[_glVertex3dv]] (statement) {{text|OpenGL command}}
-* [[_glVertex3f]] (statement) {{text|OpenGL command}}
-* [[_glVertex3fv]] (statement) {{text|OpenGL command}}
-* [[_glVertex3i]] (statement) {{text|OpenGL command}}
-* [[_glVertex3iv]] (statement) {{text|OpenGL command}}
-* [[_glVertex3s]] (statement) {{text|OpenGL command}}
-* [[_glVertex3sv]] (statement) {{text|OpenGL command}}
-* [[_glVertex4d]] (statement) {{text|OpenGL command}}
-* [[_glVertex4dv]] (statement) {{text|OpenGL command}}
-* [[_glVertex4f]] (statement) {{text|OpenGL command}}
-* [[_glVertex4fv]] (statement) {{text|OpenGL command}}
-* [[_glVertex4i]] (statement) {{text|OpenGL command}}
-* [[_glVertex4iv]] (statement) {{text|OpenGL command}}
-* [[_glVertex4s]] (statement) {{text|OpenGL command}}
-* [[_glVertex4sv]] (statement) {{text|OpenGL command}}
-* [[_glVertexPointer]] (statement) {{text|OpenGL command}}
-* [[_glViewport]] (statement) {{text|OpenGL command}}
-
-
-
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
-
-
-&lt;div id = &quot;symbols&quot;&gt;&lt;/div&gt;
+&lt;div id = "symbols">&lt;/div>
 
 ==Symbols:==
-&lt;center&gt;'''QB64 and QB Symbols:'''&lt;/center&gt;
+&lt;center>'''QB64 and QB Symbols:'''&lt;/center>
 
-&lt;center&gt;''[Note: All symbols below can also be used inside of literal quoted strings except for quotation marks.]''&lt;/center&gt;
+&lt;center>''[Note: All symbols below can also be used inside of literal quoted strings except for quotation marks.]''&lt;/center>
 
 
 :'''Print, Input or File Formatting'''
 * [[Semicolon|; Semicolon]] after a [[PRINT]] stops invisible cursor at end of printed value. Can prevent screen rolling. A [[Semicolon]] after the [[INPUT]] prompt text will display a question mark after the text. 
 * [[Comma|, Comma]] after a [[PRINT]] tabs invisible cursor past end of printed value. After the [[INPUT]] prompt text a [[comma]] displays no [[Question mark]].
-* [[Quotation mark|&quot; Quotation mark]] delimits the ends of a literal [[STRING]] value in a [[PRINT]], [[INPUT]] or [[LINE INPUT]] statement. 
+* [[Quotation mark|" Quotation mark]] delimits the ends of a literal [[STRING]] value in a [[PRINT]], [[INPUT]] or [[LINE INPUT]] statement. 
 * [[Question mark|? Question mark]] is a shortcut substitute for the [[PRINT]] keyword. Will change to PRINT when cursor leaves the code line.
 
 
 :'''Program Code Markers'''
-* [[Apostrophe|' Apostrophe]] ignores a line of code or program comment and MUST be used before a [[Metacommand]]. Same as using [[REM]].
+* [[Apostrophe|' Apostrophe]] ignores a line of code or program comment and MUST be used before a [[metacommand]]. Same as using [[REM]].
 * [[Comma|, Comma]] is used to separate [[DATA]], [[SUB]] or [[FUNCTION]] parameter variables. 
 * [[Colon|: Colon]]s can be used to separate two procedure statements on one code line.
-* [[Dollar_Sign|$ Dollar sign]] prefix denotes a QBasic [[Metacommand]].
+* [[Dollar_Sign|$ Dollar sign]] prefix denotes a QBasic [[metacommand]].
 * [[Parenthesis|( ) Parenthesis]] enclose a math or conditional procedure order, [[SUB]] or [[FUNCTION]] parameters or to pass by value.
 * [[+|+ Plus]] [[concatenation]] operator MUST be used to combine literal string values in a variable definition.
-* [[Quotation mark|&quot; Quotation mark]] designates the ends of a literal [[STRING]] value. Use [[CHR$]](34) to insert quotes in a text [[STRING]].
+* [[Quotation mark|" Quotation mark]] designates the ends of a literal [[STRING]] value. Use [[CHR$]](34) to insert quotes in a text [[STRING]].
 * [[Underscore|_ Underscore]] can be used to continue a line of code to the next program line in '''QB64'''.
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 :'''Variable Name Type Suffixes'''
 * [[STRING|$ STRING]] text character type: 1 byte
@@ -1291,7 +871,7 @@ __NOTOC__
 * [[_BYTE|%% _BYTE]] '''QB64''' [[INTEGER|whole]] numerical type (1 byte)
 * [[_OFFSET|%&amp; _OFFSET]] '''QB64''' [[INTEGER|whole]] numerical pointer address type (any byte size required)
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 :'''Numerical Base Prefixes'''
 * [[&amp;B|&amp;B Binary]]           Base 2:    Digits 0 or 1 ['''QB64''']
@@ -1311,48 +891,37 @@ __NOTOC__
 
 :'''[[Relational Operations]]'''
 * [[Equal|=]] Equal to condition
-* [[Not_Equal|&lt;&gt;]] Not equal condition
-* [[Greater_Than|&gt;]] Greater than condition
+* [[Not_Equal|&lt;>]] Not equal condition
+* [[Greater_Than|>]] Greater than condition
 * [[Less_Than|&lt;]] Less than condition
-* [[Greater_Than_Or_Equal|&gt;=]] Greater than or equal to condition
+* [[Greater_Than_Or_Equal|>=]] Greater than or equal to condition
 * [[Less_Than_Or_Equal|&lt;=]] Less than or equal to condition
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>
 
 ==References:==
-&lt;div id = &quot;references&quot;&gt;&lt;/div&gt;
+&lt;div id = "references">&lt;/div>
 
-&lt;center&gt;'''WIKI Pages'''
+&lt;center>'''WIKI Pages'''
 
-[[Keyword Reference - Alphabetical#QB64 specific keywords:|Go to QB64 specific keywords]]
+[[Keyword Reference - Alphabetical#QB64 specific keywords:|QB64 specific keywords]]
 
-[[Keyword Reference - Alphabetical#Original QBasic keywords:|Go to Top of Original QB keywords]]
+[[Keyword Reference - Alphabetical#Original QBasic keywords:|Original QBasic keywords]]
 
-[[Keyword Reference - By usage|Go to keywords by Usage]]
+[[Keyword Reference - By usage|Keywords by Usage]]
 
-[[Main_Page#Appendix:|Main Page with Appendix and Tutorials]]      
-
-[[IDE|How to use the QB64 IDE and Compiler]]
+[[Main_Page#Appendix:|Main Page with Appendix and Tutorials]]  
 
 
 '''Got a question about something?''' 
 
 [[QB64 FAQ|Visit the QB64 FAQ]]
 
-[http://www.qb64.net Visit the QB64 Main Site]
+[https://www.qb64.org Visit the QB64 Main Site]
 
-[http://www.qb64.net/forum/index.php Visit QB64 Community Forum]
+[https://www.qb64.org/forum/ Visit QB64 Community Forum]
 
-
-'''Links to other QBasic Sites:'''
-
-[http://qbasicstation.com/index.php?c=p_member Member programs at QBasic Station]
-
-[http://www.network54.com/Index/10167 QBasic Forum at Network 54]
-
-[http://www.petesqbsite.com/forum/ Pete's QBasic Forum]
-
-[http://www.petesqbsite.com/downloads/downloads.shtml Pete's QBasic Downloads]&lt;/center&gt;
+[http://discord.qb64.org Join our Discord server]
 
 
-&lt;p style=&quot;text-align: center&quot;&gt;([[#toc|Return to Table of Contents]])&lt;/p&gt;
+&lt;p style="text-align: center">([[#toc|Return to Table of Contents]])&lt;/p>

@@ -1,8 +1,7 @@
-if(oldstr3595){
-if(oldstr3595->fixed)qbs_set(oldstr3595,_FUNC_READCHUNK_STRING_A);
-qbs_free(_FUNC_READCHUNK_STRING_A);
+if(oldstr3805){
+if(oldstr3805->fixed)qbs_set(oldstr3805,_FUNC_SCASE2_STRING_T);
+qbs_free(_FUNC_SCASE2_STRING_T);
 }
-if(oldstr3596){
-if(oldstr3596->fixed)qbs_set(oldstr3596,_FUNC_READCHUNK_STRING_LAST_CHARACTER);
-qbs_free(_FUNC_READCHUNK_STRING_LAST_CHARACTER);
-}
+qbs_free(_FUNC_SCASE2_STRING_SEPARATOR);
+qbs_free(_FUNC_SCASE2_STRING_TEMP);
+qbs_free(_FUNC_SCASE2_STRING_S);

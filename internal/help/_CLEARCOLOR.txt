@@ -5,7 +5,7 @@ The [[_CLEARCOLOR]] statement sets a specific color to be treated as transparent
 {{PageSyntax}}
 :[[_CLEARCOLOR]] {{{Parameter|color&amp;}}|_NONE}[, {{Parameter|Dest_Handle&amp;}}]
 
-{{Parameters}}
+{{PageParameters}}
 * In color modes using a palette, {{Parameter|color&amp;}} is the palette index of the new transparent color value or _NONE designates no clear colors.
 * If {{Parameter|color&amp;}} is not a valid palette index, an [[ERROR Codes|illegal function call]] error will occur.
 * In 32-bit color modes, {{Parameter|color&amp;}} is the [[_LONG]] color value of the new transparent color.
@@ -21,10 +21,10 @@ The [[_CLEARCOLOR]] statement sets a specific color to be treated as transparent
 
 
 {{PageExamples}}
-''Example 1:'' Using _CLEARCOLOR to &quot;mask&quot; the background color of an image.
+''Example 1:'' Using _CLEARCOLOR to "mask" the background color of an image.
 {{CodeStart}} '' ''
 {{Cl|SCREEN (statement)|SCREEN}} 13
-img&amp; = {{Cl|_LOADIMAGE}}(&quot;qb64_trans.png&quot;)
+img&amp; = {{Cl|_LOADIMAGE}}("qb64_trans.png")
 {{Cl|_PUTIMAGE}} , img&amp;, 0               'place actual image with background
 K$ = INPUT$(1)
 {{Cl|CLS}} , {{Cl|_RGB}}(255, 0, 0)             'clear screen with red background
@@ -33,8 +33,6 @@ K$ = INPUT$(1)
 {{Cl|PRINT}} {{Cl|_CLEARCOLOR}}(img&amp;)           'displays closest clear color attribute
 {{Cl|END}} '' ''
 {{CodeEnd}}
-: ''Note:'' The ''QB64.PNG'' image can be downloaded here: [http://www.qb64.net/qb64_trans.png qb64_trans.png]. Right click and Save as ''qb64_trans.png''.
-
 
 ''Example 2:'' Using a _CLEARCOLOR transparency with images created on a [[_NEWIMAGE]] page. Does not require an image file.
 {{CodeStart}}{{Cl|SCREEN (statement)|SCREEN}} {{Cl|_NEWIMAGE}}(512, 384, 32) ' screen uses handle value
@@ -47,7 +45,7 @@ redball = {{Cl|_NEWIMAGE}}(101, 101, 32) ' create a new image page
 {{Cl|DO...LOOP|DO}}
 {{Cl|_PUTIMAGE| _PUTIMAGE}} ({{Cl|RND}} * 512, {{Cl|RND}} * 384), redball
 {{Cl|SLEEP| SLEEP}} 1 ' one second delay
-{{Cl|LOOP}} {{Cl|UNTIL}} {{Cl|INKEY$}} &lt;&gt; &quot;&quot; '' ''
+{{Cl|LOOP}} {{Cl|UNTIL}} {{Cl|INKEY$}} &lt;> "" '' ''
 {{CodeEnd}}
 
 
@@ -56,7 +54,7 @@ redball = {{Cl|_NEWIMAGE}}(101, 101, 32) ' create a new image page
 mainscreen = {{Cl|_NEWIMAGE}}(640, 480, 32) ' Main Screen (viewable)
 {{Cl|SCREEN}} mainscreen
 {{Cl|_SCREENMOVE}} {{Cl|_SCREENMOVE|_MIDDLE}}
-Image1&amp; = {{Cl|_LOADIMAGE}}(&quot;qb64_trans.png&quot;) '&lt;&lt;&lt;&lt;&lt;&lt; any image with one background color to clear
+Image1&amp; = {{Cl|_LOADIMAGE}}("qb64_trans.png") '&lt;&lt;&lt;&lt;&lt;&lt; any image with one background color to clear
 
 {{Cl|IF...THEN|IF}} Image1&amp; &lt; -1 {{Cl|THEN}} 'check loaded image handle value before using!
   {{Cl|_SOURCE}} Image1&amp;
@@ -76,12 +74,12 @@ DO
   {{Cl|IF...THEN|IF}} a&amp; = 255 {{Cl|THEN}} d = -d 'reverse fade 
   {{Cl|_SETALPHA}} a&amp;, , NewImage1&amp; 'sets alpha level of all colors to fade image page in/out
   {{Cl|_PUTIMAGE}} (0, 342), NewImage1&amp; 
-  {{Cl|LOCATE}} 1, 1: {{Cl|PRINT}} &quot;Alpha: &quot;; a&amp;
+  {{Cl|LOCATE}} 1, 1: {{Cl|PRINT}} "Alpha: "; a&amp;
   {{Cl|_DISPLAY}}
 {{Cl|LOOP}} {{Cl|UNTIL}} a&amp; = 0
 {{Cl|END}}
 {{CodeEnd}}
-:''Note:'' If the _CLEARCOLOR [http://www.qb64.net/qb64_trans.png qb64_trans.png] background was not put onto a separate page, [[_SETALPHA]] would display it also.
+:''Note:'' If the _CLEARCOLOR background was not put onto a separate page, [[_SETALPHA]] would display it also.
 
 
 

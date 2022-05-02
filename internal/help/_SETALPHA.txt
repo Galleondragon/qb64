@@ -6,7 +6,7 @@ The [[_SETALPHA]] statement sets the alpha channel transparency level of some or
 : [[_SETALPHA]] {{Parameter|alpha&amp;}}[, {{Parameter|color1&amp;}}][ [[TO]] {{Parameter|colour2&amp;}}] [, {{Parameter|imageHandle&amp;}}]
 
 
-{{Parameters}}
+{{PageParameters}}
 * {{Parameter|alpha&amp;}} is the new alpha level to set, ranging from 0 (transparent) to 255 (opaque).
 * {{Parameter|color1&amp;}} designates the 32-bit [[LONG]] color value or range of color values {{Parameter|color1&amp;}} TO {{Parameter|colour2&amp;}} to set the transparency. 
 * If no color value or range of colors is given, the entire image's alpha is changed, including any [[_CLEARCOLOR]] settings.
@@ -31,7 +31,7 @@ main = {{Cl|_NEWIMAGE}}(640, 480, 32)
 {{Cl|SCREEN}} main
 {{Cl|_SCREENMOVE}} {{Cl|_SCREENMOVE|_MIDDLE}}
 
-Image1&amp; = {{Cl|_LOADIMAGE}}(&quot;qb64_trans.png&quot;) '&lt;&lt;&lt; PNG file with white background to hide
+Image1&amp; = {{Cl|_LOADIMAGE}}("qb64_trans.png") '&lt;&lt;&lt; PNG file with white background to hide
 {{Cl|_SOURCE}} Image1&amp;
 clr~&amp; = {{Cl|POINT}}(0, 0) 'find background color of image
 {{Cl|_CLEARCOLOR}} clr~&amp;, Image1&amp; 'set background color as transparent
@@ -48,11 +48,11 @@ DO
   {{Cl|IF...THEN|IF}} a&amp; = 255 {{Cl|THEN}} d = -d
   {{Cl|_SETALPHA}} a&amp;, 0 {{Cl|TO}} topclr~&amp;, Image1&amp; 'affects all colors below bright white
   {{Cl|_PUTIMAGE}} (0, 342), Image1&amp; 
-  {{Cl|LOCATE}} 1, 1: {{Cl|PRINT}} &quot;Alpha: &quot;; a&amp;
+  {{Cl|LOCATE}} 1, 1: {{Cl|PRINT}} "Alpha: "; a&amp;
   {{Cl|_DISPLAY}}
 {{Cl|LOOP}} {{Cl|UNTIL}} a&amp; = 0 '' ''
 {{CodeEnd}}
-: ''Explanation:'' The [[POINT]] value minus [[_RGBA]](1, 1, 1, 0) subtracts a small amount from the bright white color value so that the top [[_SETALPHA]] color range will not affect the [[_CLEARCOLOR]] transparency of the bright white PNG background. [http://www.qb64.net/qb64_trans.png qb64_trans.png].
+: ''Explanation:'' The [[POINT]] value minus [[_RGBA]](1, 1, 1, 0) subtracts a small amount from the bright white color value so that the top [[_SETALPHA]] color range will not affect the [[_CLEARCOLOR]] transparency of the bright white PNG background.
 
 
 {{PageSeeAlso}}

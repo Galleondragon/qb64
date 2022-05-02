@@ -5,9 +5,9 @@ The [[CLS]] statement clears the [[_DEST|current write page]].
 : [[CLS]] [{{Parameter|method%}}] [, {{Parameter|bgColor&amp;}}]
 
 
-{{Parameters}}
+{{PageParameters}}
 * {{Parameter|method%}} specifies which parts of the page to clear, and can have one of the following values:
-** CLS    - clears the active graphics or text viewport or the entire text screen and refreshes bottom function [[KEY LIST|KEY ON]] line.
+** CLS - clears the active graphics or text viewport or the entire text screen and refreshes bottom function [[KEY LIST|KEY ON]] line.
 ** CLS 0 - Clears the entire page of text and graphics. Print cursor is moved to row 1 at column 1.
 ** CLS 1 - Clears only the graphics view port. Has no effect for text mode.
 ** CLS 2 - Clears only the text view port. The print cursor is moved to the top row of the text view port at column 1.
@@ -30,8 +30,8 @@ The [[CLS]] statement clears the [[_DEST|current write page]].
 {{Cl|SCREEN}} 12
 {{Cl|CLS}} , 15
 {{Cl|_PRINTMODE }} _KEEPBACKGROUND        'keeps the text background visible
-{{Cl|COLOR}} 0: {{Cl|PRINT}} &quot;This is black text on a white background!&quot;
-K$ = {{Cl|INPUT$}}(1
+{{Cl|COLOR}} 0: {{Cl|PRINT}} "This is black text on a white background!"
+K$ = {{Cl|INPUT$}}(1)
 {{CodeEnd}}
 :''Explanation:'' [[_PRINTMODE]] can be used with [[PRINT]] or [[_PRINTSTRING]] to make the text or the text background transparent.
 
@@ -40,13 +40,12 @@ K$ = {{Cl|INPUT$}}(1
 {{CodeStart}} '' ''
 {{Cl|SCREEN}} {{Cl|_NEWIMAGE}}(640, 480, 32)
 {{Cl|CLS}} , {{Cl|_RGB}}(0, 255, 0)
-i = {{Cl|_LOADIMAGE}}('''&quot;qb64_trans.png&quot;''') 'see note below examples to get the image 
+i = {{Cl|_LOADIMAGE}}('''"qb64_trans.png"''') 'see note below examples to get the image 
 {{Cl|_PUTIMAGE}} (0, 0), i 'places image at upper left corner of window w/o stretching it 
 '' ''
 {{CodeEnd}} '' ''
 
 : ''Explanation:'' When QB64 loads a .PNG file containing a transparent color, that color will be properly treated as transparent when _PUTIMAGE is used to put it onto another image. You can use a .PNG file containing transparency information in a 256-color screen mode in QB64. [[CLS]] sets the [[_CLEARCOLOR]] setting using [[_RGB]].
-: ''Note:'' The ''qb64_trans.png'' bee image used can be downloaded from [http://www.qb64.net/qb64_trans.png qb64_trans.png]
 
 
 {{PageSeeAlso}}

@@ -1,0 +1,10 @@
+.ci
+.travis
+.travis.yml
+appveyor.yml
+.git
+.gitignore
+.github
+setup_win.bat
+internal/c/mingw32
+internal/c/mingw64

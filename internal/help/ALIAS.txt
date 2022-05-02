@@ -7,7 +7,7 @@ The [[ALIAS]] clause in a [[DECLARE LIBRARY]] statement block tells the program 
 : SUB ''pseudoname'' [[ALIAS]] ''actualname'' [(''parameters'')]
 
 
-{{Parameters}}
+{{PageParameters}}
 * The ''pseudo name'' is the name of the [[SUB]] or [[FUNCTION]] the QB64 program will use. 
 * The ''actual name'' is the same procedure name as it is inside of the DLL library. 
 * QB64 must use all parameters of imported procedures including optional ones.
@@ -19,10 +19,6 @@ The [[ALIAS]] clause in a [[DECLARE LIBRARY]] statement block tells the program 
 * QB64 does not support optional parameters.
 
 
-==QBasic/QuickBASIC==
-* In Qbasic ALIAS was originally only used in a [[DECLARE (non-BASIC statement)]] library declarations.
-
-
 {{PageExamples}}
 ''Example:'' Instead of creating a SUB with the Library statement inside of it, just rename it:
 {{CodeStart}} '' ''
@@ -31,7 +27,7 @@ The [[ALIAS]] clause in a [[DECLARE LIBRARY]] statement block tells the program 
 {{Cl|DECLARE LIBRARY|END DECLARE}}
 
 {{Cl|DO}} {{Cl|UNTIL}} {{Cl|_SCREENEXISTS}}: {{Cl|LOOP}}
-{{Cl|PRINT}} &quot;Hit a key...&quot;
+{{Cl|PRINT}} "Hit a key..."
 {{Cl|SLEEP}}
 
 MouseMove 1, 1
@@ -43,7 +39,6 @@ MouseMove 1, 1
 * [[SUB]], [[FUNCTION]]
 * [[DECLARE LIBRARY]], [[BYVAL]]
 * [[DECLARE DYNAMIC LIBRARY]]
-* [[DECLARE (non-BASIC statement)]]
 
 
 {{PageNavigation}}

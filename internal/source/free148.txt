@@ -1,5 +1,1 @@
-if(oldstr4698){
-if(oldstr4698->fixed)qbs_set(oldstr4698,_SUB_IDEHPRINT_STRING_A);
-qbs_free(_SUB_IDEHPRINT_STRING_A);
-}
-qbs_free(_SUB_IDEHPRINT_STRING_C);
+qbs_free(_SUB_IDECHANGED_STRING_PL);

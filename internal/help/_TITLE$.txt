@@ -1,0 +1,22 @@
+{{DISPLAYTITLE:_TITLE$}}
+The [[_TITLE$]] function returns the program window's title-bar text as last set by the [[_TITLE]] statement.
+
+
+{{PageSyntax}}
+: {{Parameter|currentTitle$}} = [[_TITLE$]]
+
+
+{{PageDescription}}
+* The title bar will display "Untitled" if no title has been set and this function will return an empty [[STRING|string]] ("").
+
+
+{{PageAvailability}}
+* Build 20170924/68 and up.
+
+
+{{PageSeeAlso}}
+* [[_TITLE]]
+* [[_CONSOLETITLE]]
+
+
+{{PageNavigation}}

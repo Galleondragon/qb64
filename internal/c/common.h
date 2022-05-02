@@ -100,7 +100,6 @@
         #endif
     #endif
     
-    using namespace std;
     
     //QB64 string descriptor structure
     struct qbs_field{
@@ -270,6 +269,7 @@
         */
         ptrszint elementsize;
         int32 image;
+        int32 sound;
     };
     struct mem_lock{
         uint64 id;
@@ -279,6 +279,7 @@
         //2=image
         //3=sub/function scope block
         //4=array
+        //5=sound
         //---- type specific variables follow ----
         void *offset;//used by malloc'ed blocks to free them
     };

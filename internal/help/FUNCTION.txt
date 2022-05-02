@@ -19,40 +19,23 @@ A [[FUNCTION]] block statement is used to create a function procedure to return 
 * All [[$DYNAMIC|dynamic]] variable values return to 0 or null strings when the procedure is exited except when a variable or the entire function is [[STATIC]]. This can save program memory as all [[$DYNAMIC|dynamic]] memory used in a FUNCTION is released on procedure exit.
 * FUNCTION procedure code can use [[GOSUB]] and [[GOTO]] line numbers or labels inside of the procedure when necessary. 
 * For early function exits use [[EXIT]] [[FUNCTION]] before [[END FUNCTION]] and [[GOSUB]] procedures using [[RETURN]].
-* '''QB64 ignores all procedural [[DECLARE]] statements.''' Define all ''parameter'' [[Data types|types]] in the FUNCTION procedure.
+* '''QB64 ignores all procedural DECLARE statements.''' Define all ''parameter'' [[Data types|types]] in the FUNCTION procedure.
 *  '''Images are not deallocated when the [[SUB]] or [[FUNCTION]] they are created in ends. Free them with [[_FREEIMAGE]].'''
-* The [[IDE]] can create the FUNCTION and END FUNCTION lines for you. Use the ''New FUNCTION...'' option in the Edit Menu. A box will come up for you to enter a name for the FUNCTION. Enter all code between the FUNCTION and [[END FUNCTION]] lines.
+* The IDE can create the FUNCTION and END FUNCTION lines for you. Use the ''New FUNCTION...'' option in the Edit Menu. A box will come up for you to enter a name for the FUNCTION. Enter all code between the FUNCTION and [[END FUNCTION]] lines.
 
 
-==QBasic/QuickBASIC==
-* Once a FUNCTION was created and used, the QBasic IDE would [[DECLARE]] it when the file was saved. '''QB64 doesn't need these declarations.'''
+{{PageQBasic}}
+* Once a FUNCTION was created and used, the QBasic IDE would DECLARE it when the file was saved. '''QB64 doesn't need these declarations.'''
 * QBasic's IDE could place a [[DEFINT]], [[DEFSNG]], [[DEFLNG]], [[DEFDBL]] or [[DEFSTR]] statement before the FUNCTION line if it is used in the main module. It may even be the wrong variable type needed.
 * QBasic allowed programmers to add DATA fields anywhere because the IDE separated the main code from other procedures.
 
 
 {{PageExamples}}
-''Example 1:'' A simple function that returns the current path. Place [[FUNCTION]] or [[SUB]] procedures after the program [[END]].
+''Example 1:'' Returns a [[LONG]] array byte size required for a certain sized graphics screen pixel area [[GET (graphics statement)|GET]].
 {{CodeStart}} '' ''
-{{Cl|PRINT}} &quot;Current path = &quot;; PATH$
-{{Cl|END}}
-
-{{Cl|FUNCTION}} PATH$
-    f% = {{Cl|FREEFILE}}
-    file$ = &quot;D0Spath.inf&quot; 'file name uses a zero to prevent an overwrite of existing file name
-    {{Cl|SHELL}} {{Cl|_HIDE}} &quot;CD &gt; &quot; + file$ 'send screen information to a created text file
-    {{Cl|OPEN}} file$ {{Cl|FOR (file statement)|FOR}} {{Cl|INPUT (file mode)|INPUT}} {{Cl|AS}} #f% 'file should exist with one line of text
-    {{Cl|LINE INPUT (file statement)|LINE INPUT}} #f%, PATH$ 'read file path text to function name
-    {{Cl|CLOSE}} #f%
-    {{Cl|KILL}} file$
-{{Cl|END FUNCTION}} '' ''
-{{CodeEnd}}
-
-
-''Example 2:'' Returns a [[LONG]] array byte size required for a certain sized graphics screen pixel area [[GET (graphics statement)|GET]].
-{{CodeStart}} '' ''
-{{Cl|INPUT}} &quot;Enter a screen mode: &quot;, mode%
-{{Cl|INPUT}} &quot;Enter image width: &quot;, wide&amp;
-{{Cl|INPUT}} &quot;Enter image depth: &quot;, deep&amp;
+{{Cl|INPUT}} "Enter a screen mode: ", mode%
+{{Cl|INPUT}} "Enter image width: ", wide&amp;
+{{Cl|INPUT}} "Enter image depth: ", deep&amp;
 IntegerArray&amp; = ImageBufferSize&amp;(wide&amp;, deep&amp;, mode%) \ 2 ' returns size of an {{Cl|INTEGER}} array.
 {{Cl|PRINT}} IntegerArray&amp;
 {{Cl|END}}
@@ -75,7 +58,6 @@ IntegerArray&amp; = ImageBufferSize&amp;(wide&amp;, deep&amp;, mode%) \ 2 ' retu
 
 {{PageSeeAlso}}
 * [[SUB]], [[SCREEN (statement)]] 
-* [[DEF FN]]
 * [[EXIT]] (statement), [[END]]
 * [[_EXIT (function)]]
 

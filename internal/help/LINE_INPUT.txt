@@ -2,18 +2,18 @@ The [[LINE INPUT]] statement requests a [[STRING]] keyboard entry from a program
 
 
 {{PageSyntax}}
-: [[LINE INPUT]] [;] &quot;[text prompt or question]&quot;{,|;} {{Parameter|stringVariable$}}
+: [[LINE INPUT]] [;] "[text prompt or question]"{,|;} {{Parameter|stringVariable$}}
 : [[LINE INPUT]] ; {{Parameter|stringVariable$}}
 
 
-{{Parameters}}
+{{PageParameters}}
 * A [[semicolon]] immediately after LINE INPUT stops the cursor after the entry and prevents screen roll on the lowest two screen rows.
 * ''text prompt or question'' is optional, but quotes are necessary unless just a semicolon is used before the {{Parameter|stringVariable$}}.
 * Requires only one [[STRING|string]] variable to hold the entire text entry.
 
 
 {{PageDescription}}
-* Cannot use numerical [[type]] variables or [[comma]] separated variable lists for multiple entries.
+* Cannot use numerical [[Variable Types|type]] variables or [[comma]] separated variable lists for multiple entries.
 * Allows [[comma]]s and [[quotation mark]]s in the user input, unlike [[INPUT]] where commas denote extra input values and quotes delimit strings. 
 * The statement halts the program until an entry is made. Pressing Enter ends the entry and code execution resumes.
 * LINE INPUT does not trim off leading or trailing spaces in the string entry like [[INPUT]] string returns.
@@ -28,12 +28,12 @@ The [[LINE INPUT]] statement requests a [[STRING]] keyboard entry from a program
 {{Cl|SCREEN}} 12
 
 {{Cl|COLOR}} 14: {{Cl|LOCATE}} 29, 2 '          place dursor at beginning of prompt liine
-{{Cl|PRINT}} &quot;Enter a name to search for... &quot;; 'print prompt on screen
-{{Cl|COLOR}} 15: {{Cl|LINE INPUT}} {{text|;|red}} &quot;&quot;, name$ '       get search name from user
+{{Cl|PRINT}} "Enter a name to search for... "; 'print prompt on screen
+{{Cl|COLOR}} 15: {{Cl|LINE INPUT}} {{text|;|red}} "", name$ '       get search name from user
 {{Cl|LOCATE}} 29, 2: {{Cl|PRINT}} {{Cl|SPC}}(78); '       erase previous prompt
 n$ = {{Cl|UCASE$}}(name$) '                 convert search name to upper case
 {{Cl|COLOR}} 14'                        change foreground color to yellow
-{{Cl|LOCATE}} 29, 2: {{Cl|PRINT}} &quot;Searching...&quot;; 'print message
+{{Cl|LOCATE}} 29, 2: {{Cl|PRINT}} "Searching..."; 'print message
 {{Cl|SLEEP}} 
 {{CodeEnd}}
 {{OutputStart}}{{text|Enter a name to search for...|#FFFF00}} █

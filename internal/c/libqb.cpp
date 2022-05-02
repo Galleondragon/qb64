@@ -22,8 +22,14 @@
     
 #endif
 
-
 int32 disableEvents=0;
+
+//Global console vvalues
+static int32 consolekey;
+static int32 consolemousex;
+static int32 consolemousey;
+static int32 consolebutton;
+int32 func__getconsoleinput(); //declare here, so we can use with SLEEP and END commands
 
 //This next block used to be in common.cpp; put here until I can find a better
 //place for it (LC, 2018-01-05)
@@ -58,90 +64,58 @@ return (word << shift) | (word >> (32 - shift));
     uint64 qbr_longdouble_to_uint64(long double f){if (f<0) return(f-0.5f); else return(f+0.5f);}
     int32 qbr_float_to_long(float f){if (f<0) return(f-0.5f); else return(f+0.5f);}
     int32 qbr_double_to_long(double f){if (f<0) return(f-0.5f); else return(f+0.5f);}
+    void fpu_reinit() { } // do nothing
     #else
     //QBASIC compatible rounding via FPU:
-    #ifdef QB64_MICROSOFT
-        int64 qbr(long double f){
-            int64 i; int temp=0;
-            if (f>9223372036854775807) {temp=1;f=f-9223372036854775808u;} //if it's too large for a signed int64, make it an unsigned int64 and return that value if possible.
-            __asm{
-                fld   f
-                fistp i
-            }
-            if (temp) return i|0x8000000000000000;//+9223372036854775808;
-            return i;
-        }
-        uint64 qbr_longdouble_to_uint64(long double f){
-            uint64 i;
-            __asm{
-                fld   f
-                fistp i
-            }
-            return i;
-        }
-        int32 qbr_float_to_long(float f){
-            int32 i;
-            __asm{
-                fld   f
-                fistp i
-            }
-            return i;
-        }
-        int32 qbr_double_to_long(double f){
-            int32 i;
-            __asm{
-                fld   f
-                fistp i
-            }
-            return i;
-        }
-        #else
-        //FLDS=load single
-        //FLDL=load double
-        //FLDT=load long double
-        int64 qbr(long double f){
-            int64 i; int temp=0;
-            if (f>9223372036854775807) {temp=1;f=f-9223372036854775808u;} //if it's too large for a signed int64, make it an unsigned int64 and return that value if possible.
-            __asm__ (
+    //FLDS=load single
+    //FLDL=load double
+    //FLDT=load long double
+    int64 qbr(long double f){
+        int64 i; int temp=0;
+        if (f>9223372036854775807) {temp=1;f=f-9223372036854775808u;} //if it's too large for a signed int64, make it an unsigned int64 and return that value if possible.
+        __asm__ (
             "fldt %1;"
             "fistpll %0;"              
             :"=m" (i)
             :"m" (f)
-            );
-            if (temp) return i|0x8000000000000000;// if it's an unsigned int64, manually set the bit flag
-            return i;
-        }
-        uint64 qbr_longdouble_to_uint64(long double f){
-            uint64 i;
-            __asm__ (
+        );
+        if (temp) return i|0x8000000000000000;// if it's an unsigned int64, manually set the bit flag
+        return i;
+    }
+    uint64 qbr_longdouble_to_uint64(long double f){
+        uint64 i;
+        __asm__ (
             "fldt %1;"
             "fistpll %0;"              
             :"=m" (i)
             :"m" (f)
-            );
-            return i;
-        }
-        int32 qbr_float_to_long(float f){
-            int32 i;
-            __asm__ (
+        );
+        return i;
+    }
+    int32 qbr_float_to_long(float f){
+        int32 i;
+        __asm__ (
             "flds %1;"
             "fistpl %0;"              
             :"=m" (i)
             :"m" (f)
-            );
-            return i;
-        }
-        int32 qbr_double_to_long(double f){
-            int32 i;
-            __asm__ (
+        );
+        return i;
+    }
+    int32 qbr_double_to_long(double f){
+        int32 i;
+        __asm__ (
             "fldl %1;"
             "fistpl %0;"              
             :"=m" (i)
             :"m" (f)
-            );
-            return i;
-        }
-    #endif
+        );
+        return i;
+    }
+    void fpu_reinit(){
+        unsigned int mode = 0x37F;
+        asm("fldcw %0" : : "m" (*&mode));
+    }
 #endif //x86 support
 //bit-array access functions (note: used to be included through 'bit.cpp')
 uint64 getubits(uint32 bsize,uint8 *base,ptrszint i){
@@ -277,8 +251,6 @@ int32 environment_2d__letterbox=0;//1=vertical black stripes required, 2=horizon
 
 
 
-
-int32 qloud_next_input_index=1;
 
 int32 window_exists=0;
 int32 create_window=0;
@@ -1216,10 +1188,6 @@ typedef enum {
 
 
 
-extern int32 cloud_app;
-int32 cloud_chdir_complete=0;
-int32 cloud_port[8];
-
 /* Restricted Functionality: (Security focused approach, does not include restricting sound etc)
     
     Block while compiling: (ONLY things that cannot be caught at runtime)
@@ -1263,8 +1231,6 @@ mem_lock *mem_lock_tmp;
 int32 mem_lock_freed_max=1000;//number of allocated entries
 int32 mem_lock_freed_n=0;//number of entries
 ptrszint *mem_lock_freed=(ptrszint*)malloc(sizeof(ptrszint)*mem_lock_freed_max);
-
-//inline removed because it is incompatible with Android studio x86 build
 
 void new_mem_lock(){
     if (mem_lock_freed_n){
@@ -1397,6 +1363,8 @@ extern uint32 qbevent;
 
 extern int32 console;
 extern int32 screen_hide_startup;
+extern int32 asserts;
+extern int32 vwatch;
 //...
 
 int64 exit_code=0;
@@ -2358,18 +2326,6 @@ int32 exit_ok=0;
 
 int MessageBox2(int ignore,char* message,char* title,int type){
     
-    if (cloud_app){
-        FILE *f = fopen("..\\final.txt", "w");
-        if (f != NULL)
-        {
-            fprintf(f, "%s", title);
-            fprintf(f, "\n");
-            fprintf(f, "%s", message);
-            fclose(f);
-        }
-        exit(0);//should log error
-    }
-    
     #ifdef QB64_WINDOWS
         return MessageBox(window_handle,message,title,type);
         #else
@@ -2749,24 +2705,7 @@ char *fixdir(qbs *filename){
     //note: changes the slashes in a filename to make it compatible with the OS
     //applied to QB commands: open, bload/bsave, loadfont, loadimage, sndopen/sndplayfile
     static int32 i;
-    
-    if (cloud_app){
-        for (i=0;i<filename->len;i++){
-            if ((filename->chr[i]>=48)&&(filename->chr[i]<=57)) goto ok;
-            if ((filename->chr[i]>=65)&&(filename->chr[i]<=90)){filename->chr[i]+=32; goto ok;}//force lowercase
-            if ((filename->chr[i]>=97)&&(filename->chr[i]<=122)) goto ok;
-            if (filename->chr[i]==95) goto ok;//underscore
-            if (filename->chr[i]==46){
-                if (i!=0) goto ok;//period cannot be the first character
-            }
-            if (filename->chr[i]==0){
-                if (i==(filename->len-1)) goto ok;//NULL terminator
-            }
-            error(263);//"Paths/Filename illegal in QLOUD"
-            ok:;
-        }
-    }
-    
+
     for (i=0;i<filename->len;i++){
         #ifdef QB64_WINDOWS
             if (filename->chr[i]==47) filename->chr[i]=92;
@@ -3479,7 +3418,14 @@ void sub__putimage(double f_dx1,double f_dy1,double f_dx2,double f_dy2,int32 src
     if (d->text){error(5); return;}
     dbpp=d->bytes_per_pixel;
     if ((sbpp==4)&&(dbpp==1)){error(5); return;}
-    if (s==d){error(5); return;}//cannot put source onto itself!
+    if (s==d){
+        //{error(5); return;}//cannot put source onto itself!
+        int32 temphandle=func__copyimage(dst,NULL,0);
+        passed=passed|8; //make certain we set the flag TO LET QB64 know we're passing a handle to the temp image
+        sub__putimage(f_dx1, f_dy1, f_dx2, f_dy2,temphandle, dst, f_sx1, f_sy1, f_sx2, f_sy2, passed);
+        sub__freeimage(temphandle,1);
+        return;
+    }
     
     
     resolve_coordinates:
@@ -5449,91 +5395,135 @@ extern uint32 error_goto_line;
 extern uint32 error_handling;
 extern uint32 error_retry;
 
+void sub__echo(qbs *message);
+
+void unlockvWatchHandle() {
+    if (vwatch>0) vwatch=-1;
+}
+
+int32 vWatchHandle() {
+    return vwatch;
+}
+
+void sub__assert(int32 expression, qbs *assert_message, int32 passed) {
+    if (asserts==0) return;
+    if (expression==0) {
+        if (console==1 && passed==1) {
+            sub__echo(assert_message);
+            error(315);
+            return;
+        }
+        error(314);
+    }
+    return;
+}
+
+char *human_error(int32 errorcode) {
+    switch (errorcode) {
+        case 0: return "No error";
+        case 1: return "NEXT without FOR";
+        case 2: return "Syntax error";
+        case 3: return "RETURN without GOSUB";
+        case 4: return "Out of DATA";
+        case 5: return "Illegal function call";
+        case 6: return "Overflow";
+        case 7: return "Out of memory";
+        case 8: return "Label not defined";
+        case 9: return "Subscript out of range";
+        case 10: return "Duplicate definition";
+        case 12: return "Illegal in direct mode";
+        case 13: return "Type mismatch";
+        case 14: return "Out of string space";
+        //error 15 undefined
+        case 16: return "String formula too complex";
+        case 17: return "Cannot continue";
+        case 18: return "Function not defined";
+        case 19: return "No RESUME";
+        case 20: return "RESUME without error";
+        //error 21-23 undefined
+        case 24: return "Device timeout";
+        case 25: return "Device fault";
+        case 26: return "FOR without NEXT";
+        case 27: return "Out of paper";
+        //error 28 undefined
+        case 29: return "WHILE without WEND";
+        case 30: return "WEND without WHILE";
+        //error 31-32 undefined
+        case 33: return "Duplicate label";
+        //error 34 undefined
+        case 35: return "Subprogram not defined";
+        //error 36 undefined
+        case 37: return "Argument-count mismatch";
+        case 38: return "Array not defined";
+        case 40: return "Variable required";
+        case 50: return "FIELD overflow";
+        case 51: return "Internal error";
+        case 52: return "Bad file name or number";
+        case 53: return "File not found";
+        case 54: return "Bad file mode";
+        case 55: return "File already open";
+        case 56: return "FIELD statement active";
+        case 57: return "Device I/O error";
+        case 58: return "File already exists";
+        case 59: return "Bad record length";
+        case 61: return "Disk full";
+        case 62: return "Input past end of file";
+        case 63: return "Bad record number";
+        case 64: return "Bad file name";
+        case 67: return "Too many files";
+        case 68: return "Device unavailable";
+        case 69: return "Communication-buffer overflow";
+        case 70: return "Permission denied";
+        case 71: return "Disk not ready";
+        case 72: return "Disk-media error";
+        case 73: return "Feature unavailable";
+        case 74: return "Rename across disks";
+        case 75: return "Path/File access error";
+        case 76: return "Path not found";
+        case 258: return "Invalid handle";
+        case 300: return "Memory region out of range";
+        case 301: return "Invalid size";
+        case 302: return "Source memory region out of range";
+        case 303: return "Destination memory region out of range";
+        case 304: return "Source and destination memory regions out of range";
+        case 305: return "Source memory has been freed";
+        case 306: return "Destination memory has been freed";
+        case 307: return "Memory already freed";
+        case 308: return "Memory has been freed";
+        case 309: return "Memory not initialized";
+        case 310: return "Source memory not initialized";
+        case 311: return "Destination memory not initialized";
+        case 312: return "Source and destination memory not initialized";
+        case 313: return "Source and destination memory have been freed";
+        case 314: return "_ASSERT failed";
+        case 315: return "_ASSERT failed (check console for description)";
+        default: return "Unprintable error";
+    }
+}
+
+qbs *func_mid(qbs *str,int32 start,int32 l,int32 passed);
+qbs *qbs_new_txt_len(const char *txt,int32 len);
+qbs *func_command(int32 index, int32 passed);
+
 void fix_error(){
     char *errtitle = NULL, *errmess = NULL, *cp;
     int prevent_handling = 0, len, v;
-    if ((new_error >= 300) && (new_error <= 313)) prevent_handling = 1;
+    if ((new_error >= 300) && (new_error <= 315)) prevent_handling = 1;
     if (!error_goto_line || error_handling || prevent_handling) {
-        switch (new_error) {
-            case 1: cp="NEXT without FOR"; break;
-            case 2: cp="Syntax error"; break;
-            case 3: cp="RETURN without GOSUB"; break;
-            case 4: cp="Out of DATA"; break;
-            case 5: cp="Illegal function call"; break;
-            case 6: cp="Overflow"; break;
-            case 7: cp="Out of memory"; break;
-            case 8: cp="Label not defined"; break;
-            case 9: cp="Subscript out of range"; break;
-            case 10: cp="Duplicate definition"; break;
-            case 12: cp="Illegal in direct mode"; break;
-            case 13: cp="Type mismatch"; break;
-            case 14: cp="Out of string space"; break;
-            //error 15 undefined
-            case 16: cp="String formula too complex"; break;
-            case 17: cp="Cannot continue"; break;
-            case 18: cp="Function not defined"; break;
-            case 19: cp="No RESUME"; break;
-            case 20: cp="RESUME without error"; break;
-            //error 21-23 undefined
-            case 24: cp="Device timeout"; break;
-            case 25: cp="Device fault"; break;
-            case 26: cp="FOR without NEXT"; break;
-            case 27: cp="Out of paper"; break;
-            //error 28 undefined
-            case 29: cp="WHILE without WEND"; break;
-            case 30: cp="WEND without WHILE"; break;
-            //error 31-32 undefined
-            case 33: cp="Duplicate label"; break;
-            //error 34 undefined
-            case 35: cp="Subprogram not defined"; break;
-            //error 36 undefined
-            case 37: cp="Argument-count mismatch"; break;
-            case 38: cp="Array not defined"; break;
-            case 40: cp="Variable required"; break;
-            case 50: cp="FIELD overflow"; break;
-            case 51: cp="Internal error"; break;
-            case 52: cp="Bad file name or number"; break;
-            case 53: cp="File not found"; break;
-            case 54: cp="Bad file mode"; break;
-            case 55: cp="File already open"; break;
-            case 56: cp="FIELD statement active"; break;
-            case 57: cp="Device I/O error"; break;
-            case 58: cp="File already exists"; break;
-            case 59: cp="Bad record length"; break;
-            case 61: cp="Disk full"; break;
-            case 62: cp="Input past end of file"; break;
-            case 63: cp="Bad record number"; break;
-            case 64: cp="Bad file name"; break;
-            case 67: cp="Too many files"; break;
-            case 68: cp="Device unavailable"; break;
-            case 69: cp="Communication-buffer overflow"; break;
-            case 70: cp="Permission denied"; break;
-            case 71: cp="Disk not ready"; break;
-            case 72: cp="Disk-media error"; break;
-            case 73: cp="Feature unavailable"; break;
-            case 74: cp="Rename across disks"; break;
-            case 75: cp="Path/File access error"; break;
-            case 76: cp="Path not found"; break;
-            case 258: cp="Invalid handle"; break;
-            
-            case 300: cp="Memory region out of range"; break;
-            case 301: cp="Invalid size"; break;
-            case 302: cp="Source memory region out of range"; break;
-            case 303: cp="Destination memory region out of range"; break;
-            case 304: cp="Source and destination memory regions out of range"; break;
-            case 305: cp="Source memory has been freed"; break;
-            case 306: cp="Destination memory has been freed"; break;
-            case 307: cp="Memory already freed"; break;
-            case 308: cp="Memory has been freed"; break;
-            case 309: cp="Memory not initialized"; break;
-            case 310: cp="Source memory not initialized"; break;
-            case 311: cp="Destination memory not initialized"; break;
-            case 312: cp="Source and destination memory not initialized"; break;
-            case 313: cp="Source and destination memory have been freed"; break;
-            default: cp="Unprintable error"; break;
+        //strip path from binary name
+        static int32 i;
+        static qbs *binary_name=NULL;
+        if (!binary_name) binary_name=qbs_new(0,0);
+        qbs_set(binary_name,qbs_add(func_command( 0 ,1),qbs_new_txt_len("\0",1)));
+        for(i=binary_name->len;i>0;i--){
+            if ((binary_name->chr[i-1]==47)||(binary_name->chr[i-1]==92)) {
+                qbs_set(binary_name,func_mid(binary_name, i + 1,NULL,0));
+                break;
+            }
         }
         
-        #define FIXERRMSG_TITLE "%s%u"
+        cp = human_error(new_error);        
+        #define FIXERRMSG_TITLE "%s%u - %s"
         #define FIXERRMSG_BODY "Line: %u (in %s)\n%s%s"
         #define FIXERRMSG_MAINFILE "main module"
         #define FIXERRMSG_CONT "\nContinue?"
@@ -5545,10 +5535,10 @@ void fix_error(){
         if (!errmess) exit(0); //At this point we just give up
         snprintf(errmess, len + 1, FIXERRMSG_BODY, (inclercl ? inclercl : ercl), (inclercl ? includedfilename : FIXERRMSG_MAINFILE), cp, (!prevent_handling ? FIXERRMSG_CONT : ""));
         
-        len = snprintf(errtitle, 0, FIXERRMSG_TITLE, (!prevent_handling ? FIXERRMSG_UNHAND : FIXERRMSG_CRIT), new_error);
+        len = snprintf(errtitle, 0, FIXERRMSG_TITLE, (!prevent_handling ? FIXERRMSG_UNHAND : FIXERRMSG_CRIT), new_error, binary_name->chr);
         errtitle = (char*)malloc(len + 1);
         if (!errtitle) exit(0); //At this point we just give up
-        snprintf(errtitle, len + 1, FIXERRMSG_TITLE, (!prevent_handling ? FIXERRMSG_UNHAND : FIXERRMSG_CRIT), new_error);
+        snprintf(errtitle, len + 1, FIXERRMSG_TITLE, (!prevent_handling ? FIXERRMSG_UNHAND : FIXERRMSG_CRIT), new_error, binary_name->chr);
         
         if (prevent_handling){
             v=MessageBox2(NULL,errmess,errtitle,MB_OK);
@@ -5602,8 +5592,6 @@ void error(int32 error_number){
     if (error_number==259){MessageBox2(NULL,"Cannot find dynamic library file","Critical Error",MB_OK|MB_SYSTEMMODAL); exit(0);}
     if (error_number==260){MessageBox2(NULL,"Sub/Function does not exist in dynamic library","Critical Error",MB_OK|MB_SYSTEMMODAL); exit(0);}
     if (error_number==261){MessageBox2(NULL,"Sub/Function does not exist in dynamic library","Critical Error",MB_OK|MB_SYSTEMMODAL); exit(0);}
-    if (error_number==262){MessageBox2(NULL,"Function unavailable in QLOUD","Critical Error",MB_OK|MB_SYSTEMMODAL); exit(0);}
-    if (error_number==263){MessageBox2(NULL,"Paths/Filename illegal in QLOUD","Critical Error",MB_OK|MB_SYSTEMMODAL); exit(0);}
     
     if (error_number==270){MessageBox2(NULL,"_GL command called outside of SUB _GL's scope","Critical Error",MB_OK|MB_SYSTEMMODAL); exit(0);}
     if (error_number==271){MessageBox2(NULL,"END/SYSTEM called within SUB _GL's scope","Critical Error",MB_OK|MB_SYSTEMMODAL); exit(0);}
@@ -5632,6 +5620,9 @@ void end(){
     while(1) Sleep(16);
 }
 
+int32 stop_program_state() {
+    return stop_program;
+}
 
 
 //MEM_STATIC memory manager
@@ -6490,6 +6481,8 @@ qbs *ui642string(uint64 v){ static qbs *tqbs; tqbs=qbs_new(8,1); *((uint64*)(tqb
 qbs *s2string(float v){ static qbs *tqbs; tqbs=qbs_new(4,1); *((float*)(tqbs->chr))=v; return tqbs;}
 qbs *d2string(double v){ static qbs *tqbs; tqbs=qbs_new(8,1); *((double*)(tqbs->chr))=v; return tqbs;}
 qbs *f2string(long double v){ static qbs *tqbs; tqbs=qbs_new(32,1); memset(tqbs->chr,0,32); *((long double*)(tqbs->chr))=v; return tqbs;}
+qbs *o2string(ptrszint v){ static qbs *tqbs; tqbs=qbs_new(sizeof(ptrszint),1); memset(tqbs->chr,0,sizeof(ptrszint)); *((ptrszint*)(tqbs->chr))=v; return tqbs;}
+qbs *uo2string(uptrszint v){ static qbs *tqbs; tqbs=qbs_new(sizeof(uptrszint),1); memset(tqbs->chr,0,sizeof(uptrszint)); *((uptrszint*)(tqbs->chr))=v; return tqbs;}
 qbs *bit2string(uint32 bsize,int64 v){
     static qbs* tqbs;
     tqbs=qbs_new(8,1);
@@ -6520,6 +6513,8 @@ uint64 string2ui64(qbs*str){ if (str->len<8) {error(5); return 0;} else {return 
 float string2s(qbs*str){ if (str->len<4) {error(5); return 0;} else {return *((float*)str->chr);} }
 double string2d(qbs*str){ if (str->len<8) {error(5); return 0;} else {return *((double*)str->chr);} }
 long double string2f(qbs*str){ if (str->len<32) {error(5); return 0;} else {return *((long double*)str->chr);} }
+ptrszint string2o(qbs*str){ if (str->len<sizeof(ptrszint)) {error(5); return 0;} else {return *((ptrszint*)str->chr);} }
+uptrszint string2uo(qbs*str){ if (str->len<sizeof(uptrszint)) {error(5); return 0;} else {return *((uptrszint*)str->chr);} }
 uint64 string2ubit(qbs*str,uint32 bsize){
     int64 bmask;
     if (str->len<((bsize+7)>>3)) {error(5); return 0;}
@@ -6578,6 +6573,11 @@ qbs *func_string(int32 characters,int32 asciivalue){
     tqbs=qbs_new(characters,1);
     if (characters) memset(tqbs->chr,asciivalue&0xFF,characters);
     return tqbs;
+}
+
+void set_qbs_size(ptrszint *target_qbs,int32 newlength) {
+    qbs_set((qbs*)(*target_qbs), func_space(newlength));
+    return;
 }
 
 int32 func_instr(int32 start,qbs *str,qbs *substr,int32 passed){
@@ -6758,7 +6758,7 @@ int32 func__str_nc_compare(qbs *s1, qbs *s2) {
     }
     
     if (l1<l2) return -1; 
-    if (l2>l1) return 1;
+    if (l1>l2) return 1;
     return 0;
 }
 
@@ -6781,11 +6781,7 @@ int32 func__str_compare(qbs *s1, qbs *s2) {
 qbs *qbs_inkey(){
     if (new_error) return qbs_new(0,1);
     qbs *tqbs;
-    if (cloud_app){
-        Sleep(20);
-        }else{
-        Sleep(0);
-    }
+    // Sleep(0);
     tqbs=qbs_new(2,1);
     if (cmem[0x41a]!=cmem[0x41c]){
         tqbs->chr[0]=cmem[0x400+cmem[0x41a]];
@@ -6821,6 +6817,12 @@ void sub__keyclear(int32 buf, int32 passed) {
         //INP(&H60) buffer
         port60h_events = 0;
     }
+    #ifdef QB64_WINDOWS
+        //Windows Console Buffer
+        FlushConsoleInputBuffer(GetStdHandle (STD_INPUT_HANDLE));
+    #endif
+
+
 }
 
 //STR() functions
@@ -7406,6 +7408,30 @@ void qbg_sub_color(uint32 col1,uint32 col2,uint32 bordercolor,int32 passed){
         //performs no action if nothing passed (as in QBASIC for some modes)
         return;
     }
+
+	if (write_page->console){
+		#ifdef QB64_WINDOWS
+			HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+			int color = col2 * 16 + col1;
+			SetConsoleTextAttribute(output, color);
+		#else
+            // Exactly how the colour is rendered depends on your terminal emulator and
+            // colour palette. Themes and user-customisation aside, the first 16 colours
+            // line up with the old VGA colour scheme.
+            // Most terminal emulators can handle 8 bit colour, see
+            // https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit for the 8 bit colour palette.
+            if ((passed & 1 && (col1 > 255 || col1 < 0))
+                    || (passed & 2 && (col2 > 255 || col2 < 0)))
+                goto error;
+
+            if (passed & 1)
+                printf("\033[38;5;%dm", col1);
+
+            if (passed & 2)
+                printf("\033[48;5;%dm", col2);
+		#endif
+        return;
+	}
     
     if (write_page->compatible_mode==32){
         if (passed&4) goto error;
@@ -8038,7 +8064,7 @@ void sub_pcopy(int32 src,int32 dst){
     return;
 }
 
-void qbsub_width(int32 option,int32 value1,int32 value2,int32 passed){
+void qbsub_width(int32 option,int32 value1,int32 value2,int32 value3, int32 value4, int32 passed){
     //[{#|LPRINT}][?],[?]
     static int32 i,i2;
     
@@ -8071,9 +8097,33 @@ void qbsub_width(int32 option,int32 value1,int32 value2,int32 passed){
         //COLOR selection is kept, all other values are lost (if staying in same "mode")
         static int32 f,f2,width,height;
         
-        if ((!(passed&1))&&(!(passed&2))) goto error;//cannot omit both arguments
-        
         width=value1; height=value2;
+
+        #ifdef QB64_WINDOWS
+            if (write_page->console){
+                SECURITY_ATTRIBUTES SecAttribs = {sizeof(SECURITY_ATTRIBUTES), 0, 1};
+                HANDLE cl_conout = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, & SecAttribs, OPEN_EXISTING, 0, 0);
+                HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+                CONSOLE_SCREEN_BUFFER_INFO cl_bufinfo;
+                
+                GetConsoleScreenBufferInfo(cl_conout, &cl_bufinfo); //get the screen buffer information, for blank entries
+
+                if (width<=0) width = cl_bufinfo.srWindow.Right - cl_bufinfo.srWindow.Left + 1;; //if width is omitted, then use existing width
+                if (height<=0) height = cl_bufinfo.srWindow.Bottom - cl_bufinfo.srWindow.Top + 1;; //if height is omitted, then use existing height
+                if (value3<=0) value3 = cl_bufinfo.dwSize.X; //if bufferwidth is omitted, then use existing buffer width
+                if (value4<=0) value4 = cl_bufinfo.dwSize.Y; //same as above, but for height
+                if (value3<value1)value3=value1; //don't make the buffer width smaller than the console width itself
+                if (value4<value2)value4=value2; //and don't make that buffer height smaller than the console height
+
+                SMALL_RECT rect = {0,0, width-1, height-1};
+                COORD bufferSize = {value3, value4};
+                SetConsoleScreenBufferSize(hConsole, bufferSize); //set the buffer
+                SetConsoleWindowInfo(hConsole, TRUE, &rect); //set the console itself
+                return;
+            }
+        #endif
+
+        if ((!(passed&1))&&(!(passed&2))) goto error;//cannot omit both arguments
         
         if ((write_page->compatible_mode==32)||(write_page->compatible_mode==256)){
             
@@ -9649,11 +9699,64 @@ void sub_paint(float x,float y,uint32 fillcol,uint32 bordercol,qbs *backgroundst
 
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void getptsize_1bpp (const qbs *pt, int32 *sx, int32 *sy) {
+    *sx = 8;
+    *sy = pt->len;
+}
+
+uint32 getptcol_1bpp (const qbs *pt, int32 x, int32 y) {
+    return (pt->chr[y] >> (7-x)) & 1;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void getptsize_2bpp (const qbs *pt, int32 *sx, int32 *sy) {
+    *sx = 4;
+    *sy = pt->len;
+}
+
+uint32 getptcol_2bpp (const qbs *pt, int32 x, int32 y) {
+    return (pt->chr[y] >> ((3-x) << 1)) & 0x03;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void getptsize_4bpp (const qbs *pt, int32 *sx, int32 *sy) {
+    *sx = 8;
+    *sy = pt->len >> 2;
+    if (((*sy) << 2) < pt->len) ++*sy;
+}
+
+uint32 getptcol_4bpp (const qbs *pt, int32 x, int32 y) {
+    int quadstart = (y << 2);
+    uint32 clr = 0;
+    for(uint8 i=0; i<4; ++i) {
+        uint8 byte = ((i+quadstart) >= pt->len ? 0 : pt->chr[i+quadstart]);
+        if (byte & (1 << (7-x)))
+            clr |= (1 << i);
+    }
+    return clr;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void getptsize_8bpp (const qbs *pt, int32 *sx, int32 *sy) {
+    *sx = 1;
+    *sy = pt->len;
+}
+
+uint32 getptcol_8bpp (const qbs *pt, int x, int y) {
+    return pt->chr[y];
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,int32 passed){
     if (new_error) return;
     
     //uses 2 buffers, a and b, and swaps between them for reading and creating
-    static uint32 fillcol=0;//stub
     static uint32 a_n=0;
     static uint16 *a_x=(uint16*)malloc(2*65536),*a_y=(uint16*)malloc(2*65536);
     static uint8 *a_t=(uint8*)malloc(65536);
@@ -9665,171 +9768,80 @@ void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,
     static uint32 offset;
     static uint8 *cp;
     static uint16 *sp;
-    static uint32 backgroundcol;
-    
+    static int32 done_size=640*480;
+
     if (qbg_text_only){error(5); return;}
     if ((passed&2)==0){error(5); return;}//must be called with this parameter!
     
-    //STEP 1: create the tile in a buffer (tile) using the source string
-    static uint8 tilestr[256];
+    if (fillstr->len==0){error(5); return;}
+
     static uint8 tile[8][64];
     static int32 sx,sy;
-    static int32 bytesperrow;
-    static int32 row2offset;
-    static int32 row3offset;
-    static int32 row4offset;
-    static int32 byte;
-    static int32 bitvalue;
-    static int32 c;
-    if (fillstr->len==0){error(5); return;}
-    if (qbg_bits_per_pixel==4){
-        if (fillstr->len>256){error(5); return;}
-        }else{
-        if (fillstr->len>64){error(5); return;}
+    void (*getptsize)(const qbs *pt, int32 *sx, int32 *sy) = getptsize_4bpp;
+    uint32 (*getptcol)(const qbs *pt, int32 x, int32 y) = getptcol_4bpp;
+
+    switch(write_page->compatible_mode) {
+        case 1:
+            getptsize = getptsize_2bpp;
+            getptcol = getptcol_2bpp;
+            break;
+        case 2:
+            getptsize = getptsize_1bpp;
+            getptcol = getptcol_1bpp;
+            break;
+        case 7:
+        case 8:
+        case 9:
+        case 12:
+            getptsize = getptsize_4bpp;
+            getptcol = getptcol_4bpp;
+            break;
+        case 13:
+            getptsize = getptsize_8bpp;
+            getptcol = getptcol_8bpp;
+            break;
     }
-    memset(&tilestr[0],0,256);
-    memcpy(&tilestr[0],fillstr->chr,fillstr->len);
-    sx=8; sy=fillstr->len; //defaults
-    if (qbg_bits_per_pixel==8) sx=1;
-    if (qbg_bits_per_pixel==4){
-        if (fillstr->len&3){
-            sy=(fillstr->len-(fillstr->len&3)+4)>>2;
+
+    getptsize(fillstr, &sx, &sy);
+    for(int x=0; x<sx; ++x)
+        for(int y=0; y<sy; ++y)
+            tile[x][y] = getptcol(fillstr, x,y);
+
+    bordercol&=write_page->mask;
+    
+    if (passed&1){write_page->x+=x; write_page->y+=y;}else{write_page->x=x; write_page->y=y;}
+    
+    if (write_page->clipping_or_scaling){
+        if (write_page->clipping_or_scaling==2){
+            ix=qbr_float_to_long(write_page->x*write_page->scaling_x+write_page->scaling_offset_x)+write_page->view_offset_x;
+            iy=qbr_float_to_long(write_page->y*write_page->scaling_y+write_page->scaling_offset_y)+write_page->view_offset_y;
             }else{
-            sy=fillstr->len>>2;
-        }
-        bytesperrow=sx>>3; if (sx&7) bytesperrow++;
-        row2offset=bytesperrow;
-        row3offset=bytesperrow*2;
-        row4offset=bytesperrow*3;
-    }
-    if (qbg_bits_per_pixel==2) sx=4;
-    //use modified "PUT" routine to create the tile
-    cp=&tilestr[0];
-    {//layer
-        static int32 x,y;
-        for (y=0;y<sy;y++){
-            if (qbg_bits_per_pixel==4){
-                bitvalue=128;
-                byte=0;
-            }
-            for (x=0;x<sx;x++){
-                //get colour
-                if (qbg_bits_per_pixel==8){
-                    c=*cp;
-                    cp++;
-                }
-                if (qbg_bits_per_pixel==4){
-                    byte=x>>3;
-                    c=0;
-                    if (cp[byte]&bitvalue) c|=1;
-                    if (cp[row2offset+byte]&bitvalue) c|=2;
-                    if (cp[row3offset+byte]&bitvalue) c|=4;
-                    if (cp[row4offset+byte]&bitvalue) c|=8;
-                    bitvalue>>=1; if (bitvalue==0) bitvalue=128;
-                }
-                if (qbg_bits_per_pixel==1){
-                    if (!(x&7)){
-                        byte=*cp;
-                        cp++;
-                    }
-                    c=(byte&128)>>7; byte<<=1;
-                }
-                if (qbg_bits_per_pixel==2){
-                    if (!(x&3)){
-                        byte=*cp;
-                        cp++;
-                    }
-                    c=(byte&192)>>6; byte<<=2;
-                }
-                //"pset" color
-                tile[x][y]=c;
-            }//x
-            if (qbg_bits_per_pixel==4) cp+=(bytesperrow*4);
-            if (qbg_bits_per_pixel==1){
-                if (sx&7) cp++;
-            }
-            if (qbg_bits_per_pixel==2){
-                if (sx&3) cp++;
-            }
-        }//y
-    }//unlayer
-    //tile created!
-    
-    //STEP 2: establish border and background colors
-    if ((passed&4)==0) bordercol=qbg_color;
-    bordercol&=qbg_pixel_mask;
-    
-    backgroundcol=0;//default
-    if (passed&8){
-        if (backgroundstr->len==0){error(5); return;}
-        if (backgroundstr->len>255){error(5); return;}
-        if (qbg_bits_per_pixel==1){
-            c=backgroundstr->chr[0];
-            if ((c>0)&&(c<255)) backgroundcol=-1;//unclear definition
-            if (c==255) backgroundcol=1;
-        }
-        if (qbg_bits_per_pixel==2){
-            backgroundcol=-1;//unclear definition
-            x2=backgroundstr->chr[0];
-            y2=x2&3;
-            x2>>=2; if ((x2&3)!=y2) goto uncleardef;
-            x2>>=2; if ((x2&3)!=y2) goto uncleardef;
-            
-            x2>>=2; if ((x2&3)!=y2) goto uncleardef;
-            
-            backgroundcol=y2;
-        }
-        if (qbg_bits_per_pixel==4){
-            backgroundcol=-1;//unclear definition
-            y2=0;
-            x2=4; if (backgroundstr->len<4) x2=backgroundstr->len;
-            c=0; memcpy(&c,backgroundstr->chr,x2);
-            x2=c&255; c>>=8; if ((x2!=0)&&(x2!=255)) goto uncleardef;
-            y2|=(x2&1);
-            x2=c&255; c>>=8; if ((x2!=0)&&(x2!=255)) goto uncleardef;
-            y2|=((x2&1)<<1);
-            x2=c&255; c>>=8; if ((x2!=0)&&(x2!=255)) goto uncleardef;
-            y2|=((x2&1)<<2);
-            x2=c&255; c>>=8; if ((x2!=0)&&(x2!=255)) goto uncleardef;
-            y2|=((x2&1)<<3);
-            backgroundcol=y2;
-        }
-        if (qbg_bits_per_pixel==8){
-            backgroundcol=backgroundstr->chr[0];
-        }
-    }
-    uncleardef:
-    
-    //STEP 3: perform tile'd fill
-    if (passed&1){qbg_x+=x; qbg_y+=y;}else{qbg_x=x; qbg_y=y;}
-    if (qbg_clipping_or_scaling){
-        if (qbg_clipping_or_scaling==2){
-            ix=qbr_float_to_long(qbg_x*qbg_scaling_x+qbg_scaling_offset_x)+qbg_view_offset_x;
-            iy=qbr_float_to_long(qbg_y*qbg_scaling_y+qbg_scaling_offset_y)+qbg_view_offset_y;
-            }else{
-            ix=qbr_float_to_long(qbg_x)+qbg_view_offset_x; iy=qbr_float_to_long(qbg_y)+qbg_view_offset_y;
+            ix=qbr_float_to_long(write_page->x)+write_page->view_offset_x; iy=qbr_float_to_long(write_page->y)+write_page->view_offset_y;
         }
         }else{
-        ix=qbr_float_to_long(qbg_x); iy=qbr_float_to_long(qbg_y);
+        ix=qbr_float_to_long(write_page->x); iy=qbr_float_to_long(write_page->y);
     }
     
     //return if offscreen
-    if ((ix<qbg_view_x1)||(iy<qbg_view_y1)||(ix>qbg_view_x2)||(iy>qbg_view_y2)){
+    if ((ix<write_page->view_x1)||(iy<write_page->view_y1)||(ix>write_page->view_x2)||(iy>write_page->view_y2)){
         return;
     }
     
-    offset=iy*qbg_width+ix;
+    //overrides
+    qbg_active_page_offset=write_page->offset;
+    qbg_width=write_page->width;
+    qbg_view_x1=write_page->view_x1;
+    qbg_view_y1=write_page->view_y1;
+    qbg_view_x2=write_page->view_x2;
+    qbg_view_y2=write_page->view_y2;
+    i=write_page->width*write_page->height;
+    if (i>done_size){
+        free(done);
+        done=(uint8*)calloc(i,1);
+    }
     
     //return if first point is the bordercolor
-    if (qbg_active_page_offset[offset]==bordercol) return;
-    
-    //return if first point is the same as the tile color used and is not the background color
-    fillcol=tile[ix%sx][iy%sy];
-    if ((fillcol==qbg_active_page_offset[offset])&&(fillcol!=backgroundcol)) return;
-    qbg_active_page_offset[offset]=fillcol;
-    
-    
-    
+    if (qbg_active_page_offset[iy*qbg_width+ix]==bordercol) return;
     
     //create first node
     a_x[0]=ix; a_y[0]=iy;
@@ -9841,7 +9853,7 @@ void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,
     //&8=check below
     
     a_n=1;
-    qbg_active_page_offset[iy*qbg_width+ix]=fillcol;
+    qbg_active_page_offset[iy*qbg_width+ix]=tile[ix%sx][iy%sy];
     done[iy*qbg_width+ix]=1;
     
     nextpass:
@@ -9857,9 +9869,7 @@ void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,
                 if (!done[offset]){
                     done[offset]=1;
                     if (qbg_active_page_offset[offset]!=bordercol){
-                        fillcol=tile[x2%sx][y2%sy];
-                        //no tile check required when moving horizontally!
-                        qbg_active_page_offset[offset]=fillcol;
+                        qbg_active_page_offset[offset]=tile[x2%sx][y2%sy];
                         b_t[b_n]=13; b_x[b_n]=x2; b_y[b_n]=y2; b_n++;//add new node
                     }}}}
                     
@@ -9871,9 +9881,7 @@ void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,
                             if (!done[offset]){
                                 done[offset]=1;
                                 if (qbg_active_page_offset[offset]!=bordercol){
-                                    fillcol=tile[x2%sx][y2%sy];
-                                    //no tile check required when moving horizontally!
-                                    qbg_active_page_offset[offset]=fillcol;
+                                    qbg_active_page_offset[offset]=tile[x2%sx][y2%sy];
                                     b_t[b_n]=14; b_x[b_n]=x2; b_y[b_n]=y2; b_n++;//add new node
                                 }}}}
                                 
@@ -9885,11 +9893,8 @@ void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,
                                         if (!done[offset]){
                                             done[offset]=1;
                                             if (qbg_active_page_offset[offset]!=bordercol){
-                                                fillcol=tile[x2%sx][y2%sy];
-                                                if ((fillcol!=qbg_active_page_offset[offset])||(fillcol==backgroundcol)){
-                                                    qbg_active_page_offset[offset]=fillcol;
-                                                    b_t[b_n]=7; b_x[b_n]=x2; b_y[b_n]=y2; b_n++;//add new node
-                                                }
+                                                qbg_active_page_offset[offset]=tile[x2%sx][y2%sy];
+                                                b_t[b_n]=7; b_x[b_n]=x2; b_y[b_n]=y2; b_n++;//add new node
                                             }}}}
                                             
                                             //below
@@ -9900,18 +9905,15 @@ void sub_paint(float x,float y,qbs *fillstr,uint32 bordercol,qbs *backgroundstr,
                                                     if (!done[offset]){
                                                         done[offset]=1;
                                                         if (qbg_active_page_offset[offset]!=bordercol){
-                                                            fillcol=tile[x2%sx][y2%sy];
-                                                            if ((fillcol!=qbg_active_page_offset[offset])||(fillcol==backgroundcol)){
-                                                                qbg_active_page_offset[offset]=fillcol;
-                                                                b_t[b_n]=11; b_x[b_n]=x2; b_y[b_n]=y2; b_n++;//add new node
-                                                            }
+                                                            qbg_active_page_offset[offset]=tile[x2%sx][y2%sy];
+                                                            b_t[b_n]=11; b_x[b_n]=x2; b_y[b_n]=y2; b_n++;//add new node
                                                         }}}}
                                                         
     }//i
     
     //no new nodes?
     if (b_n==0){
-        memset(done,0,qbg_width*qbg_height);//cleanup
+        memset(done,0,write_page->width*write_page->height);//cleanup
         return;//finished!
     }
     
@@ -10541,6 +10543,20 @@ void tab(){
         newline(); write_page->holding_cursor=0;
         return;
     }
+
+    #ifdef QB64_WINDOWS //if Windows console
+        if (write_page->console){
+            if (func_pos(0)>write_page->width-10){
+                printf("\n");
+                return;
+            }else{
+                do {
+                    printf(" ");
+                }while(func_pos(0) % 10!=0);
+            }
+            return;
+        }
+    #endif
     
     //text
     if (write_page->text){
@@ -10637,6 +10653,9 @@ void qbs_print(qbs* str,int32 finish_on_new_line){
         static qbs* strz; if (!strz) strz=qbs_new(0,0);
         qbs_set(strz,qbs_add(str,qbs_new_txt_len("\0",1)));
         if (finish_on_new_line) cout<<(char*)strz->chr<<endl; else cout<<(char*)strz->chr;
+        #ifndef QB64_WINDOWS
+            std::cout.flush();
+        #endif
         return;
     }
     
@@ -11194,13 +11213,25 @@ void qbg_sub_view(int32 x1,int32 y1,int32 x2,int32 y2,int32 fillcolor,int32 bord
 }
 
 
-
+void qbg_sub_locate(int32 row,int32 column,int32 cursor,int32 start,int32 stop,int32 passed);
 void sub_cls(int32 method,uint32 use_color,int32 passed){
     if (new_error) return;
     static int32 characters,i;
     static uint16 *sp;
     static uint16 clearvalue;
     
+	if (write_page->console){ 
+		#ifdef QB64_WINDOWS
+			system("cls"); //lazy but works
+			qbg_sub_locate(1, 1, 0, 0, 0, 3); //is this really necessary?
+		#else
+			if (passed&2) qbg_sub_color(0, use_color, 0, 2);
+			cout<<"\033[2J";
+			qbg_sub_locate(1, 1, 0, 0, 0, 3);
+		#endif
+		return;
+	}
+
     //validate
     if (passed&2){
         if (write_page->bytes_per_pixel!=4){
@@ -11364,11 +11395,31 @@ void sub_cls(int32 method,uint32 use_color,int32 passed){
 }
 
 
-
 void qbg_sub_locate(int32 row,int32 column,int32 cursor,int32 start,int32 stop,int32 passed){
     static int32 h,w,i;
     if (new_error) return;
-    
+
+	if (write_page->console){
+		#ifdef QB64_WINDOWS //If trying to locate with windows console
+			CONSOLE_SCREEN_BUFFER_INFO cl_bufinfo;
+			SECURITY_ATTRIBUTES SecAttribs = {sizeof(SECURITY_ATTRIBUTES), 0, 1};
+			HANDLE cl_conout = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, & SecAttribs, OPEN_EXISTING, 0, 0);
+			GetConsoleScreenBufferInfo(cl_conout, & cl_bufinfo);
+			if (column==0)column=cl_bufinfo.dwCursorPosition.X + 1;
+			if (row==0)row=cl_bufinfo.dwCursorPosition.Y + 1;
+			COORD pos = {column-1, row-1};
+			HANDLE output = GetStdHandle (STD_OUTPUT_HANDLE);
+			SetConsoleCursorPosition(output, pos);
+		#else
+            // We don't have a good way of getting the current cursor position, so we ignore any LOCATEs
+            // that don't give an absolute position.
+            if (!(passed & 1 && passed & 2))
+                return;
+            printf("\033[%d;%dH", row, column);
+		#endif
+        return;
+	}
+
     //calculate height & width in characters
     if (write_page->compatible_mode){
         h=write_page->height/fontheight[write_page->font];
@@ -11398,7 +11449,7 @@ void qbg_sub_locate(int32 row,int32 column,int32 cursor,int32 start,int32 stop,i
                     buffer=(char*)malloc(80*25*2);
                     c=write_page->color; c2=write_page->background_color;
                     memcpy(buffer,&cmem[0xB8000],80*25*2);
-                    qbsub_width(0,80,50,3);
+                    qbsub_width(0,80,50,0,0,3);
                     memcpy(&cmem[0xB8000],buffer,80*25*2);
                     write_page->color=c; write_page->background_color=c2;
                     free(buffer);
@@ -11482,67 +11533,86 @@ void qbg_sub_locate(int32 row,int32 column,int32 cursor,int32 start,int32 stop,i
 
 //input helper functions:
 uint64 hexoct2uint64_value;
-int32 hexoct2uint64(qbs* h){
-    //returns 0=failed
-    //        1=HEX value (default if unspecified)
-    //        2=OCT value
-    static int32 i,i2;
-    static uint64 result;
-    result=0;
-    static int32 type;
-    type=0;
-    hexoct2uint64_value=0;
-    if (!h->len) return 1;
-    if (h->chr[0]!=38) return 0;//not "&"
-    if (h->len==1) return 1;//& received, but awaiting further input
-    i=h->chr[1];
-    if ((i==72)||(i==104)) type=1;//"H"or"h"
-    if ((i==79)||(i==111)) type=2;//"O"or"o"
-    if (!type) return 0;
-    if (h->len==2) return type;
-    
-    if (type==1){
-        if (h->len>18) return 0;//larger than int64
-        for (i=2;i<h->len;i++){
-            result<<=4;
-            i2=h->chr[i];
-            //          0  -      9             A  -      F             a  -      f
-            if ( ((i2>=48)&&(i2<=57)) || ((i2>=65)&&(i2<=70)) || ((i2>=97)&&(i2<=102)) ){
-                if (i2>=97) i2-=32;
-                if (i2>=65) i2-=7;
-                i2-=48;
-                //i2 is now a values between 0 and 15
-                result+=i2;
-            }else return 0;//invalid character
-        }//i
-        hexoct2uint64_value=result;
-        return 1;
-    }//type==1
-    
-    if (type==2){
-        //unsigned _int64 max=18446744073709551615 (decimal, 20 chars)
-        //                   =1777777777777777777777 (octal, 22 chars)
-        //                   =FFFFFFFFFFFFFFFF (hex, 16 chars)
-        if (h->len>24) return 0;//larger than int64
-        if (h->len==24){
-            if ((h->chr[2]!=48)&&(h->chr[2]!=49)) return 0;//larger than int64
-        }
-        for (i=2;i<h->len;i++){
-            result<<=3;
-            i2=h->chr[i];
-            if ((i2>=48)&&(i2<=55)){//0-7
-                i2-=48;
-                result+=i2;
-            }else return 0;//invalid character
-        }//i
-        hexoct2uint64_value=result;
-        return 2;
-    }//type==2
-    
+int32 hexoct2uint64(qbs *h) {
+  // returns 0 = failed
+  //         1 = HEX value (default if unspecified)
+  //         2 = OCT value
+  //         3 = BIN value
+  static int32 i, i2;
+  static uint64 result;
+  result = 0;
+  static int32 type;
+  type = 0;
+  hexoct2uint64_value = 0;
+  if (!h->len) return 1;
+  if (h->chr[0] != 38) return 0;  // not "&"
+  if (h->len == 1) return 1;      // "&" received, but awaiting further input
+  i = h->chr[1];
+  if ((i == 72) || (i == 104)) type = 1;  // "H" or "h"
+  if ((i == 79) || (i == 111)) type = 2;  // "O" or "o"
+  if ((i == 66) || (i ==  98)) type = 3;  // "B" or "b"
+  if (!type) return 0;
+  if (h->len == 2) return type;
+
+  // unsigned _int64 max = 18446744073709551615   (decimal, 20 chars)
+  //                     = 1111111 etc., max. 64x (binary, 64 chars)
+  //                     = 1777777777777777777777 (octal, 22 chars)
+  //                     = FFFFFFFFFFFFFFFF       (hex, 16 chars)
+
+  if (type == 1) {
+    if (h->len > 18) return 0;  // larger than int64
+    for (i = 2; i < h->len; i++) {
+      result <<= 4;
+      i2 = h->chr[i];
+      //           0      -      9       /       A      -      F       /       a      -      f
+      if (((i2 >= 48) && (i2 <= 57)) || ((i2 >= 65) && (i2 <= 70)) || ((i2 >= 97) && (i2 <= 102))) {
+        if (i2 >= 97) i2 -= 32;
+        if (i2 >= 65) i2 -= 7;
+        i2 -= 48;
+        // i2 is now a values between 0 and 15
+        result += i2;
+      } else
+        return 0;  // invalid character
+    }  // i
+    hexoct2uint64_value = result;
+    return 1;
+  }  // type == 1
+
+  if (type == 2) {
+    if (h->len > 24) return 0;  // larger than int64
+    if (h->len == 24) {
+      if ((h->chr[2] != 48) && (h->chr[2] != 49))
+        return 0;  // larger than int64
+    }
+    for (i = 2; i < h->len; i++) {
+      result <<= 3;
+      i2 = h->chr[i];
+      if ((i2 >= 48) && (i2 <= 55)) {  // 0-7
+        i2 -= 48;
+        result += i2;
+      } else
+        return 0;  // invalid character
+    }  // i
+    hexoct2uint64_value = result;
+    return 2;
+  }  // type == 2
+
+  if (type == 3) {
+    if (h->len > 66) return 0;  // larger than int64
+    for (i = 2; i < h->len; i++) {
+      result <<= 1;
+      i2 = h->chr[i];
+      if ((i2 >= 48) && (i2 <= 49)) {  // 0-1
+        i2 -= 48;
+        result += i2;
+      } else
+        return 0;  // invalid character
+    }  // i
+    hexoct2uint64_value = result;
+    return 3;
+  }  // type == 3
 }
 
-
-extern void SUB_VKUPDATE();
 
 //input method (complex, calls other qbs functions)
 const char *uint64_max[] =    {"18446744073709551615"};
@@ -11711,7 +11781,7 @@ void qbs_input(int32 numvariables,uint8 newline){
                     max<<=i4;
                     max--;
                     
-                    //check for hex/oct
+                    //check for hex/oct/bin
                     if (i3=hexoct2uint64(qbs_input_arguements[argn])){
                         hexvalue=hexoct2uint64_value;
                         if (hexvalue>max){valid=0; goto typechecked;}
@@ -11736,7 +11806,18 @@ void qbs_input(int32 numvariables,uint8 newline){
                                 value>>=3;
                             }
                             if (l>(2+i)){valid=0; goto typechecked;}
-                            if (l==1) completewith=111;//"O"
+                            if (l==1) completewith=79;//"O"
+                            if (l==2) completewith=48;//"0"
+                        }
+                        if (i3==3){
+                            value=max;
+                            i=0;
+                            for (i2=1;i2<=64;i2++){
+                                if (value&0x1) i=i2;
+                                value>>=1;
+                            }
+                            if (l>(2+i)){valid=0; goto typechecked;}
+                            if (l==1) completewith=66;//"B"
                             if (l==2) completewith=48;//"0"
                         }
                         finalvalue=hexvalue;
@@ -11808,13 +11889,14 @@ void qbs_input(int32 numvariables,uint8 newline){
                 if ((qbs_input_variabletypes[argn]&511)==64){
                     if (l==0){completewith=48; *(int64*)qbs_input_variableoffsets[argn]=0; goto typechecked;}
                     
-                    //check for hex/oct
+                    //check for hex/oct/bin
                     if (i3=hexoct2uint64(qbs_input_arguements[argn])){
                         hexvalue=hexoct2uint64_value;
                         if (hexvalue>max){valid=0; goto typechecked;}
                         //set completewith value (if necessary)
                         if (i3==1) if (l==1) completewith=72;//"H"
-                        if (i3==2) if (l==1) completewith=111;//"O"
+                        if (i3==2) if (l==1) completewith=79;//"O"
+                        if (i3==3) if (l==1) completewith=66;//"B"
                         if (l==2) completewith=48;//"0"
                         *(uint64*)qbs_input_variableoffsets[argn]=hexvalue;
                         goto typechecked;
@@ -11898,12 +11980,13 @@ void qbs_input(int32 numvariables,uint8 newline){
             //begin with a generic assessment, regardless of whether it is single, double or float
             if (l==0){completewith=48; goto typechecked;}
             
-            //check for hex/oct
+            //check for hex/oct/bin
             if (i3=hexoct2uint64(qbs_input_arguements[argn])){
                 hexvalue=hexoct2uint64_value;
                 //set completewith value (if necessary)
                 if (i3==1) if (l==1) completewith=72;//"H"
-                if (i3==2) if (l==1) completewith=111;//"O"
+                if (i3==2) if (l==1) completewith=79;//"O"
+                if (i3==3) if (l==1) completewith=66;//"B"
                 if (l==2) completewith=48;//"0"
                 //nb. because VC6 didn't support...
                 //error C2520: conversion from uint64 to double not implemented, use signed int64
@@ -12235,10 +12318,6 @@ void qbs_input(int32 numvariables,uint8 newline){
                 Sleep(10);
                 qbs_set(key,qbs_inkey());
                 
-                disableEvents=1;//we don't want the ON TIMER bound version of VKUPDATE to fire during a call to itself!
-                SUB_VKUPDATE();
-                disableEvents=0;
-                
             }
             
             qbs_cleanup(qbs_tmp_base,0);
@@ -12336,8 +12415,6 @@ void qbs_input(int32 numvariables,uint8 newline){
             write_page->cursor_x=img[-dest_image_temp].cursor_x; write_page->cursor_y=img[-dest_image_temp].cursor_y;
             goto qbs_input_next;
         }
-        
-        if (inpstr2->len>=255) goto qbs_input_next;
         
         //affect inpstr2 with key
         qbs_set(inpstr2,qbs_add(inpstr2,key));
@@ -12594,11 +12671,21 @@ int32 func__blink(){
 }
 
 int64 func__handle(){
-    #ifdef QB64_GUI
-        #ifdef QB64_WINDOWS
-            while (!window_handle){Sleep(100);}
+    #ifdef QB64_WINDOWS
+        #ifdef DEPENDENCY_CONSOLE_ONLY
+            if (!window_handle) {
+                char pszConsoleTitle[1024];
+                GetConsoleTitle(pszConsoleTitle,1024);
+                window_handle = FindWindow(NULL, pszConsoleTitle);
+            }
             return (ptrszint)window_handle;
         #endif
+
+        if (!screen_hide){
+            while (!window_exists){Sleep(100);}
+            while (!window_handle){Sleep(100);}
+            return (ptrszint)window_handle;
+        }
     #endif
     
     return 0;
@@ -12610,6 +12697,13 @@ qbs *func__title(){
         }else{
         return qbs_new_txt((char*)window_title);
     }
+}
+
+void set_foreground_window(ptrszint i) {
+    #ifdef QB64_WINDOWS
+        BOOL result = SetForegroundWindow((HWND) i);
+    #endif
+    return;
 }
 
 int32 func__hasfocus() {
@@ -12938,7 +13032,6 @@ void sub_open(qbs *name,int32 type,int32 access,int32 sharing,int32 i,int64 reco
     if (sharing==2) g_restrictions=3;
     if (sharing==3) g_restrictions=1;
     if (sharing==4) g_restrictions=2;
-    if (cloud_app) g_restrictions=0;//applying restrictions on server not possible
     //note: In QB, opening a file already open for OUTPUT/APPEND created the 'file already open' error.
     
     //      However, from a new cmd window (or a SHELLed QB program) it can be opened!
@@ -12967,7 +13060,7 @@ void sub_open(qbs *name,int32 type,int32 access,int32 sharing,int32 i,int64 reco
     if (type==1){//set record length
         f->record_length=128;
         if (passed) if (record_length!=-1) f->record_length=record_length;
-        f->field_buffer=(uint8*)calloc(record_length,1);
+        f->field_buffer=(uint8*)calloc(f->record_length,1);
     }
     
     if (type==5){//seek eof
@@ -13054,7 +13147,11 @@ void sub_close(int32 i2,int32 passed){
     
     
     for (i=1;i<=special_handles->indexes;i++){
-        sub_close(-i-1,1);
+        if (vwatch>0 && vwatch==i) {
+            //keep connection to the IDE open for $DEBUG mode
+        } else {
+            sub_close(-i-1,1);
+        }
     }
     
     
@@ -13238,8 +13335,9 @@ uint8 n_digit[256];
 int64 n_exp;//if 0, there is one digit in front of the decimal place
 uint8 n_neg;//if 1, the number is negative
 uint8 n_hex;//if 1, the digits are in hexidecimal and n_exp should be ignored
-//if 2, the digits are in octal and n_exp should be ignored
-//(consider revising variable name n_hex)
+            //if 2, the digits are in octal and n_exp should be ignored
+            //if 3, the digits are in binary and n_exp should be ignored
+            //(consider revising variable name n_hex)
 
 int32 n_roundincrement(){
     static int32 i,i2,i3;
@@ -13285,6 +13383,17 @@ int32 n_float(){
         for (i=0;i<n_digits;i++){
             i2=n_digit[i]-48;
             value<<=3;
+            value|=i2;
+        }
+        n_float_value=value;
+        return 1;
+    }
+    //bin?
+    if (n_hex==3){
+        if (n_digits>64) return 0;
+        for (i=0;i<n_digits;i++){
+            i2=n_digit[i]-48;
+            value<<=1;
             value|=i2;
         }
         n_float_value=value;
@@ -13360,7 +13469,6 @@ int32 n_int64(){
         return 1;
     }
     //oct
-    
     if (n_hex==2){
         if (n_digits>=22){
             
@@ -13369,6 +13477,17 @@ int32 n_int64(){
         for (i=0;i<n_digits;i++){
             i2=n_digit[i]-48;
             value<<=3;
+            value|=i2;
+        }
+        n_int64_value=value;
+        return 1;
+    }
+    //bin
+    if (n_hex==3){
+        if (n_digits>64) return 0;
+        for (i=0;i<n_digits;i++){
+            i2=n_digit[i]-48;
+            value<<=1;
             value|=i2;
         }
         n_int64_value=value;
@@ -13454,6 +13573,17 @@ int32 n_uint64(){
         n_uint64_value=uvalue;
         return 1;
     }
+    //bin
+    if (n_hex==3){
+        if (n_digits>64) return 0;
+        for (i=0;i<n_digits;i++){
+            i2=n_digit[i]-48;
+            uvalue<<=1;
+            uvalue|=i2;
+        }
+        n_uint64_value=uvalue;
+        return 1;
+    }
     
     //negative?
     if (n_neg){
@@ -13522,58 +13652,105 @@ int32 n_inputnumberfromdata(uint8 *data,ptrszint *data_offset,ptrszint data_size
     //read character
     c=data[*data_offset];
     
-    //hex/oct
-    if (c==38){//&
-        (*data_offset)++; if (*data_offset>=data_size) goto gotnumber;
-        c=data[*data_offset];
-        if (c==44){(*data_offset)++; goto gotnumber;}
-        if ((c==72)||(c==104)){//"H"or"h"
-            nexthexchr:
-            (*data_offset)++; if (*data_offset>=data_size) goto gotnumber;
-            c=data[*data_offset];
-            if (c==44){(*data_offset)++; goto gotnumber;}
-            if ( ((c>=48)&&(c<=57)) || ((c>=65)&&(c<=70)) || ((c>=97)&&(c<=102)) ){//0-9 or A-F or a-f
-                if (n_digits==256) return 1;//Overflow
-                n_digit[n_digits]=c;
-                n_digits++;
-                n_hex=1;
-                goto nexthexchr;
-            }
-            return 3;//Syntax error
+    // hex/oct/bin
+    if (c == 38) {  // "&"
+      (*data_offset)++;
+      if (*data_offset >= data_size) return 3; // Syntax error (missing H/O/B after &)
+      c = data[*data_offset];
+      if (c == 44) {
+        (*data_offset)++;
+        return 3; // Syntax error (missing H/O/B after &)
+      }
+      if ((c == 72) || (c == 104)) {  // "H" or "h"
+      nexthexchr:
+        (*data_offset)++;
+        if (*data_offset >= data_size) goto gotnumber;
+        c = data[*data_offset];
+        if (c == 44) {
+          (*data_offset)++;
+          goto gotnumber;
         }
-        if ((c==79)||(c==111)){//"O"or"o"
-            nexthexchr2:
-            (*data_offset)++; if (*data_offset>=data_size) goto gotnumber;
-            c=data[*data_offset];
-            if (c==44){(*data_offset)++; goto gotnumber;}
-            if ((c>=48)&&(c<=55)){//0-7
-                if (n_digits==256) return 1;//Overflow
-                n_digit[n_digits]=c;
-                n_digits++;
-                n_hex=2;
-                goto nexthexchr2;
-            }
-            return 3;//Syntax error
+        if (((c >= 48) && (c <= 57)) || ((c >= 65) && (c <= 70)) ||
+            ((c >= 97) && (c <= 102))) {  // 0-9 or A-F or a-f
+          if (step == 5) return 3;        // Syntax error (digits after type suffix)
+          if (n_digits == 256) return 1;  // Overflow
+          n_digit[n_digits] = c;
+          n_digits++;
+          n_hex = 1;
+          goto nexthexchr;
         }
-        return 3;//Syntax error
-    }//&
+        if ((c == 33) || (c == 35) || (c == 36) ||
+            (c == 37) || (c == 38) || (c == 96) || (c == 126)) { // type suffix
+            if (step <= 5) {step = 5; goto nexthexchr;}
+        }
+        return 3;  // Syntax error (invalid HEX char)
+      }
+      if ((c == 79) || (c == 111)) {  // "O" or "o"
+      nexthexchr2:
+        (*data_offset)++;
+        if (*data_offset >= data_size) goto gotnumber;
+        c = data[*data_offset];
+        if (c == 44) {
+          (*data_offset)++;
+          goto gotnumber;
+        }
+        if ((c >= 48) && (c <= 55)) {     // 0-7
+          if (step == 5) return 3;        // Syntax error (digits after type suffix)
+          if (n_digits == 256) return 1;  // Overflow
+          n_digit[n_digits] = c;
+          n_digits++;
+          n_hex = 2;
+          goto nexthexchr2;
+        }
+        if ((c == 33) || (c == 35) || (c == 36) ||
+            (c == 37) || (c == 38) || (c == 96) || (c == 126)) { // type suffix
+            if (step <= 5) {step = 5; goto nexthexchr2;}
+        }
+        return 3;  // Syntax error (invalid OCT char)
+      }
+      if ((c == 66) || (c == 98)) {  // "B" or "b"
+      nexthexchr3:
+        (*data_offset)++;
+        if (*data_offset >= data_size) goto gotnumber;
+        c = data[*data_offset];
+        if (c == 44) {
+          (*data_offset)++;
+          goto gotnumber;
+        }
+        if ((c >= 48) && (c <= 49)) {     // 0-1
+          if (step == 5) return 3;        // Syntax error (digits after type suffix)
+          if (n_digits == 256) return 1;  // Overflow
+          n_digit[n_digits] = c;
+          n_digits++;
+          n_hex = 3;
+          goto nexthexchr3;
+        }
+        if ((c == 33) || (c == 35) || (c == 36) ||
+            (c == 37) || (c == 38) || (c == 96) || (c == 126)) { // type suffix
+            if (step <= 5) {step = 5; goto nexthexchr3;}
+        }
+        return 3;  // Syntax error (invalid BIN char)
+      }
+      return 3;  // Syntax error (missing H/O/B after &)
+    }  // "&"
     
     readnextchr:
     if (c==44){(*data_offset)++; goto gotnumber;}
     
     if (c==45){//-
-        if (step==0){n_neg=1; step=1; goto nextchr;}
-        if (step==3){negate_exponent=1; step=4; goto nextchr;}
-        return 3;//Syntax error
+        if (step==0){n_neg=1; step=1; goto nextchr;}//sign before integer part
+        if (step==3){negate_exponent=1; step=4; goto nextchr;}//exponent sign
+        return 3;//Syntax error (no - allowed in fraction part of number or after type suffix)
     }
     
     if (c==43){//+
-        if (step==0){step=1; goto nextchr;}
-        if (step==3){step=4; goto nextchr;}
-        return 3;//Syntax error
+        if (step==0){step=1; goto nextchr;}//sign before integer part
+        if (step==3){step=4; goto nextchr;}//exponent sign
+        return 3;//Syntax error (no + allowed in fraction part of number or after type suffix)
     }
     
     if ((c>=48)&&(c<=57)){//0-9
+        if (step == 5) return 3; // Syntax error (digit after type suffix)
         
         if (step<=1){//before decimal point
             step=1;
@@ -13608,17 +13785,21 @@ int32 n_inputnumberfromdata(uint8 *data,ptrszint *data_offset,ptrszint data_size
     }
     
     if (c==46){//.
-        if (step>1) return 3;//Syntax error
+        if (step>1) return 3;//Syntax error (multiple . or after type suffix)
         if (n_digits==0) n_exp=-1;
         step=2; goto nextchr;
     }
     
     if ((c==68)||(c==69)||(c==100)||(c==101)){//D,E,d,e
-        if (step>2) return 3;//Syntax error
+        if (step>2) return 3;//Syntax error (multiple exponents or after type suffix)
         step=3; goto nextchr;
     }
     
-    return 3;//Syntax error
+    if ((c == 33) || (c == 35) || (c == 36) ||
+        (c == 37) || (c == 38) || (c == 96) || (c == 126)) { // type suffix
+        if (step <= 5) {step = 5; goto nextchr;}
+    }
+    return 3;//Syntax error (invalid number char)
     nextchr:
     (*data_offset)++; if (*data_offset>=data_size) goto gotnumber;
     c=data[*data_offset];
@@ -13698,36 +13879,53 @@ int32 n_inputnumberfromfile(int32 fileno){
         if (c==-1){return_value=2; goto error;}//input past end of file
     }while(c==32);
     
-    //hex/oct
-    if (c==38){//&
-        c=file_input_chr(fileno); if (c==-2) return 3;
-        if (c==-1) goto gotnumber;
-        if ((c==72)||(c==104)){//"H"or"h"
-            nexthexchr:
-            c=file_input_chr(fileno); if (c==-2) return 3;
-            if ( ((c>=48)&&(c<=57)) || ((c>=65)&&(c<=70)) || ((c>=97)&&(c<=102)) ){//0-9 or A-F or a-f
-                if (n_digits==256) goto error;//overflow
-                n_digit[n_digits]=c;
-                n_digits++;
-                n_hex=1;
-                goto nexthexchr;
-            }
-            goto gotnumber;
-        }
-        if ((c==79)||(c==111)){//"O"or"o"
-            nexthexchr2:
-            c=file_input_chr(fileno); if (c==-2) return 3;
-            if ((c>=48)&&(c<=55)){//0-7
-                if (n_digits==256) goto error;//overflow
-                n_digit[n_digits]=c;
-                n_digits++;
-                n_hex=2;
-                goto nexthexchr2;
-            }
-            goto gotnumber;
+    // hex/oct/bin
+    if (c == 38) {  // "&"
+      c = file_input_chr(fileno);
+      if (c == -2) return 3;
+      if (c == -1) goto gotnumber;
+      if ((c == 72) || (c == 104)) {  // "H" or "h"
+      nexthexchr:
+        c = file_input_chr(fileno);
+        if (c == -2) return 3;
+        if (((c >= 48) && (c <= 57)) || ((c >= 65) && (c <= 70)) ||
+            ((c >= 97) && (c <= 102))) {    // 0-9 or A-F or a-f
+          if (n_digits == 256) goto error;  // overflow
+          n_digit[n_digits] = c;
+          n_digits++;
+          n_hex = 1;
+          goto nexthexchr;
         }
         goto gotnumber;
-    }//&
+      }
+      if ((c == 79) || (c == 111)) {  // "O" or "o"
+      nexthexchr2:
+        c = file_input_chr(fileno);
+        if (c == -2) return 3;
+        if ((c >= 48) && (c <= 55)) {       // 0-7
+          if (n_digits == 256) goto error;  // overflow
+          n_digit[n_digits] = c;
+          n_digits++;
+          n_hex = 2;
+          goto nexthexchr2;
+        }
+        goto gotnumber;
+      }
+      if ((c == 66) || (c == 98)) {  // "B" or "b"
+      nexthexchr3:
+        c = file_input_chr(fileno);
+        if (c == -2) return 3;
+        if ((c >= 48) && (c <= 49)) {       // 0-1
+          if (n_digits == 256) goto error;  // overflow
+          n_digit[n_digits] = c;
+          n_digits++;
+          n_hex = 3;
+          goto nexthexchr3;
+        }
+        goto gotnumber;
+      }
+      goto gotnumber;
+    }  // "&"
     
     readnextchr:
     if (c==-1) goto gotnumber;
@@ -14013,7 +14211,7 @@ long double func_read_float(uint8 *data,ptrszint *data_offset,ptrszint data_size
         }
         if ((value>maxval)||(value<minval)) goto overflow;
         
-        if (((typ&ISUNSIGNED)==0)&&n_hex){//signed hex/oct/...  
+        if (((typ&ISUNSIGNED)==0)&&n_hex){//signed hex/oct/bin/...  
             if (  ( ((int64)1) << ((typ&511)-1) )  &value){//if top bit is set, set all bits above it to form a negative value
                 value=(maxval^((int64)-1))+value;
             }
@@ -14118,7 +14316,7 @@ long double func_file_input_float(int32 fileno,int32 typ){
         }
         if ((value>maxval)||(value<minval)){error(6); return 0;}
         
-        if (((typ&ISUNSIGNED)==0)&&n_hex){//signed hex/oct/...  
+        if (((typ&ISUNSIGNED)==0)&&n_hex){//signed hex/oct/bin/...  
             if (  ( ((int64)1) << ((typ&511)-1) )  &value){//if top bit is set, set all bits above it to form a negative value
                 value=(maxval^((int64)-1))+value;
             }
@@ -15194,12 +15392,30 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
     
     
     int32 func_csrlin(){
+        #ifdef QB64_WINDOWS //Windows console CSRLIN support
+            if (write_page->console){
+                CONSOLE_SCREEN_BUFFER_INFO cl_bufinfo;
+                SECURITY_ATTRIBUTES SecAttribs = {sizeof(SECURITY_ATTRIBUTES), 0, 1};
+                HANDLE cl_conout = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, & SecAttribs, OPEN_EXISTING, 0, 0);
+                GetConsoleScreenBufferInfo(cl_conout, & cl_bufinfo);
+                return cl_bufinfo.dwCursorPosition.Y + 1;
+            }
+        #endif
         if (write_page->holding_cursor){
             if (write_page->cursor_y>=write_page->bottom_row) return write_page->bottom_row; else return write_page->cursor_y+1;
         }
         return write_page->cursor_y;
     }
     int32 func_pos(int32 ignore){
+        #ifdef QB64_WINDOWS
+            if (write_page->console){ //qb64 console CSRLIN 
+                CONSOLE_SCREEN_BUFFER_INFO cl_bufinfo;
+                SECURITY_ATTRIBUTES SecAttribs = {sizeof(SECURITY_ATTRIBUTES), 0, 1};
+                HANDLE cl_conout = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, & SecAttribs, OPEN_EXISTING, 0, 0);
+                GetConsoleScreenBufferInfo(cl_conout, & cl_bufinfo);
+                return cl_bufinfo.dwCursorPosition.X + 1;
+            }
+        #endif
         if (write_page->holding_cursor) return 1;
         return write_page->cursor_x;
     }
@@ -15239,10 +15455,51 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
     
     void sub_sleep(int32 seconds,int32 passed){
         if (new_error) return;
+
         sleep_break=0;
         double prev,ms,now,elapsed;//cannot be static
-        if (passed) prev=GetTicks();
+        prev=GetTicks();
         ms=1000.0*(double)seconds;
+        
+        #ifdef QB64_WINDOWS
+
+            if (read_page->console){ 
+                int32 junk=0,junk2=0;
+                DWORD dwRet;
+                HANDLE hStdin = GetStdHandle (STD_INPUT_HANDLE);
+                FlushConsoleInputBuffer(hStdin);
+                if (passed){
+                            do{
+                                now=GetTicks();
+                                if (now<prev)return;//value looped?
+                                elapsed=now-prev;//elapsed time since prev
+                                ms = ms-elapsed;
+                                prev=now;
+                                dwRet = WaitForSingleObject(hStdin,ms); //this should provide our pause
+                                if (dwRet==WAIT_TIMEOUT)return; //and if we timeout without any input, we exit early.
+                                if (dwRet==WAIT_OBJECT_0){//this says the console had input
+                                    junk=func__getconsoleinput();
+                                    if(junk==1){//this is a valid keyboard event.  Let's exit SLEEP in the console.
+                                        Sleep(100);//Give the user time to remove their finger from the key, before clearing the buffer.
+                                        FlushConsoleInputBuffer(hStdin);//flush the keyboard buffer after, so we don't leave stray events to be processed (such as key up events).
+                                        return;
+                                    }else{//we had an input event such as the mouse.  Ignore it and clear the buffer so we don't keep responding to mouse inputs
+                                        FlushConsoleInputBuffer(hStdin);
+                                    }
+                                }
+                            }while(ms>0);//as long as our timer hasn't expired, we continue to run the loop and countdown the time remaining
+                            return; //if we get here, something odd happened.  We should expire automatically with the WAIT_TIMEOUT event before this occurs.
+                }
+                do{ //ignore all console input unless it's a keydown event
+                    junk=func__getconsoleinput();
+                }while(junk!=1); //only when junk = 1 do we have a keyboard event
+                Sleep(100); //Give the user time to remove their finger from the key, before clearing the buffer.
+                FlushConsoleInputBuffer(hStdin); //and flush the keyboard buffer after, so we don't leave stray events to be processed.
+                return;
+            }
+        #endif
+
+
         recalculate:
         wait:
         evnt(0);//handle general events
@@ -15273,6 +15530,79 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         return;
     }
     
+        qbs *func__bin(int64 value,int32 neg_bits){
+        
+        static int32 i,i2,i3,neg;
+        static int64 value2;
+        static qbs *str;
+        
+        str=qbs_new(64,1);
+        
+        //negative?
+        if ((value>>63)&1) neg=1; else neg=0;
+        
+        //calc. most significant bit
+        i2=0;
+        value2=value;
+        if (neg){
+            for (i=1;i<=64;i++){
+                if (!(value2&1)) i2=i;
+                value2>>=1;
+            }
+            if (i2>=neg_bits){
+                //doesn't fit in neg_bits, so expand to next 16/32/64 boundary
+                i3=64;
+                if (i2<32) i3=32;
+                if (i2<16) i3=16;
+                i2=i3;
+            }else i2=neg_bits;
+            }else{
+            for (i=1;i<=64;i++){
+                if (value2&1) i2=i;
+                value2>>=1;
+            }
+        }
+        
+        if (!i2){str->chr[0]=48; str->len=1; return str;}//"0"
+        
+        //calc. number of characters required in i3
+        i3=i2; // equal for BIN$ because one bit = one char
+        
+        //build string
+        str->len=i3; i3--;
+        for (i=1;i<=i2;i++){
+            str->chr[i3--]=(value&1)+48;
+            value>>=1;
+        }
+        
+        return str;
+        
+    }
+    
+    //note: QBASIC doesn't have a BIN$ function
+    //      QB64   uses 32 bin digits for SINGLE/DOUBLE/FLOAT but if this range is exceeded
+    //      it uses up to 64 bin digits before generating an "OVERFLOW" error
+    //performs overflow check before calling func__bin
+    qbs *func__bin_float(long double value){
+        static qbs *str;
+        static int64 ivalue;
+        static int64 uivalue;
+        //ref: uint64 0-18446744073709551615
+        //      int64 \969223372036854775808 to 9223372036854775807
+        if ((value>=9.223372036854776E18)||(value<=-9.223372036854776E18)){
+            //note: ideally, the following line would be used, however, qbr_longdouble_to_uint64 just does the same as qbr
+            //if ((value>=1.844674407370956E19)||(value<=-9.223372036854776E18)){
+            str=qbs_new(0,1); error(6);//Overflow
+            return str;
+        }
+        if (value>=0){
+            uivalue=qbr_longdouble_to_uint64(value);
+            ivalue=uivalue;
+            }else{
+            ivalue=qbr(value);
+        }
+        return func__bin(ivalue,32);
+    }
     
     qbs *func_oct(int64 value,int32 neg_bits){
         
@@ -15328,10 +15658,10 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
     }
     
-    //note: QBASIC uses 8 characters for SINGLE/DOUBLE or generates "OVERFLOW" if this range is exceeded
-    //      QB64   uses 8 characters for SINGLE/DOUBLE/FLOAT but if this range is exceeded
-    //      it uses up to 16 characters before generating an "OVERFLOW" error
-    //performs overflow check before calling func_hex
+    //note: QBASIC uses 11 oct digits for SINGLE/DOUBLE or generates "OVERFLOW" if this range is exceeded
+    //      QB64   uses 11 oct digits for SINGLE/DOUBLE/FLOAT but if this range is exceeded
+    //      it uses up to 22 oct digits before generating an "OVERFLOW" error
+    //performs overflow check before calling func_oct
     qbs *func_oct_float(long double value){
         static qbs *str;
         static int64 ivalue;
@@ -15400,9 +15730,9 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
     }
     
-    //note: QBASIC uses 8 characters for SINGLE/DOUBLE or generates "OVERFLOW" if this range is exceeded
-    //      QB64   uses 8 characters for SINGLE/DOUBLE/FLOAT but if this range is exceeded
-    //      it uses up to 16 characters before generating an "OVERFLOW" error
+    //note: QBASIC uses 8 hex digits for SINGLE/DOUBLE or generates "OVERFLOW" if this range is exceeded
+    //      QB64   uses 8 hex digits for SINGLE/DOUBLE/FLOAT but if this range is exceeded
+    //      it uses up to 16 hex digits before generating an "OVERFLOW" error
     //performs overflow check before calling func_hex
     qbs *func_hex_float(long double value){
         static qbs *str;
@@ -15566,8 +15896,11 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         //returns a string to advance to the horizontal position "pos" on either
         //the current line or the next line.
         static int32 w,div,cursor;
+  
+        static int32 cr_size;         // a local in case file is SCRN
+        cr_size = tab_spc_cr_size;    // init to caller's value
         //calculate width in spaces & current position
-        if (tab_spc_cr_size==2){
+        if (cr_size==2){
             //print to file
             div=1;
             w=2147483647;
@@ -15578,9 +15911,14 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             if (i<0) goto invalid_file;//TCP/IP unsupported
             if (gfs_fileno_valid(i)!=1) goto invalid_file;//Bad file name or number
             i=gfs_fileno[i];//convert fileno to gfs index
+            if (gfs_file[i].scrn == 1) {    // going to screen, change the cr size
+                cr_size = 1;
+            } else {
             cursor=gfs_file[i].column;
+            }
             invalid_file:;
-            }else{
+        }
+        if (cr_size == 1) {
             //print to surface
             if (write_page->text){
                 w=write_page->width;
@@ -15602,7 +15940,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         if ((pos<-32768)||(pos>32767)){
             if (tab_LPRINT) sub__dest(tab_LPRINT_olddest);
             tqbs=qbs_new(0,1);
-            error(7); return tqbs;//Overflow
+            error(6); return tqbs;//Overflow
         }
         if (pos>w) pos%=w;
         if (pos<1) pos=1;
@@ -15610,7 +15948,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         size=0; spaces=0; cr=0;
         if (cursor>pos){
             cr=1;
-            size=tab_spc_cr_size;
+            size=cr_size;
             spaces=pos/div; if (pos%div) spaces++;
             spaces--;//don't put a space on the dest position
             size+=spaces;
@@ -15621,8 +15959,8 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         //build custom string
         tqbs=qbs_new(size,1);
         if (cr){
-            tqbs->chr[0]=13; if (tab_spc_cr_size==2) tqbs->chr[1]=10;
-            memset(&tqbs->chr[tab_spc_cr_size],32,spaces);
+            tqbs->chr[0]=13; if (cr_size==2) tqbs->chr[1]=10;
+            memset(&tqbs->chr[cr_size],32,spaces);
             }else{
             memset(tqbs->chr,32,spaces);
         }
@@ -15634,7 +15972,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         if (new_error) return qbs_new(0,1);
         
         static qbs *tqbs;
-        if ((spaces<-32768)||(spaces>32767)){tqbs=qbs_new(0,1); error(7); return tqbs;}//Overflow
+        if ((spaces<-32768)||(spaces>32767)){tqbs=qbs_new(0,1); error(6); return tqbs;}//Overflow
         if (spaces<0) spaces=0;
         
         //for files, spc simply adds that many spaces
@@ -15724,6 +16062,23 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         uint8 *cp;
         
         if (!passed) returncol=0;
+
+        #ifdef QB64_WINDOWS
+            if (read_page->console){
+                SECURITY_ATTRIBUTES SecAttribs = {sizeof(SECURITY_ATTRIBUTES), 0, 1};
+                HANDLE cl_conout = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, & SecAttribs, OPEN_EXISTING, 0, 0);
+                COORD cp1 = {x-1, y-1};
+                DWORD t;
+                uint16 a; 
+                if (returncol){
+                    int x1 = ReadConsoleOutputAttribute(cl_conout, &a, 1, cp1, &t) ;
+                    return a;
+                } else {
+                    ReadConsoleOutputCharacterA(cl_conout, (char *) &a, 1, cp1, &t) ;
+                    return a & 0xff;
+                }
+            }
+        #endif
         
         if (read_page->text){
             //on screen?
@@ -15970,19 +16325,13 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         }
         
         if (gfs->type==1){//RANDOM
-            return gfs_getpos(i)/gfs->record_length+1;
+            return gfs_getpos(i)/gfs->record_length;
         }
         if (gfs->type==2){//BINARY
             return gfs_getpos(i);
         }
         //APPEND/OUTPUT/INPUT
-        int64 pos;
-        pos=gfs_getpos(i);
-        if (!pos) return 1;
-        pos--;
-        pos/=128;
-        pos++;
-        return pos;
+        return gfs_getpos(i)/128;
     }
     
     qbs *func_input(int32 n,int32 i,int32 passed){
@@ -16204,7 +16553,13 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         #include "parts/audio/decode/src.c"
     #endif
     
-    
+    #ifdef DEPENDENCY_ZLIB
+        #ifdef QB64_BACKSLASH_FILESYSTEM
+            #include "parts\\zlib\\src.c"
+        #else
+            #include "parts/zlib/src.c"
+        #endif
+    #endif
     
     
     
@@ -16219,7 +16574,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
     qbs *func_command(int32 index, int32 passed){
         static qbs *tqbs;
         if (passed) { //Get specific parameter
-            //If out of bounds or error getting cmdline args (on Android, perhaps), return empty string.
+            //If out of bounds or error getting cmdline args, return empty string.
             if (index >= func_command_count || index < 0 || func_command_array==NULL) {tqbs = qbs_new(0, 1); return tqbs;}
             int len = strlen(func_command_array[index]);
             //Create new temp qbs and copy data into it.
@@ -16334,7 +16689,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
     
     int64 func_shell(qbs *str){
         if (new_error) return 1;
-        if (cloud_app){error(262); return 1;}
         
         int64 return_code;
         
@@ -16609,7 +16963,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
     
     int64 func__shellhide(qbs *str){ //func _SHELLHIDE(...
         if (new_error) return 1;
-        if (cloud_app){error(262); return 1;}
         
         static int64 return_code;
         return_code=0;
@@ -16836,7 +17189,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
     
     void sub_shell(qbs *str,int32 passed){
         if (new_error) return;
-        if (cloud_app){error(262); return;}
         
         //exit full screen mode if necessary
         static int32 full_screen_mode;
@@ -17114,7 +17466,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
     
     void sub_shell2(qbs *str,int32 passed){ //HIDE
         if (new_error) return;
-        if (cloud_app){error(262); return;}
         
         if (passed&1){sub_shell4(str,passed&2); return;}
         if (!(passed&2)){error(5); return;}//should not hide a shell waiting for input
@@ -17316,7 +17667,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
     void sub_shell3(qbs *str,int32 passed){//_DONTWAIT
         //shell3 launches 'str' but does not wait for it to complete
         if (new_error) return;
-        if (cloud_app){error(262); return;}
         
         if (passed&1){sub_shell4(str,passed&2); return;}
         
@@ -17509,7 +17859,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
     void sub_shell4(qbs *str,int32 passed){//_DONTWAIT & _HIDE
         //if passed&2 set a string was given
         if (!(passed&2)){error(5); return;}//should not hide a shell waiting for input
-        if (cloud_app){error(262); return;}
         
         static qbs *strz=NULL;
         static int32 i;
@@ -17771,25 +18120,11 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
         static int32 tmp_long;
         static int32 got_ports=0;
-        if (cloud_app){
-            cloud_chdir_complete=1;
-            
-            if (!got_ports){
-                got_ports=1;
-                static FILE* file = fopen ("..\\ports.txt\0", "r");
-                fscanf (file, "%d", &tmp_long);
-                cloud_port[1]=tmp_long;
-                fscanf (file, "%d", &tmp_long);
-                cloud_port[2]=tmp_long;
-                fclose (file);
-            }
-        }
         
     }
     
     void sub_mkdir(qbs *str){
         if (new_error) return;
-        if (cloud_app){error(262); return;}
         static qbs *strz=NULL;
         if (!strz) strz=qbs_new(0,0);
         qbs_set(strz,qbs_add(str,qbs_new_txt_len("\0",1)));
@@ -17833,9 +18168,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                 if (!screen_hide){
                     while (!window_exists){Sleep(100);}      
                     #ifdef QB64_GLUT
-                        #ifndef QB64_ANDROID
-                            glutSetCursor(GLUT_CURSOR_NONE);
-                        #endif
+                        glutSetCursor(GLUT_CURSOR_NONE);
                     #endif
                 }
             #endif
@@ -17863,6 +18196,9 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                     if (qbs_equal(str,qbs_new_txt("HORIZONTAL"))) {mouse_cursor_style=GLUT_CURSOR_LEFT_RIGHT; goto cursor_valid;}
                     if (qbs_equal(str,qbs_new_txt("TOPLEFT_BOTTOMRIGHT"))) {mouse_cursor_style=GLUT_CURSOR_TOP_LEFT_CORNER; goto cursor_valid;}
                     if (qbs_equal(str,qbs_new_txt ("TOPRIGHT_BOTTOMLEFT"))) {mouse_cursor_style=GLUT_CURSOR_TOP_RIGHT_CORNER; goto cursor_valid;}
+                    if (qbs_equal(str,qbs_new_txt ("WAIT"))) {mouse_cursor_style=GLUT_CURSOR_WAIT; goto cursor_valid;}
+                    if (qbs_equal(str,qbs_new_txt ("HELP"))) {mouse_cursor_style=GLUT_CURSOR_HELP; goto cursor_valid;}
+                    if(qbs_equal(str,qbs_new_txt("CYCLE"))||qbs_equal(str, qbs_new_txt("MOVE"))) {mouse_cursor_style=GLUT_CURSOR_CYCLE; goto cursor_valid;}
                     error(5); return;
                 }
                 cursor_valid:
@@ -17935,20 +18271,16 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             static float f;
             
             int32 handle;
+
+            #ifdef QB64_WINDOWS
+                if (read_page->console){return consolemousex;}
+            #endif
+
             handle=mouse_message_queue_default;
             if (passed) handle=context;    
             mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,handle);
             if (queue==NULL){error(258); return 0;}
             x=queue->queue[queue->current].x;
-            
-            /*
-                if (cloud_app){
-                x2=display_page->width; if (display_page->text) x2*=fontwidth[display_page->font];
-                x_limit=x2-1;
-                x_scale=1;
-                x_offset=0;
-                }
-            */
             
             //calculate pixel offset of mouse within SCREEN using environment variables
             x-=environment_2d__screen_x1;
@@ -17979,20 +18311,16 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             static float f;
             
             int32 handle;
+
+            #ifdef QB64_WINDOWS
+                if (read_page->console){return consolemousey;}
+            #endif
+
             handle=mouse_message_queue_default;
             if (passed) handle=context;    
             mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,handle);
             if (queue==NULL){error(258); return 0;}
             y=queue->queue[queue->current].y;
-            
-            /*
-                if (cloud_app){
-                y2=display_page->height; if (display_page->text) y2*=fontheight[display_page->font];
-                y_limit=y2-1;
-                y_scale=1;
-                y_offset=0;
-                }
-            */
             
             //calculate pixel offset of mouse within SCREEN using environment variables
             y-=environment_2d__screen_y1;
@@ -18096,6 +18424,17 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
         int32 func__mousebutton(int32 i, int32 context, int32 passed){
             if (i<1){error(5); return 0;}
+            #ifdef QB64_WINDOWS
+                if (read_page->console){ //console may support up to 5 mouse buttons according to the documentation.
+                    if (i==1)return consolebutton&1;
+                    if (i==2)return consolebutton&2;
+                    if (i==3)return consolebutton&4;                                       
+                    if (i==4)return consolebutton&8;
+                    if (i==5)return consolebutton&16;
+                    return 0;
+                }
+            #endif
+
             if (i>3) return 0;//current SDL only supports 3 mouse buttons!
             //swap indexes 2&3
             if (i==2){
@@ -18115,6 +18454,16 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         int32 func__mousewheel(int32 context, int32 passed){
             static uint32 x;
             int32 handle;
+
+            
+            #ifdef QB64_WINDOWS
+                if (read_page->console){
+                    if (consolebutton<-0x100)return -1;
+                    if (consolebutton>0x100)return 1;
+                    return 0;
+                }
+            #endif
+
             handle=mouse_message_queue_default;
             if (passed) handle=context;    
             mouse_message_queue_struct *queue=(mouse_message_queue_struct*)list_get(mouse_message_queue_handles,handle);
@@ -18218,6 +18567,24 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         //Creating/destroying an image surface:
         
         int32 func__newimage(int32 x,int32 y,int32 bpp,int32 passed){
+            #ifdef QB64_WINDOWS
+            #if WINVER >= 0x0600 //this block is not compatible with XP
+			static bool j;
+            if(j != 1){
+                FARPROC dpiaware;
+                HMODULE user32 = LoadLibrary(TEXT("user32.dll"));
+                if(user32 != NULL){
+                    dpiaware = GetProcAddress(user32, "SetProcessDPIAware");
+                    if(NULL != dpiaware){
+                        (dpiaware) ();
+                        j = 1;
+						FreeLibrary(user32);
+                    }
+					FreeLibrary(user32);
+                }
+            }
+			#endif
+            #endif
             static int32 i;
             if (new_error) return 0;
             if (x<=0||y<=0){error(5); return 0;}
@@ -18289,7 +18656,10 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             i2=newimg();
             d=&img[i2];
             memcpy(d,s,sizeof(img_struct));
-            img[i2].lock_id=NULL; img[i2].lock_offset=NULL; // force _MEMIMGAGE to get a new lock for the copy
+            //don't duplicate the memory lock (if any),
+            //_MEMIMAGE needs to obtain a new lock for the copy
+            img[i2].lock_id=NULL;
+            img[i2].lock_offset=NULL;
             //duplicate pixel data
             bytes=d->width*d->height*d->bytes_per_pixel;
             d->offset=(uint8*)malloc(bytes);
@@ -18359,7 +18729,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             static int32 i;
             //note: handles 0 & -1(1) are reserved
             for (i=2;i<nextimg;i++){
-                if (img[i].valid){
+                if (img[i].valid && i != abs(console_image)){
                     if ((img[i].flags&IMG_SCREEN)==0){//The SCREEN's pages cannot be freed!
                         sub__freeimage(-i,1);
                     }
@@ -18573,6 +18943,17 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
         int32 func__width(int32 i,int32 passed){
             if (new_error) return 0;
+
+            #ifdef QB64_WINDOWS
+                if ((read_page->console && !passed)||i==console_image){
+                    SECURITY_ATTRIBUTES SecAttribs = {sizeof(SECURITY_ATTRIBUTES), 0, 1};
+                    HANDLE cl_conout = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, & SecAttribs, OPEN_EXISTING, 0, 0);
+                    CONSOLE_SCREEN_BUFFER_INFO cl_bufinfo;
+                    GetConsoleScreenBufferInfo(cl_conout, &cl_bufinfo);
+                    return cl_bufinfo.srWindow.Right - cl_bufinfo.srWindow.Left + 1;
+                }
+            #endif
+
             if (passed){
                 if (i>=0){//validate i
                     validatepage(i); i=page[i];
@@ -18591,6 +18972,18 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
         int32 func__height(int32 i,int32 passed){
             if (new_error) return 0;
+
+            #ifdef QB64_WINDOWS
+                if ((read_page->console && !passed)||i==console_image){
+                    SECURITY_ATTRIBUTES SecAttribs = {sizeof(SECURITY_ATTRIBUTES), 0, 1};
+                    HANDLE cl_conout = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, & SecAttribs, OPEN_EXISTING, 0, 0);
+                    CONSOLE_SCREEN_BUFFER_INFO cl_bufinfo;
+                    GetConsoleScreenBufferInfo(cl_conout, &cl_bufinfo);
+                    return cl_bufinfo.srWindow.Bottom - cl_bufinfo.srWindow.Top + 1;
+                    return cl_bufinfo.dwMaximumWindowSize.Y;
+                }
+            #endif
+
             if (passed){
                 if (i>=0){//validate i
                     validatepage(i); i=page[i];
@@ -19087,7 +19480,24 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             //validate size
             if (size<1){error(5); return NULL;}
             if (size>2048) return -1;
+
+
+            //load the file
+            if (!f->len) return -1;//return invalid handle if null length string
+            int32 fh,result;
+            int64 bytes;
+            fh=gfs_open(f,1,0,0);
             
+            #ifdef QB64_WINDOWS //rather than just immediately tossing an error, let's try looking in the default OS folder for the font first in case the user left off the filepath.
+                if (fh<0&&recall==0) {
+                    recall=-1; //to set a flag so we don't get trapped endlessly recalling the routine when the font actually doesn't exist
+                    i=func__loadfont(qbs_add(qbs_new_txt("C:/Windows/Fonts/"),f), size, requirements,passed); //Look in the default windows font location
+                    return i;
+                }
+            #endif
+            recall=0;
+            if (fh<0) return -1; //If we still can't load the font, then we just can't load the font...  Send an error code back.
+
             //check requirements
             memset(r,0,32);
             if (passed){
@@ -19122,23 +19532,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             //8 dontblend (blending is the default in 32-bit alpha-enabled modes)
             //16 monospace
             //32 unicode
-            
-            //load the file
-            if (!f->len) return -1;//return invalid handle if null length string
-            int32 fh,result;
-            int64 bytes;
-            fh=gfs_open(f,1,0,0);
-            
-            #ifdef QB64_WINDOWS //rather than just immediately tossing an error, let's try looking in the default OS folder for the font first in case the user left off the filepath.
-                if (fh<0&&recall==0) {
-                    recall=-1; //to set a flag so we don't get trapped endlessly recalling the routine when the font actually doesn't exist
-                    i=func__loadfont(qbs_add(qbs_new_txt("C:/Windows/Fonts/"),f), size, requirements,passed); //Look in the default windows font location
-                    return i;
-                }
-            #endif
-            recall=0;
-            
-            if (fh<0) return -1;
+
             bytes=gfs_lof(fh);
             static uint8* content;
             content=(uint8*)malloc(bytes); if (!content){gfs_close(fh); return -1;}
@@ -19597,40 +19991,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             
             sub_close(NULL,0);
             exit_blocked=0;//allow exit via X-box or CTRL+BREAK
-            
-            if (cloud_app){
-                //1. set the display page as the destination page
-                sub__dest(func__display());
-                //2. VIEW PRINT bottomline,bottomline
-                static int32 y;
-                if (write_page->text){
-                    y=write_page->height;
-                    }else{
-                    y=write_page->height/fontheight[write_page->font];
-                }
-                qbg_sub_view_print(y,y,1|2);
-                //3. PRINT 'clears the line without having to worry about its contents/size
-                qbs_print(nothingstring,1);
-                //4. PRINT "Press any key to continue"
-                qbs_print(qbs_new_txt("Program ended. Closing (10 seconds)..."),0);
-                //6. Enable autodisplay
-                autodisplay=1;
-                int sec=7;
-                while(sec--){
-                    evnt(1);
-                    Sleep(1000);
-                    qbs_print(qbs_new_txt("."),0);
-                }
-                sec=3;
-                while(sec--){
-                    Sleep(1000);
-                    evnt(1);
-                }
-                
-                close_program=1;
-                end();
-                exit(0);//<-- should never happen
-            }
+
             
             #ifdef DEPENDENCY_CONSOLE_ONLY
                 screen_hide=1;
@@ -19668,12 +20029,21 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                 
                 }else{
                 if (console){
-                    //screen is hidden, console is visible
-                    cout<<"\nPress enter to continue";
-                    static int32 ignore;
-                    ignore=fgetc(stdin);
+                        //screen is hidden, console is visible
+                        #ifdef QB64_WINDOWS
+                            cout<<"\nPress any key to continue";
+                            int32 junk;
+                            FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); //clear any stray buffer events before we run END.
+                            do{ //ignore all console input
+                                junk=func__getconsoleinput();
+                            }while(junk!=1); //until we have a key down event
+                        #else
+                           cout<<"\nPress enter to continue";
+                           static int32 ignore;
+                           ignore=fgetc(stdin);
+                       #endif
+                   }
                 }
-            }
             close_program=1;
             end();
             exit(0);//<-- should never happen
@@ -20370,7 +20740,9 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             //set screen mode to 0 (80x25)
             qbg_screen(0,NULL,0,0,NULL,1|4|8);
             //make sure WIDTH is 80x25
-            qbsub_width(NULL,80,25,1|2);
+            qbsub_width(NULL,80,25,0,0,1|2);
+            //restore view print
+            qbg_sub_view_print(NULL,NULL,0);
             //restore palette
             restorepalette(write_page);
             //restore default colors
@@ -20381,13 +20753,14 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             //Reset RND & RANDOMIZE state
             rnd_seed=327680;
             rnd_seed_first=327680;//Note: must contain the same value as rnd_seed
+            //clear keyboard buffers
+            sub__keyclear(NULL,0);
         }
         
         
         
         void sub_run(qbs* f){
             if (new_error) return;
-            if (cloud_app){error(262); return;}
             
             //run program
             static qbs *str=NULL;
@@ -20642,9 +21015,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
         void sub__display(){
             
-            if (cloud_app==0){
-                if (screen_hide) return;
-            }
+            if (screen_hide) return;
             
             //disable autodisplay (if enabled)
             if (autodisplay){
@@ -21097,57 +21468,101 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             goto nextchar;
         }
         
-        
-        
-        #ifdef QB64_UNIX
-            extern char** environ;
-            #define envp environ
-            #else /* WINDOWS */
+        #ifdef QB64_WINDOWS
             #define envp _environ
+        #else
+            extern char **environ;
+            #define envp environ
         #endif
-        size_t environ_count;
-        
-        qbs *func_environ(qbs *name)
-        {
-            static char *cp;
-            static qbs *tqbs;
-            static int32 bytes;
-            cp=getenv((char*)name->chr);
-            if (cp&&(cloud_app==0)){
-                bytes=strlen(cp);
-                tqbs=qbs_new(bytes,1);
-                memcpy(tqbs->chr,cp,bytes); 
-                }else{
-                tqbs=qbs_new(0,1);
+
+        int32 func__environcount() {
+            //count array bound
+             char **p = envp;
+             while (*++p);
+             return p - envp;
+         }
+             
+        qbs *func_environ(qbs *name) {
+            char *query, *result;
+            qbs *tqbs;
+            query = (char *)malloc(name->len + 1);
+            query[name->len] = '\0'; //add NULL terminator
+            memcpy(query, name->chr, name->len);
+            result = getenv(query);
+            if (result) {
+                int result_length = strlen(result);
+                tqbs = qbs_new(result_length, 1);
+                memcpy(tqbs->chr, result, result_length);
+            }
+            else {
+                tqbs = qbs_new(0, 1);
             }
             return tqbs;
         }
-        
-        qbs *func_environ(int32 number)
-        {
-            static qbs *tqbs;
-            static char *cp;
-            static int32 bytes;
-            if (cloud_app){tqbs=qbs_new(0,1); error(5); return tqbs;}
-            if (number<=0){tqbs=qbs_new(0,1); error(5); return tqbs;}
-            if (number>=environ_count){tqbs=qbs_new(0,1); return tqbs;}
-            cp=*(envp+number-1);
-            bytes=strlen(cp);
-            tqbs=qbs_new(bytes,1);
-            memcpy(tqbs->chr,cp,bytes);
+
+        qbs *func_environ(int32 number) {
+            char *result;
+            qbs *tqbs;
+            int result_length;
+            if (number <= 0) {
+                tqbs = qbs_new(0, 1);
+                error(5);
+                return tqbs;
+            }
+            //Check we do not go beyond array bound
+            char **p = envp;
+            while (*++p);
+            if (number > p - envp) {
+                tqbs = qbs_new(0, 1);
+                return tqbs;
+            }
+            result = envp[number - 1];
+            result_length = strlen(result);
+            tqbs = qbs_new(result_length, 1);
+            memcpy(tqbs->chr, result, result_length);
             return tqbs;
         }
         
-        void sub_environ(qbs *str)
-        {
-            if (cloud_app){error(262); return;}
-            static char *cp;
-            cp=(char*)malloc(str->len+1);
-            cp[str->len]=0;//add NULL terminator
-            memcpy(cp,str->chr,str->len);
-            putenv(cp);
-            free(cp);
-            environ_count++;
+        void sub_environ(qbs *str) {
+            char *buf;
+            char *separator;
+            buf = (char *)malloc(str->len + 1);
+            buf[str->len] = '\0';
+            memcpy(buf, str->chr, str->len);
+            //Name and value may be separated by = or space
+            separator = strchr(buf, ' ');
+            if (!separator) {
+                separator = strchr(buf, '=');
+            }
+            if (!separator) {
+                //It is an error is there is no separator
+                error(5);
+                return;
+            }
+            // Split into two separate strings
+            *separator = '\0';
+            if (separator == &buf[str->len] - 1) {
+                //Separator is at end of string, so remove the variable
+				#ifdef QB64_WINDOWS
+					*separator = '=';
+					_putenv(buf);
+				#else
+					unsetenv(buf);
+				#endif
+            }
+            else {
+				#ifdef QB64_WINDOWS
+					#if WINVER >= 0x0600
+					_putenv_s(buf, separator + 1);
+					#else
+					*separator = '=';
+					_putenv(buf);
+					#endif
+				#else
+					setenv(buf, separator + 1, 1);
+				#endif
+            }
+            free(buf);
         }
         
         #ifdef QB64_WINDOWS
@@ -21158,16 +21573,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                 MessageBox2(NULL,(char*)s->chr,"showvalue",MB_OK|MB_SYSTEMMODAL);
             }
         #endif
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
         
         //Referenced: http://johnnie.jerrata.com/winsocktutorial/
         //Much of the unix sockets code based on http://beej.us/guide/bgnet/
@@ -21180,8 +21586,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             #include <sys/socket.h>
             #include <netdb.h>
         #endif
-        
-        
         
         #define NETWORK_ERROR -1
         #define NETWORK_OK     0
@@ -21268,7 +21672,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                     sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
                     if (sockfd == -1) continue;
                     setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
-                    if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+                    if (::bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
                         close(sockfd);
                         continue;
                     }
@@ -21450,14 +21854,18 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
         void tcp_out(void *connection,void *offset,ptrszint bytes){
             #if !defined(DEPENDENCY_SOCKETS)
-                #elif defined(QB64_WINDOWS) || defined(QB64_UNIX)
+            #elif defined(QB64_WINDOWS) || defined(QB64_UNIX)
+                // Handle Windows which might not have this flag (it would be a no-op anyway)
+                #if !defined(MSG_NOSIGNAL)
+                #define MSG_NOSIGNAL 0
+                #endif
                 tcp_connection *tcp; tcp=(tcp_connection*)connection;
                 int total = 0;        // how many bytes we've sent
                 int bytesleft = bytes; // how many we have left to send
                 int n;
                 
                 while(total < bytes) {
-                    n = send(tcp->socket, (char*)((char *)offset + total), bytesleft, 0);
+                    n = send(tcp->socket, (char*)((char *)offset + total), bytesleft, MSG_NOSIGNAL);
                     if (n < 0) {
                         tcp->connected = 0;
                         return;
@@ -21469,7 +21877,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             #endif
         }
         
-        int32 cloud_port_redirect=-1;
         struct connection_struct{
             int8 in_use;//0=not being used, 1=in use
             int8 protocol;//1=TCP/IP
@@ -21619,17 +22026,17 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             if ((method==0)||(method==1)){
                 
                 if (parts<2) return -1;
-                if (qbs_equal(qbs_ucase(info_part[1]),qbs_new_txt("TCP/IP"))==0) return -1;
+                if (qbs_equal(qbs_ucase(info_part[1]),qbs_new_txt("TCP/IP"))==0) {
+                    if (qbs_equal(qbs_ucase(info_part[1]),qbs_new_txt("QB64IDE"))==0 || vwatch!=-1) {
+                        return -1;
+                    }
+                }
                 
                 d=func_val(info_part[2]);
                 port=qbr_double_to_long(d);//***assume*** port number is within valid range
                 
                 if (method==0){//_OPENCLIENT
                     if (parts!=3) return -1;
-                    
-                    if (cloud_app){
-                        if (port==cloud_port_redirect) port=cloud_port[1];
-                    }
                     
                     static void *connection;
                     qbs_set(str,qbs_add(info_part[3],strz));
@@ -21654,22 +22061,14 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                     //init stream
                     my_stream_struct->in=NULL; my_stream_struct->in_size=0; my_stream_struct->in_limit=0;
                     
+                    if (vwatch==-1) vwatch=my_handle;
                     return my_handle;
                 }//client
                 
                 
                 if (method==1){//_OPENHOST
                     if (parts!=2) return -1;
-                    
-                    if (cloud_app){
-                        if (port==cloud_port[1]) goto gotcloudport;
-                        if (port==cloud_port[2]) goto gotcloudport;
-                        if ((port>=1)&&(port<=2)){port=cloud_port[port]; goto gotcloudport;}
-                        cloud_port_redirect=port;
-                        port=cloud_port[1];//unknown values default to primary hosting port
-                    }
-                    gotcloudport:
-                    
+
                     static void *connection;
                     connection=tcp_host_open(port);
                     if (!connection) return 0;
@@ -21874,7 +22273,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
         
         
-        #if defined(QB64_LINUX)
+        #if defined(QB64_LINUX) && defined(QB64_GUI)
             
             //X11 clipboard interface for Linux
             //SDL_SysWMinfo syswminfo;
@@ -21922,10 +22321,10 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                     //SDL_EventState(SDL_SYSWMEVENT,SDL_ENABLE);
                     //SDL_SetEventFilter(x11filter);
                     x11_lock();
-                    targets=XInternAtom(X11_display,"TARGETS",True);
-                    utf8string=XInternAtom(X11_display,"UTF8_STRING",True);
-                    compoundtext=XInternAtom(X11_display,"COMPOUND_TEXT",True);
-                    clipboard=XInternAtom(X11_display,"CLIPBOARD",True);
+                    targets=XInternAtom(X11_display,"TARGETS",False);
+                    utf8string=XInternAtom(X11_display,"UTF8_STRING",False);
+                    compoundtext=XInternAtom(X11_display,"COMPOUND_TEXT",False);
+                    clipboard=XInternAtom(X11_display,"CLIPBOARD",False);
                     x11_unlock();
                 }
             }
@@ -21997,6 +22396,9 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                 return NULL;
             }
             
+        #elif defined(QB64_LINUX)
+            void x11clipboardcopy(const char *text){ }
+            char *x11clipboardpaste(){ return NULL; }
         #endif
         
         
@@ -22261,6 +22663,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                     if ( (err) != noErr ) goto CantGetPasteboardItemIdentifier;
                     
                     err = PasteboardCopyItemFlavorData( inPasteboard, itemID, CFSTR("public.utf8-plain-text"), &flavorData );      
+                    if ( (err) != noErr ) goto CantGetPasteboardItemCount;
                     data = (char*)CFDataGetBytePtr(flavorData);
                     
                     uint32 size;
@@ -22369,7 +22772,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                 if (i32==258){
                     generic_get(i,-1,(uint8*)&i32,4); i32b=i32;
                     generic_get(i,-1,(uint8*)&i32,4);
-                    qbsub_width(0,i32b,i32,1+2);
+                    qbsub_width(0,i32b,i32,0,0,1+2);
                     generic_get(i,-1,(uint8*)&i32,4);
                 }
             }
@@ -23116,6 +23519,10 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                     f->file_handle->seekp(position);
                 }
                 f->pos=position;
+                if (f->pos<=gfs_lof(i)){
+                    f->eof_passed=0;
+                    f->eof_reached=0;
+                }
                 return 0;
             #endif
             
@@ -23130,6 +23537,10 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
                     }
                 }
                 f->pos=position;
+                if (f->pos<=gfs_lof(i)){
+                    f->eof_passed=0;
+                    f->eof_reached=0;
+                }
                 return 0;
             #endif
             
@@ -23523,9 +23934,7 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         #endif //DEPENDENCY_SCREENIMAGE
         
         void sub__screenclick(int32 x,int32 y, int32 button, int32 passed){
-            
-            if (cloud_app){error(262); return;}
-            
+
             #ifdef QB64_WINDOWS
                 
                 static INPUT input;
@@ -23984,8 +24393,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
         void sub__screenprint(qbs *txt){
             
-            if (cloud_app){error(262); return;}
-            
             static int32 i,s,x,vk,c;
             
             #ifdef QB64_MACOSX
@@ -24411,7 +24818,6 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         
         void sub_files(qbs *str,int32 passed){
             if (new_error) return;
-            if (cloud_app){error(262); return;}
             
             static int32 i,i2,i3;
             static qbs *strz=NULL; if (!strz) strz=qbs_new(0,0);
@@ -24839,6 +25245,9 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             #if defined(QB64_GUI) && defined(QB64_WINDOWS) && defined(QB64_GLUT)
                 while (!window_exists){Sleep(100);} //Wait for window to be created before checking position
                 return glutGet(GLUT_WINDOW_X) - glutGet(GLUT_WINDOW_BORDER_WIDTH);
+            #elif defined(QB64_GUI) && defined(QB64_MACOSX) && defined(QB64_GLUT)
+                while (!window_exists){Sleep(100);} //Wait for window to be created before checking position
+                return glutGet(GLUT_WINDOW_X);
             #endif
             return 0; //if not windows then return 0
         }
@@ -24847,6 +25256,9 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
             #if defined(QB64_GUI) && defined(QB64_WINDOWS) && defined(QB64_GLUT)
                 while (!window_exists){Sleep(100);} //Wait for window to be created before checking position
                 return glutGet(GLUT_WINDOW_Y) - glutGet(GLUT_WINDOW_BORDER_WIDTH) - glutGet(GLUT_WINDOW_HEADER_HEIGHT);
+            #elif defined(QB64_GUI) && defined(QB64_MACOSX) && defined(QB64_GLUT)
+                while (!window_exists){Sleep(100);} //Wait for window to be created before checking position
+                return glutGet(GLUT_WINDOW_Y);
             #endif
             return 0; //if not windows then return 0
         }
@@ -25888,15 +26300,16 @@ void sub_put2(int32 i,int64 offset,void *element,int32 passed){
         int32 func__screenhide(){return -screen_hide;}
         
         void sub__consoletitle(qbs* s){
-            if (new_error) return;
-            static qbs *sz=NULL; if (!sz) sz=qbs_new(0,0);
-            static qbs *cz=NULL; if (!cz){cz=qbs_new(1,0); cz->chr[0]=0;}
-            qbs_set(sz,qbs_add(s,cz));
-            if (console){ if (console_active){
-                #ifdef QB64_WINDOWS
-                    SetConsoleTitle((char*)sz->chr);
-                #endif
-            }}
+            #ifdef QB64_WINDOWS
+                char *title;
+                title = (char *)malloc(s->len + 1);
+                title[s->len] = '\0'; //add NULL terminator
+                memcpy(title, s->chr, s->len);
+                if (console){ if (console_active){
+                    SetConsoleTitle(title);
+                    Sleep(40);
+                }}
+            #endif
         }
         
         
@@ -26696,13 +27109,6 @@ qbs *func__startdir(){
 
 qbs *rootDir=NULL;//the dir moved to when program begins
 
-char *android_dir_downloads=NULL;
-char *android_dir_documents=NULL;
-char *android_dir_pictures=NULL;
-char *android_dir_music=NULL;
-char *android_dir_video=NULL;
-char *android_dir_dcim=NULL;
-
 qbs *func__dir(qbs* context_in){
     
     static qbs *context=NULL;
@@ -26711,10 +27117,6 @@ qbs *func__dir(qbs* context_in){
 	qbs_set(context,qbs_ucase(context_in));
     
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("TEXT"))||qbs_equal(qbs_ucase(context),qbs_new_txt("DOCUMENT"))||qbs_equal(qbs_ucase(context),qbs_new_txt("DOCUMENTS"))||qbs_equal(qbs_ucase(context),qbs_new_txt("MY DOCUMENTS"))){
-		#ifdef QB64_ANDROID
-            mkdir(android_dir_documents,0770);
-			return qbs_new_txt(android_dir_documents);
-        #endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,5,NULL,0,osPath))){ //Documents
@@ -26724,10 +27126,6 @@ qbs *func__dir(qbs* context_in){
     }
 	
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("MUSIC"))||qbs_equal(qbs_ucase(context),qbs_new_txt("AUDIO"))||qbs_equal(qbs_ucase(context),qbs_new_txt("SOUND"))||qbs_equal(qbs_ucase(context),qbs_new_txt("SOUNDS"))||qbs_equal(qbs_ucase(context),qbs_new_txt("MY MUSIC"))){
-		#ifdef QB64_ANDROID
-            mkdir(android_dir_music,0770);
-			return qbs_new_txt(android_dir_music);
-        #endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,13,NULL,0,osPath))){ //Music
@@ -26737,10 +27135,6 @@ qbs *func__dir(qbs* context_in){
     }
     
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("PICTURE"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PICTURES"))||qbs_equal(qbs_ucase(context),qbs_new_txt("IMAGE"))||qbs_equal(qbs_ucase(context),qbs_new_txt("IMAGES"))||qbs_equal(qbs_ucase(context),qbs_new_txt("MY PICTURES"))){
-		#ifdef QB64_ANDROID
-            mkdir(android_dir_pictures,0770);
-			return qbs_new_txt(android_dir_pictures);
-        #endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,39,NULL,0,osPath))){//Pictures
@@ -26750,10 +27144,6 @@ qbs *func__dir(qbs* context_in){
     }
     
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("DCIM"))||qbs_equal(qbs_ucase(context),qbs_new_txt("CAMERA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("CAMERA ROLL"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PHOTO"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PHOTOS"))){
-		#ifdef QB64_ANDROID
-            mkdir(android_dir_dcim,0770);
-			return qbs_new_txt(android_dir_dcim);
-        #endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,39,NULL,0,osPath))){//Pictures
@@ -26763,10 +27153,6 @@ qbs *func__dir(qbs* context_in){
     }
     
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("MOVIE"))||qbs_equal(qbs_ucase(context),qbs_new_txt("MOVIES"))||qbs_equal(qbs_ucase(context),qbs_new_txt("VIDEO"))||qbs_equal(qbs_ucase(context),qbs_new_txt("VIDEOS"))||qbs_equal(qbs_ucase(context),qbs_new_txt("MY VIDEOS"))){
-		#ifdef QB64_ANDROID
-			mkdir(android_dir_video,0770);
-			return qbs_new_txt(android_dir_video);
-        #endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,14,NULL,0,osPath))){ //Videos
@@ -26776,10 +27162,6 @@ qbs *func__dir(qbs* context_in){
     }
     
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("DOWNLOAD"))||qbs_equal(qbs_ucase(context),qbs_new_txt("DOWNLOADS"))){
-		#ifdef QB64_ANDROID
-            mkdir(android_dir_downloads,0770);
-			return qbs_new_txt(android_dir_downloads);
-        #endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,0x0028,NULL,0,osPath))){//user folder
@@ -26791,10 +27173,6 @@ qbs *func__dir(qbs* context_in){
     }
     
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("DESKTOP"))){
-		#ifdef QB64_ANDROID
-			mkdir(android_dir_downloads,0770);
-			return qbs_new_txt(android_dir_downloads);
-        #endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,0,NULL,0,osPath))){ //Desktop
@@ -26804,9 +27182,6 @@ qbs *func__dir(qbs* context_in){
     }
     
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("APPDATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("APPLICATION DATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAM DATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("DATA"))){
-		#ifdef QB64_ANDROID			
-			return qbs_add(rootDir,qbs_new_txt("/"));
-        #endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,0x001a,NULL,0,osPath))){ //CSIDL_APPDATA (%APPDATA%)
@@ -26816,14 +27191,42 @@ qbs *func__dir(qbs* context_in){
     }
     
 	if (qbs_equal(qbs_ucase(context),qbs_new_txt("LOCALAPPDATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("LOCAL APPLICATION DATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("LOCAL PROGRAM DATA"))||qbs_equal(qbs_ucase(context),qbs_new_txt("LOCAL DATA"))){
-		#ifdef QB64_ANDROID
-			return qbs_add(rootDir,qbs_new_txt("/"));
-        #endif
 		#ifdef QB64_WINDOWS
 			CHAR osPath[MAX_PATH];
 			if(SUCCEEDED(SHGetFolderPathA(NULL,0x001c,NULL,0,osPath))){ //CSIDL_LOCAL_APPDATA (%LOCALAPPDATA%)
 				return qbs_add(qbs_new_txt(osPath),qbs_new_txt("\\"));
             }
+        #endif
+    }
+	
+		if (qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAMFILES"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAM FILES"))){
+		#ifdef QB64_WINDOWS
+			CHAR osPath[MAX_PATH];
+			if(SUCCEEDED(SHGetFolderPathA(NULL,0x0026,NULL,0,osPath))){ //CSIDL_PROGRAM_FILES (%PROGRAMFILES%)
+				return qbs_add(qbs_new_txt(osPath),qbs_new_txt("\\"));
+            }
+        #endif
+    }
+	
+	if (qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAMFILESX86"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAMFILES X86"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAM FILES X86"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAM FILES 86"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAM FILES (X86)"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAMFILES (X86)"))||qbs_equal(qbs_ucase(context),qbs_new_txt("PROGRAM FILES(X86)"))){
+		#ifdef QB64_WINDOWS && _WIN64
+			CHAR osPath[MAX_PATH];
+			if(SUCCEEDED(SHGetFolderPathA(NULL,0x002a,NULL,0,osPath))){ //CSIDL_PROGRAM_FILES (%PROGRAMFILES(X86)%)
+				return qbs_add(qbs_new_txt(osPath),qbs_new_txt("\\"));
+            }
+        #endif
+    }
+	
+	if (qbs_equal(qbs_ucase(context),qbs_new_txt("TEMP"))||qbs_equal(qbs_ucase(context),qbs_new_txt("TEMP FILES"))){
+		#ifdef QB64_WINDOWS
+			CHAR osPath[MAX_PATH+1];
+			DWORD pathlen;
+			pathlen = GetTempPathA(261, osPath); //%TEMP%
+			char path[pathlen];
+			memcpy(path, &osPath, pathlen);
+			if (pathlen > 0){
+				return qbs_new_txt(path);
+			}
         #endif
     }
     
@@ -26835,10 +27238,6 @@ qbs *func__dir(qbs* context_in){
         }
 		return qbs_new_txt(".\\");//current location
         #else
-		#ifdef QB64_ANDROID
-            mkdir(android_dir_downloads,0770);
-			return qbs_new_txt(android_dir_downloads);
-        #endif
 		return qbs_new_txt("./");//current location
     #endif
 }
@@ -26912,9 +27311,7 @@ int main( int argc, char* argv[] ){
     this_mouse_message_queue->lastIndex=65535;
     this_mouse_message_queue->queue=(mouse_message*)calloc(1,sizeof(mouse_message)*(this_mouse_message_queue->lastIndex+1));
     
-    if (!cloud_app){
-        snd_init();
-    }
+    snd_init();
     
     
     
@@ -26958,19 +27355,6 @@ int main( int argc, char* argv[] ){
     ontimer[0].id=0;
     ontimer[0].state=0;
     ontimer[0].active=0;
-    
-    
-    
-    
-    
-    
-    
-    {
-        /* For bounds check on numeric ENVIRON$ */
-        char **p = envp;
-        while (*p++);
-        environ_count = p - envp;
-    }
     
     fontwidth[8]=8; fontwidth[14]=8; fontwidth[16]=8;
     fontheight[8]=8; fontheight[14]=14; fontheight[16]=16;
@@ -27651,123 +28035,9 @@ void MAIN_LOOP(){
         goto end_program;
     }
     
-    if (!cloud_app){
-        snd_mainloop();
-    }
+    snd_mainloop();
     
     
-    
-    //check for input event (qloud_next_input_index)
-    if (cloud_app){
-        
-        //***should be replaced with a timer based check (or removed)***
-        //static int qloud_input_frame_count=0;
-        //qloud_input_frame_count++;
-        //if (qloud_input_frame_count>8) qloud_input_frame_count=1;
-        //if (qloud_input_frame_count==1){//~8 checks per second (would be ~64 without this check)
-        
-        qloud_input_recheck:
-        
-        FILE * pFile;
-        long lSize;
-        char * buffer;
-        size_t result;
-        pFile = NULL;
-        
-        static char filename[] = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-        sprintf(filename, "input_%d.txt\0", qloud_next_input_index);
-        pFile = fopen ( filename , "rb" );
-        if (pFile!=NULL) {
-            // obtain file size:
-            fseek (pFile , 0 , SEEK_END);
-            lSize = ftell (pFile);
-            rewind (pFile);
-            if (lSize>0){
-                // allocate memory to contain the whole file:
-                buffer = (char*) calloc (1,sizeof(char)*lSize+1);
-                if (buffer != NULL) {
-                    // copy the file into the buffer:
-                    result = fread (buffer,1,lSize,pFile);
-                    if (result == lSize) {
-                        
-                        if (buffer[lSize-1]==42){ //"*" terminator
-                            
-                            int start,stop;
-                            start=0;
-                            
-                            int bi;
-                            
-                            nextcommand:
-                            
-                            for (bi=start;bi<lSize;bi++){
-                                if (buffer[bi]==0) goto doneall;
-                                if (buffer[bi]==58) goto gotcolon;
-                            }
-                            goto doneall;
-                            gotcolon:
-                            
-                            int code;
-                            int v1,v2;
-                            
-                            
-                            code=buffer[start];
-                            start++;
-                            
-                            #ifdef QB64_GUI
-                                
-                                if (code==77){//M (mousemove)
-                                    sscanf (buffer+start,"%d,%d",&v1,&v2);          
-                                    GLUT_MOTION_FUNC(v1,v2);
-                                }//M
-                                
-                                if (code==76){//L (left mouse button)
-                                    sscanf (buffer+start,"%d,%d",&v1,&v2);
-                                    GLUT_MouseButton_Down(GLUT_LEFT_BUTTON,v1,v2);
-                                }
-                                if (code==108){//l (left mouse button up)
-                                    sscanf (buffer+start,"%d,%d",&v1,&v2);
-                                    GLUT_MouseButton_Up(GLUT_LEFT_BUTTON,v1,v2);
-                                }
-                                
-                                
-                                if (code==68){//D (key down)
-                                    sscanf (buffer+start,"%d",&v1);
-                                    keydown_vk(v1);
-                                }//D
-                                if (code==85){//U (key up)
-                                    sscanf (buffer+start,"%d",&v1);
-                                    keyup_vk(v1);
-                                }//U
-                                
-                            #endif
-                            
-                            start=bi+1;
-                            goto nextcommand;
-                            
-                            doneall:
-                            
-                            qloud_next_input_index++;
-                            
-                            free (buffer);
-                            fclose (pFile);
-                            
-                            goto qloud_input_recheck;
-                            
-                        }//* terminator
-                        
-                    }//read correct number of bytes
-                    
-                    free (buffer);
-                }//could allocate buffer
-            }//file has content
-            fclose (pFile);
-        }//not null
-        
-    //}//qloud_input_frame_count
-    
-    
-}//qloud app
-
 
 
 update^=1;//toggle update
@@ -27862,18 +28132,7 @@ sub_close(NULL,0);
     QB64_GAMEPAD_SHUTDOWN();
 #endif
 
-if (!cloud_app){
-    snd_un_init();
-}
-
-if (cloud_app){
-    FILE *f = fopen("..\\final.txt", "w");
-    if (f != NULL){        
-        fprintf(f, "Program exited normally");
-        fclose(f);
-    }
-    exit(0);//should log error
-}
+snd_un_init();
 
 exit(exit_code);
 }
@@ -27920,19 +28179,13 @@ void display(){
     uint32 *pixel;
     
     static uint8 BGRA_to_RGBA;//set to 1 to invert the output to RGBA
-    BGRA_to_RGBA=0;//default is 0 but 1 is fun
-    if (cloud_app){ //more converters handle the RGBA data format than BGRA which is dumped
-        BGRA_to_RGBA=1;
-    }
-    
+    BGRA_to_RGBA=0;//default is 0 but 1 is fun    
     
     
     
     if (lock_display==1){lock_display=2; Sleep(0);}
     
-    if (cloud_app==0){
-        if (screen_hide) {display_called=1; return;}
-    }
+    if (screen_hide) {display_called=1; return;}
     
     if (lock_display==0){
         
@@ -27964,17 +28217,6 @@ void display(){
         display_frame[frame_i].order=display_frame_order_next++;
         
         
-        
-        
-        if (cloud_app){
-            static double cloud_timer_value=0;
-            static double cloud_timer_now=0;
-            cloud_timer_now=func_timer(0.001,1);
-            if (fabs(cloud_timer_value-cloud_timer_now)<0.25){
-                goto cloud_skip_frame;
-            }
-            cloud_timer_value=cloud_timer_now;
-        }
         
         
         //validate display_page
@@ -28073,19 +28315,6 @@ void display(){
             //Note: frame is a global variable incremented ~32 times per second [2013]
             if (frame&8) show_cursor=1; else show_cursor=0;//[2013]halved cursor blink rate from 8 changes p/sec -> 4 changes p/sec
             if (frame&8) show_flashing=1; else show_flashing=0;
-            if (cloud_app){
-                static double cloud_timer_flash;
-                cloud_timer_flash=func_timer(0.001,1)/2.0;
-                static int64 cloud_timer_flash_int;
-                cloud_timer_flash_int=cloud_timer_flash;
-                if (cloud_timer_flash_int&1) show_cursor=1; else show_cursor=0;
-                if (cloud_timer_flash_int&1) show_flashing=1; else show_flashing=0;
-                //static int qloud_show_cursor=0;
-                //qloud_show_cursor++; if (qloud_show_cursor&1) show_cursor=1; else show_cursor=0;
-            }
-            
-            
-            
             
             //calculate cursor position (base 0)
             cx=display_page->cursor_x-1; cy=display_page->cursor_y-1;
@@ -28592,60 +28821,10 @@ void display(){
         //if (!display_frame_begin) display_frame_begin=frame_i;
         
         display_frame[frame_i].state=DISPLAY_FRAME_STATE__READY; last_hardware_display_frame_order=display_frame[frame_i].order;
-        
-        
-        if (cloud_app){
-            if (cloud_chdir_complete){
-                
-                #ifdef QB64_WINDOWS
-                    /*
-                        static FILE *cloud_screenshot_file_handle=NULL;
-                        if (cloud_screenshot_file_handle==NULL) cloud_screenshot_file_handle=fopen("output_image.raw","w+b");
-                        fseek ( cloud_screenshot_file_handle , 0 , SEEK_SET );//reset file pointer to beginning of file
-                        static int32 w,h;
-                        w=display_frame[frame_i].w;
-                        h=display_frame[frame_i].h;
-                        static int32 wh[2];
-                        wh[0]=w;
-                        wh[1]=h;
-                        fwrite (&wh[0] , 8, 1, cloud_screenshot_file_handle);
-                        fwrite (display_frame[frame_i].bgra , w*h*4, 1, cloud_screenshot_file_handle);
-                        fflush(cloud_screenshot_file_handle);
-                    */
-                    
-                    static HANDLE cloud_screenshot_file_handle=NULL;
-                    if (cloud_screenshot_file_handle==NULL) cloud_screenshot_file_handle=CreateFile("output_image.raw", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, 
-                    /*FILE_ATTRIBUTE_NORMAL*/FILE_FLAG_WRITE_THROUGH, NULL);
-                    
-                    
-                    //fseek ( cloud_screenshot_file_handle , 0 , SEEK_SET );//reset file pointer to beginning of file
-                    
-                    
-                    static int32 w,h,index=0;
-                    w=display_frame[frame_i].w;
-                    h=display_frame[frame_i].h;
-                    index++;
-                    static int32 header[3];
-                    header[0]=index;
-                    header[1]=w;
-                    header[2]=h;
-                    
-                    SetFilePointer(cloud_screenshot_file_handle,12,0,FILE_BEGIN);
-                    WriteFile(cloud_screenshot_file_handle, display_frame[frame_i].bgra, w*h*4, NULL, NULL);
-                    FlushFileBuffers(cloud_screenshot_file_handle);
-                    SetFilePointer(cloud_screenshot_file_handle,0,0,FILE_BEGIN);
-                    WriteFile(cloud_screenshot_file_handle, &header[0], 12, NULL, NULL);
-                    
-                    
-                    //CloseHandle(cloud_screenshot_file_handle);
-                    
-                #endif
-            }
-        }
+
         
         no_new_frame:;
         display_page_invalid:;
-        cloud_skip_frame:
         
         
         //cancel frame if not built
@@ -29750,5 +29929,173 @@ void reinit_glut_callbacks(){
             glutMouseWheelFunc(GLUT_MOUSEWHEEL_FUNC);
         #endif
         
+    #endif
+}
+
+int32 func__capslock(){
+    #ifdef QB64_WINDOWS
+    return -GetKeyState(VK_CAPITAL);
+    #endif
+    return 0;
+}
+
+int32 func__scrolllock(){
+    #ifdef QB64_WINDOWS
+    return -GetKeyState(VK_SCROLL);
+    #endif
+    return 0;
+}
+
+int32 func__numlock(){
+    #ifdef QB64_WINDOWS
+    return -GetKeyState(VK_NUMLOCK);
+    #endif
+    return 0;
+}
+
+void toggle_lock_key(int32 key_code){
+    #ifdef QB64_WINDOWS
+    keybd_event (key_code, 0x45, 1, 0);
+    keybd_event (key_code, 0x45, 3, 0);
+    #endif
+}
+
+void sub__capslock(int32 options){
+    #ifdef QB64_WINDOWS
+    //VK_CAPITAL
+    int32 currentState = func__capslock();
+    switch(options){
+        case 1: //ON
+            if (currentState==-1) return;
+            break;
+        case 2: //OFF
+            if (currentState==0) return;
+            break;
+    }
+    // _TOGGLE:
+    toggle_lock_key(VK_CAPITAL);
+    #endif
+}
+
+void sub__scrolllock(int32 options){
+    #ifdef QB64_WINDOWS
+    //VK_SCROLL
+    int32 currentState = func__scrolllock();
+    switch(options){
+        case 1: //ON
+            if (currentState==-1) return;
+            break;
+        case 2: //OFF
+            if (currentState==0) return;
+            break;
+    }
+    // _TOGGLE:
+    toggle_lock_key(VK_SCROLL);
+    #endif
+}
+
+void sub__numlock(int32 options){
+    #ifdef QB64_WINDOWS
+    //VK_NUMLOCK
+    int32 currentState = func__numlock();
+    switch(options){
+        case 1: //ON
+            if (currentState==-1) return;
+            break;
+        case 2: //OFF
+            if (currentState==0) return;
+            break;
+    }
+    // _TOGGLE:
+    toggle_lock_key(VK_NUMLOCK);
+    #endif
+}
+
+void sub__consolefont(qbs* FontName, int FontSize){
+    #ifdef QB64_WINDOWS
+	#if WINVER >= 0x0600 //this block is not compatible with XP
+    SECURITY_ATTRIBUTES SecAttribs = {sizeof(SECURITY_ATTRIBUTES), 0, 1};
+    HANDLE cl_conout = CreateFileA("CONOUT$", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, & SecAttribs, OPEN_EXISTING, 0, 0);
+    static int OneTimePause;
+    if (!OneTimePause){ // a slight delay so the console can be properly created and registered with Windows, before we try and change fonts with it.       
+        Sleep(500); 
+        OneTimePause=1; //after the first pause, the console should be created, so we don't need any more delays in the future.
+    }
+    CONSOLE_FONT_INFOEX info = {0};
+    info.cbSize       = sizeof(info);
+    info.dwFontSize.Y = FontSize; // leave X as zero
+    info.FontWeight   = FW_NORMAL;
+    if (FontName->len>0){ //if we don't pass a font name, don't change the existing one.
+        const size_t cSize = FontName->len;
+        wchar_t* wc = new wchar_t[32];
+        mbstowcs (wc, (char *)FontName->chr, cSize);
+        wcscpy(info.FaceName, wc);
+        delete[] wc;
+    }
+
+    SetCurrentConsoleFontEx(cl_conout, NULL, &info);
+    #endif
+	#endif
+}
+
+
+void sub__console_cursor(int32 visible, int32 cursorsize, int32 passed){
+    #ifdef QB64_WINDOWS
+    HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO info;
+    
+    GetConsoleCursorInfo(consoleHandle, &info); //get the original info, so we reuse it, unless the user called for a change.
+
+    if (visible==1)info.bVisible = TRUE; //cursor is set to show
+    if (visible==2)info.bVisible = FALSE; //set to hide
+    if (passed&&cursorsize>=0&&cursorsize<=100)info.dwSize = cursorsize;  //the user passed the cursor size, of a suitable size
+        
+    SetConsoleCursorInfo(consoleHandle, &info);
+    #endif
+}
+
+int32 func__getconsoleinput(){
+    #ifdef QB64_WINDOWS
+    HANDLE hStdin = GetStdHandle (STD_INPUT_HANDLE);
+    INPUT_RECORD irInputRecord;
+    DWORD dwEventsRead, fdwMode, dwMode;
+    CONSOLE_SCREEN_BUFFER_INFO cl_bufinfo;
+ 
+    GetConsoleMode(hStdin, (LPDWORD)&dwMode);
+    fdwMode = ENABLE_EXTENDED_FLAGS;
+    SetConsoleMode(hStdin, fdwMode);
+    fdwMode = dwMode | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT;
+    SetConsoleMode(hStdin, fdwMode);
+
+    ReadConsoleInputA (hStdin, &irInputRecord, 1, &dwEventsRead);
+    switch(irInputRecord.EventType){
+        case KEY_EVENT: //keyboard input
+            consolekey = irInputRecord.Event.KeyEvent.wVirtualScanCode;
+            if (!irInputRecord.Event.KeyEvent.bKeyDown) consolekey = -consolekey; //positive/negative return of scan codes.
+            return 1;
+        case MOUSE_EVENT: //mouse input
+            consolemousex = irInputRecord.Event.MouseEvent.dwMousePosition.X + 1;
+            consolemousey = irInputRecord.Event.MouseEvent.dwMousePosition.Y - cl_bufinfo.srWindow.Top + 1; 
+            consolebutton = irInputRecord.Event.MouseEvent.dwButtonState; //button state for all buttons
+            //SetConsoleMode(hStdin, dwMode);
+            return 2;
+    }
+    #endif
+    return 0; //in case it's some other odd input
+}
+
+int32 func__cinp (int32 toggle, int32 passed){
+    #ifdef QB64_WINDOWS
+        int32 temp = consolekey;
+        consolekey = 0; //reset the console key, now that we've read it
+        if (passed==0)toggle=1; //default return of positive/negative scan code values
+        if (toggle) {
+            return temp;
+        }else{
+            if (temp>=0)return temp;
+            return -temp + 128;
+        }
+    #else
+        return 0;
     #endif
 }
